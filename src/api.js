@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    "https://eltham-konnect-backend-c2sf.onrender.com",
 });
 
 api.interceptors.request.use((config) => {

@@ -1,6 +1,50 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../api";
 
 function CustomerSignup() {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSignup = async () => {
+    try {
+      if (!formData.name || !formData.email || !formData.phone || !formData.password) {
+        alert("Please complete all signup fields.");
+        return;
+      }
+
+      setLoading(true);
+
+      const res = await api.post("/api/customer-auth/signup", formData);
+
+      localStorage.setItem("ek_customer_token", res.data.token);
+      localStorage.setItem("ek_customer_data", JSON.stringify(res.data.data));
+
+      alert(`Account created successfully. Your EKON ID is ${res.data.data.ekonId}`);
+      navigate("/policy-acceptance");
+    } catch (error) {
+      console.error("Customer signup error:", error);
+      alert(error?.response?.data?.message || "Customer signup failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -24,30 +68,60 @@ function CustomerSignup() {
       >
         <h1 style={{ marginTop: 0, color: "#1f3552" }}>Customer Signup</h1>
         <p style={{ color: "#64748b" }}>
-          Signup page placeholder for new Eltham Konnect customers.
+          Create your Eltham Konnect customer portal account.
         </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
-          <input type="text" placeholder="Full Name" style={{ padding: "12px" }} />
-          <input type="email" placeholder="Email" style={{ padding: "12px" }} />
-          <input type="text" placeholder="Phone" style={{ padding: "12px" }} />
-          <input type="password" placeholder="Password" style={{ padding: "12px" }} />
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            style={{ padding: "12px" }}
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            style={{ padding: "12px" }}
+          />
+          <input
+            type="text"
+            name="phone"
+            placeholder="Phone"
+            value={formData.phone}
+            onChange={handleChange}
+            style={{ padding: "12px" }}
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            style={{ padding: "12px" }}
+          />
         </div>
 
         <button
+          onClick={handleSignup}
+          disabled={loading}
           style={{
             width: "100%",
             marginTop: "16px",
             padding: "12px",
             borderRadius: "10px",
             border: "none",
-            backgroundColor: "#16a34a",
+            backgroundColor: loading ? "#94a3b8" : "#16a34a",
             color: "white",
             fontWeight: "bold",
-            cursor: "pointer",
+            cursor: loading ? "not-allowed" : "pointer",
           }}
         >
-          Create Account
+          {loading ? "Creating Account..." : "Create Account"}
         </button>
 
         <p style={{ marginTop: "16px" }}>
