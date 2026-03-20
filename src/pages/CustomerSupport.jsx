@@ -382,7 +382,7 @@ function CustomerSupport() {
                         <td>
                           {ticket.attachmentFilePath ? (
                             <a
-                              href={`http://localhost:5000${ticket.attachmentFilePath}`}
+                              href={`https://eltham-konnect-backend-c2sf.onrender.com${ticket.attachmentFilePath}`}
                               target="_blank"
                               rel="noreferrer"
                             >
@@ -458,7 +458,7 @@ function CustomerSupport() {
 
                                   {ticket.attachmentFilePath ? (
                                     <a
-                                      href={`http://localhost:5000${ticket.attachmentFilePath}`}
+                                      href={`https://eltham-konnect-backend-c2sf.onrender.com${ticket.attachmentFilePath}`}
                                       target="_blank"
                                       rel="noreferrer"
                                     >
@@ -501,7 +501,7 @@ function CustomerSupport() {
 
                                     {reply.attachmentFilePath ? (
                                       <a
-                                        href={`http://localhost:5000${reply.attachmentFilePath}`}
+                                        href={`https://eltham-konnect-backend-c2sf.onrender.com${reply.attachmentFilePath}`}
                                         target="_blank"
                                         rel="noreferrer"
                                       >

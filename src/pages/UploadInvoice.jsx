@@ -207,7 +207,7 @@ function UploadInvoice() {
                     <td>{upload.invoiceNumber || ""}</td>
                     <td>
                       <a
-                        href={`http://localhost:5000${upload.filePath}`}
+                        href={`https://eltham-konnect-backend-c2sf.onrender.com${upload.filePath}`}
                         target="_blank"
                         rel="noreferrer"
                       >
