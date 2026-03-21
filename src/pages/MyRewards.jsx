@@ -15,19 +15,32 @@ function MyRewards() {
     try {
       setLoading(true);
 
-      const customerData =
+      const savedCustomer =
         customer || JSON.parse(localStorage.getItem("ek_customer_data") || "null");
 
-      if (!customerData?.ekonId) {
+      if (!savedCustomer?.ekonId) {
         setPointsHistory([]);
+        setCustomer(null);
         return;
       }
 
-      const res = await api.get("/api/customers/points-history");
-      const allRecords = res.data.data || [];
+      const [profileRes, historyRes] = await Promise.all([
+        api.get("/api/customer-auth/me"),
+        api.get("/api/customers/points-history"),
+      ]);
+
+      const freshCustomer = profileRes.data?.data || null;
+      const allRecords = historyRes.data?.data || [];
+
+      if (freshCustomer) {
+        setCustomer(freshCustomer);
+        localStorage.setItem("ek_customer_data", JSON.stringify(freshCustomer));
+      }
+
+      const ekonIdToUse = freshCustomer?.ekonId || savedCustomer.ekonId;
 
       const customerRecords = allRecords.filter(
-        (record) => record.customerEkonId === customerData.ekonId
+        (record) => record.customerEkonId === ekonIdToUse
       );
 
       setPointsHistory(customerRecords);
