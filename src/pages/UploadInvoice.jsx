@@ -33,7 +33,9 @@ function UploadInvoice() {
       setUploads(uploadsRes.data.data || []);
     } catch (error) {
       console.error("Error loading invoice upload page:", error);
-      alert(error?.response?.data?.message || "Could not load invoice upload data.");
+      alert(
+        error?.response?.data?.message || "Could not load invoice upload data."
+      );
     }
   };
 
@@ -52,6 +54,11 @@ function UploadInvoice() {
 
   const handleUpload = async () => {
     try {
+      if (!formData.trackingNumber) {
+        alert("Please select a package tracking number.");
+        return;
+      }
+
       if (!selectedFile) {
         alert("Please choose an invoice file.");
         return;
@@ -69,7 +76,10 @@ function UploadInvoice() {
         },
       });
 
-      alert(res.data.message);
+      alert(
+        res.data.message ||
+          `Invoice uploaded and connected to package ${formData.trackingNumber} successfully`
+      );
 
       setFormData({
         trackingNumber: "",
@@ -81,7 +91,7 @@ function UploadInvoice() {
       const fileInput = document.getElementById("customer-invoice-file");
       if (fileInput) fileInput.value = "";
 
-      fetchPageData();
+      await fetchPageData();
     } catch (error) {
       console.error("Error uploading invoice:", error);
       alert(error?.response?.data?.message || "Could not upload invoice.");
@@ -111,7 +121,8 @@ function UploadInvoice() {
       <div style={{ ...cardStyle, marginBottom: "20px" }}>
         <h2 style={{ marginTop: 0 }}>Upload Your Package Invoice</h2>
         <p style={{ color: "#64748b" }}>
-          Upload your package invoice as soon as your item reaches our warehouse to help prevent customs clearance delays.
+          Upload your package invoice as soon as your item reaches our warehouse
+          to help prevent customs clearance delays.
         </p>
 
         <div
@@ -131,6 +142,7 @@ function UploadInvoice() {
             {packages.map((pkg) => (
               <option key={pkg._id} value={pkg.trackingNumber}>
                 {pkg.trackingNumber} - {pkg.status}
+                {pkg.customerInvoiceUploaded ? " - Invoice Uploaded" : ""}
               </option>
             ))}
           </select>
@@ -180,6 +192,55 @@ function UploadInvoice() {
         >
           Upload Invoice
         </button>
+      </div>
+
+      <div style={{ ...cardStyle, marginBottom: "20px" }}>
+        <h2 style={{ marginTop: 0 }}>My Packages Invoice Status</h2>
+
+        <div style={{ overflowX: "auto" }}>
+          <table border="1" cellPadding="10" style={{ width: "100%", minWidth: "1100px" }}>
+            <thead>
+              <tr>
+                <th>Tracking Number</th>
+                <th>Status</th>
+                <th>Invoice Uploaded</th>
+                <th>Invoice Number</th>
+                <th>Uploaded At</th>
+                <th>File</th>
+              </tr>
+            </thead>
+            <tbody>
+              {packages.length > 0 ? (
+                packages.map((pkg) => (
+                  <tr key={pkg._id}>
+                    <td>{pkg.trackingNumber}</td>
+                    <td>{pkg.status}</td>
+                    <td>{pkg.customerInvoiceUploaded ? "Yes" : "No"}</td>
+                    <td>{pkg.customerInvoiceNumber || ""}</td>
+                    <td>{formatDate(pkg.customerInvoiceUploadedAt)}</td>
+                    <td>
+                      {pkg.customerInvoiceFilePath ? (
+                        <a
+                          href={`https://eltham-konnect-backend-c2sf.onrender.com${pkg.customerInvoiceFilePath}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View File
+                        </a>
+                      ) : (
+                        ""
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6">No package records found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div style={cardStyle}>
