@@ -13,17 +13,33 @@ function CustomerDashboard({ customer }) {
     try {
       setLoading(true);
 
-      const [packagesRes, invoicesRes, notificationsRes, ticketsRes] = await Promise.all([
+      const results = await Promise.allSettled([
         api.get("/api/packages"),
         api.get("/api/invoices"),
         api.get("/api/customer-notifications/mine"),
         api.get("/api/support-tickets"),
       ]);
 
-      const allPackages = packagesRes.data.data || [];
-      const allInvoices = invoicesRes.data.data || [];
-      const customerNotifications = notificationsRes.data.data || [];
-      const customerTickets = ticketsRes.data.data || [];
+      const packagesRes =
+        results[0].status === "fulfilled" ? results[0].value : null;
+      const invoicesRes =
+        results[1].status === "fulfilled" ? results[1].value : null;
+      const notificationsRes =
+        results[2].status === "fulfilled" ? results[2].value : null;
+      const ticketsRes =
+        results[3].status === "fulfilled" ? results[3].value : null;
+
+      if (results[2].status === "rejected") {
+        console.error(
+          "Customer notifications request failed:",
+          results[2].reason
+        );
+      }
+
+      const allPackages = packagesRes?.data?.data || [];
+      const allInvoices = invoicesRes?.data?.data || [];
+      const customerNotifications = notificationsRes?.data?.data || [];
+      const customerTickets = ticketsRes?.data?.data || [];
 
       const customerPackages = allPackages.filter(
         (pkg) => pkg.customerEkonId === customer.ekonId
