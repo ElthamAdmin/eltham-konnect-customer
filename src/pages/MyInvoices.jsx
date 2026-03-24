@@ -116,7 +116,9 @@ function MyInvoices() {
       return;
     }
 
-    alert(`Payment link has not been added yet for invoice ${invoice.invoiceNumber}. Please contact Eltham Konnect if needed.`);
+    alert(
+      `Payment link has not been added yet for invoice ${invoice.invoiceNumber}. Please contact Eltham Konnect if needed.`
+    );
   };
 
   const cardStyle = {
@@ -158,164 +160,173 @@ function MyInvoices() {
             borderRadius: "6px",
             cursor: "pointer",
             fontWeight: "bold",
+            width: "100%",
+            maxWidth: "160px",
           }}
         >
           Refresh
         </button>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "20px",
-          marginBottom: "24px",
-        }}
-      >
+      {/* SUMMARY */}
+      <div className="invoice-summary">
         <div style={metricCardStyle}>
-          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#1f3552" }}>
-            {summary.totalInvoices}
-          </h2>
-          <p style={{ fontWeight: "bold", color: "#334155" }}>Total Invoices</p>
+          <h2>{summary.totalInvoices}</h2>
+          <p>Total Invoices</p>
         </div>
 
         <div style={metricCardStyle}>
-          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#dc2626" }}>
-            {summary.unpaidInvoices}
-          </h2>
-          <p style={{ fontWeight: "bold", color: "#334155" }}>Unpaid Invoices</p>
+          <h2 style={{ color: "#dc2626" }}>{summary.unpaidInvoices}</h2>
+          <p>Unpaid</p>
         </div>
 
         <div style={metricCardStyle}>
-          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#16a34a" }}>
-            {summary.paidInvoices}
-          </h2>
-          <p style={{ fontWeight: "bold", color: "#334155" }}>Paid Invoices</p>
+          <h2 style={{ color: "#16a34a" }}>{summary.paidInvoices}</h2>
+          <p>Paid</p>
         </div>
 
         <div style={metricCardStyle}>
-          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#0B3D91" }}>
+          <h2 style={{ color: "#0B3D91" }}>
             {formatCurrency(summary.outstandingBalance)}
           </h2>
-          <p style={{ fontWeight: "bold", color: "#334155" }}>
-            Outstanding Balance
-          </p>
+          <p>Outstanding</p>
         </div>
       </div>
 
+      {/* SEARCH */}
       <div style={{ ...cardStyle, marginBottom: "20px" }}>
-        <h2 style={{ marginTop: 0 }}>Search & Filter</h2>
+        <h2>Search & Filter</h2>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr",
-            gap: "15px",
-          }}
-        >
+        <div className="invoice-filter">
           <input
             type="text"
-            placeholder="Search by invoice number or status"
+            placeholder="Search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ padding: "10px" }}
           />
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            style={{ padding: "10px" }}
           >
-            <option value="All">All Statuses</option>
+            <option value="All">All</option>
             <option value="Unpaid">Unpaid</option>
             <option value="Paid">Paid</option>
           </select>
         </div>
       </div>
 
+      {/* TABLE */}
       <div style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Invoice Records</h2>
+        <h2>Invoice Records</h2>
 
         {loading ? (
-          <p>Loading your invoices...</p>
+          <p>Loading...</p>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table border="1" cellPadding="10" style={{ minWidth: "1700px", width: "100%" }}>
-              <thead>
-                <tr>
-                  <th>Invoice Number</th>
-                  <th>Customer</th>
-                  <th>Package Count</th>
-                  <th>Subtotal</th>
-                  <th>Points Redeemed</th>
-                  <th>Final Total</th>
-                  <th>Status</th>
-                  <th>Created Date</th>
-                  <th>Paid Date</th>
-                  <th>Payment Link</th>
-                  <th>Pay Now</th>
-                </tr>
-              </thead>
+          <>
+            {/* DESKTOP */}
+            <div className="table-desktop">
+              <table border="1" cellPadding="10" style={{ width: "100%" }}>
+                <thead>
+                  <tr>
+                    <th>Invoice</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Pay</th>
+                  </tr>
+                </thead>
 
-              <tbody>
-                {filteredInvoices.length > 0 ? (
-                  filteredInvoices.map((inv, index) => (
-                    <tr key={inv._id || index}>
+                <tbody>
+                  {filteredInvoices.map((inv) => (
+                    <tr key={inv._id}>
                       <td>{inv.invoiceNumber}</td>
                       <td>{inv.customerName}</td>
-                      <td>{inv.packageCount}</td>
-                      <td>{formatCurrency(inv.subtotal)}</td>
-                      <td>{Number(inv.pointsRedeemed || 0).toLocaleString()}</td>
                       <td>{formatCurrency(inv.finalTotal)}</td>
                       <td>{getStatusBadge(inv.status)}</td>
-                      <td>{formatDate(inv.createdAt)}</td>
-                      <td>{inv.paidDate ? formatDate(inv.paidDate) : "Not paid yet"}</td>
                       <td>
-                        {inv.paymentLink ? (
-                          <span style={{ color: "#16a34a", fontWeight: "bold" }}>
-                            Link Added
-                          </span>
-                        ) : (
-                          <span style={{ color: "#dc2626", fontWeight: "bold" }}>
-                            Not Added Yet
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        {inv.status === "Unpaid" ? (
+                        {inv.status === "Unpaid" && (
                           <button
                             onClick={() => handlePayNow(inv)}
                             disabled={!inv.paymentLink}
-                            style={{
-                              backgroundColor: !inv.paymentLink ? "#999" : "#0B3D91",
-                              color: "white",
-                              border: "none",
-                              padding: "6px 12px",
-                              borderRadius: "4px",
-                              cursor: !inv.paymentLink ? "not-allowed" : "pointer",
-                              fontWeight: "bold",
-                            }}
                           >
-                            Pay Now
+                            Pay
                           </button>
-                        ) : (
-                          <span style={{ color: "#16a34a", fontWeight: "bold" }}>
-                            Paid
-                          </span>
                         )}
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="11">No invoices found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* MOBILE */}
+            <div className="table-mobile">
+              {filteredInvoices.map((inv) => (
+                <div key={inv._id} className="mobile-card">
+                  <div><strong>{inv.invoiceNumber}</strong></div>
+                  <div>{formatCurrency(inv.finalTotal)}</div>
+                  <div>{getStatusBadge(inv.status)}</div>
+
+                  {inv.status === "Unpaid" && (
+                    <button
+                      onClick={() => handlePayNow(inv)}
+                      disabled={!inv.paymentLink}
+                    >
+                      Pay Now
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
+
+      {/* CSS */}
+      <style>{`
+        .invoice-summary {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 20px;
+          margin-bottom: 20px;
+        }
+
+        .invoice-filter {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 10px;
+        }
+
+        .table-mobile {
+          display: none;
+        }
+
+        .mobile-card {
+          border: 1px solid #ddd;
+          padding: 12px;
+          margin-bottom: 10px;
+          border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+          .invoice-summary {
+            grid-template-columns: 1fr;
+          }
+
+          .invoice-filter {
+            grid-template-columns: 1fr;
+          }
+
+          .table-desktop {
+            display: none;
+          }
+
+          .table-mobile {
+            display: block;
+          }
+        }
+      `}</style>
     </div>
   );
 }

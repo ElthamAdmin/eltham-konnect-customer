@@ -33,13 +33,13 @@ function CustomerDashboard({ customer }) {
         (inv) => inv.customerEkonId === customer.ekonId
       );
 
-      const unreadNotifications = customerNotifications.filter((item) => !item.isRead);
+      const unreadItems = customerNotifications.filter((item) => !item.isRead);
 
       setPackages(customerPackages);
       setInvoices(customerInvoices);
       setNotifications(customerNotifications);
       setSupportTickets(customerTickets);
-      setShowNotificationPopup(unreadNotifications.length > 0);
+      setShowNotificationPopup(unreadItems.length > 0);
     } catch (error) {
       console.error("Error loading customer dashboard data:", error);
     } finally {
@@ -97,12 +97,16 @@ function CustomerDashboard({ customer }) {
   );
 
   const customsAlertsCount = useMemo(
-    () => notifications.filter((item) => item.title === "Package Received at Warehouse").length,
+    () =>
+      notifications.filter((item) => item.title === "Package Received at Warehouse")
+        .length,
     [notifications]
   );
 
   const packagesReadyNotifications = useMemo(
-    () => notifications.filter((item) => item.title === "Package Ready for Pickup").length,
+    () =>
+      notifications.filter((item) => item.title === "Package Ready for Pickup")
+        .length,
     [notifications]
   );
 
@@ -166,7 +170,7 @@ function CustomerDashboard({ customer }) {
 
   const cardStyle = {
     backgroundColor: "white",
-    padding: "20px",
+    padding: "18px",
     borderRadius: "10px",
     border: "1px solid #e5e7eb",
   };
@@ -174,9 +178,14 @@ function CustomerDashboard({ customer }) {
   const metricCardStyle = {
     backgroundColor: "white",
     borderRadius: "10px",
-    padding: "20px",
+    padding: "18px",
     border: "1px solid #e5e7eb",
-    minHeight: "130px",
+    minHeight: "120px",
+  };
+
+  const sectionTitleStyle = {
+    marginBottom: "14px",
+    fontSize: "22px",
   };
 
   const notificationBadge = (type) => {
@@ -195,6 +204,7 @@ function CustomerDashboard({ customer }) {
           borderRadius: "6px",
           fontSize: "12px",
           fontWeight: "bold",
+          whiteSpace: "nowrap",
         }}
       >
         {type}
@@ -204,134 +214,156 @@ function CustomerDashboard({ customer }) {
 
   return (
     <div>
-      <h1>Customer Dashboard</h1>
+      <h1 style={{ marginTop: 0, marginBottom: "18px" }}>Customer Dashboard</h1>
 
       {showNotificationPopup && unreadNotifications.length > 0 && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            width: "380px",
-            maxWidth: "90vw",
-            maxHeight: "70vh",
-            overflowY: "auto",
-            backgroundColor: "white",
-            border: "1px solid #e5e7eb",
-            borderRadius: "12px",
-            boxShadow: "0 15px 40px rgba(0,0,0,0.18)",
-            padding: "18px",
-            zIndex: 9999,
-          }}
-        >
+        <>
+          <div
+            onClick={() => setShowNotificationPopup(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.4)",
+              zIndex: 9998,
+            }}
+          />
+
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "12px",
-              gap: "10px",
+              position: "fixed",
+              top: "16px",
+              left: "16px",
+              right: "16px",
+              maxWidth: "420px",
+              width: "auto",
+              margin: "0 auto",
+              maxHeight: "75vh",
+              overflowY: "auto",
+              backgroundColor: "white",
+              border: "1px solid #e5e7eb",
+              borderRadius: "12px",
+              boxShadow: "0 15px 40px rgba(0,0,0,0.18)",
+              padding: "16px",
+              zIndex: 9999,
             }}
           >
-            <h3 style={{ margin: 0 }}>New Notifications</h3>
-            <button
-              onClick={() => setShowNotificationPopup(false)}
+            <div
               style={{
-                border: "none",
-                backgroundColor: "#e2e8f0",
-                borderRadius: "6px",
-                padding: "6px 10px",
-                cursor: "pointer",
-                fontWeight: "bold",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "12px",
+                gap: "10px",
+                flexWrap: "wrap",
               }}
             >
-              Close
-            </button>
-          </div>
-
-          <div style={{ display: "grid", gap: "12px" }}>
-            {unreadNotifications.map((item) => (
-              <div
-                key={item.notificationNumber}
+              <h3 style={{ margin: 0 }}>New Notifications</h3>
+              <button
+                onClick={() => setShowNotificationPopup(false)}
                 style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "10px",
-                  padding: "12px",
-                  backgroundColor: "#f8fafc",
+                  border: "none",
+                  backgroundColor: "#e2e8f0",
+                  borderRadius: "6px",
+                  padding: "8px 10px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
                 }}
               >
+                Close
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gap: "12px" }}>
+              {unreadNotifications.map((item) => (
                 <div
+                  key={item.notificationNumber}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "8px",
-                    flexWrap: "wrap",
-                    marginBottom: "8px",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "10px",
+                    padding: "12px",
+                    backgroundColor: "#f8fafc",
                   }}
                 >
-                  {notificationBadge(item.type)}
-                  <span style={{ fontSize: "12px", color: "#64748b" }}>
-                    {formatDate(item.date || item.createdAt)}
-                  </span>
-                </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: "8px",
+                      flexWrap: "wrap",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    {notificationBadge(item.type)}
+                    <span style={{ fontSize: "12px", color: "#64748b" }}>
+                      {formatDate(item.date || item.createdAt)}
+                    </span>
+                  </div>
 
-                <div style={{ fontWeight: "bold", marginBottom: "6px" }}>
-                  {item.title}
-                </div>
+                  <div style={{ fontWeight: "bold", marginBottom: "6px" }}>
+                    {item.title}
+                  </div>
 
-                <div style={{ color: "#334155", marginBottom: "10px" }}>
-                  {item.message}
-                </div>
+                  <div style={{ color: "#334155", marginBottom: "10px", lineHeight: 1.5 }}>
+                    {item.message}
+                  </div>
 
-                <button
-                  onClick={() => markNotificationRead(item.notificationNumber)}
-                  style={{
-                    backgroundColor: "#0B3D91",
-                    color: "white",
-                    border: "none",
-                    padding: "8px 12px",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Mark as Read
-                </button>
-              </div>
-            ))}
+                  <button
+                    onClick={() => markNotificationRead(item.notificationNumber)}
+                    style={{
+                      backgroundColor: "#0B3D91",
+                      color: "white",
+                      border: "none",
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      width: "100%",
+                    }}
+                  >
+                    Mark as Read
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {unreadNotifications.length > 1 && (
+              <button
+                onClick={markAllNotificationsRead}
+                style={{
+                  marginTop: "14px",
+                  backgroundColor: "#16a34a",
+                  color: "white",
+                  border: "none",
+                  padding: "10px 14px",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  width: "100%",
+                  fontWeight: "bold",
+                }}
+              >
+                Mark All as Read
+              </button>
+            )}
           </div>
-
-          {unreadNotifications.length > 1 && (
-            <button
-              onClick={markAllNotificationsRead}
-              style={{
-                marginTop: "14px",
-                backgroundColor: "#16a34a",
-                color: "white",
-                border: "none",
-                padding: "10px 14px",
-                borderRadius: "6px",
-                cursor: "pointer",
-                width: "100%",
-                fontWeight: "bold",
-              }}
-            >
-              Mark All as Read
-            </button>
-          )}
-        </div>
+        </>
       )}
 
       <div style={{ ...cardStyle, marginBottom: "20px" }}>
         <h2 style={{ marginTop: 0 }}>Welcome</h2>
-        <p><strong>Name:</strong> {customer.name}</p>
-        <p><strong>EKON ID:</strong> {customer.ekonId}</p>
-        <p><strong>Email:</strong> {customer.email}</p>
+        <p style={{ marginBottom: "8px", wordBreak: "break-word" }}>
+          <strong>Name:</strong> {customer.name}
+        </p>
+        <p style={{ marginBottom: "8px", wordBreak: "break-word" }}>
+          <strong>EKON ID:</strong> {customer.ekonId}
+        </p>
+        <p style={{ marginBottom: 0, wordBreak: "break-word" }}>
+          <strong>Email:</strong> {customer.email}
+        </p>
       </div>
 
       <div style={{ ...cardStyle, marginBottom: "24px" }}>
         <h2 style={{ marginTop: 0 }}>Your Mailbox Address</h2>
-        <div style={{ lineHeight: "1.8" }}>
+        <div style={{ lineHeight: "1.8", wordBreak: "break-word" }}>
           <div><strong>1. Name:</strong> {customer.name} EKON</div>
           <div><strong>2. Address Line 1:</strong> 1447 Banks Road</div>
           <div><strong>3. Address Line 2:</strong> {customer.ekonId}</div>
@@ -348,38 +380,31 @@ function CustomerDashboard({ customer }) {
       ) : (
         <>
           <div style={{ marginBottom: "10px" }}>
-            <h2 style={{ marginBottom: "14px" }}>Packages</h2>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "20px",
-                marginBottom: "28px",
-              }}
-            >
+            <h2 style={sectionTitleStyle}>Packages</h2>
+            <div className="dashboard-grid dashboard-grid-3">
               <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#0B3D91" }}>
+                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#0B3D91", marginBottom: "8px" }}>
                   {inWarehouseCount}
                 </h3>
-                <p style={{ fontWeight: "bold", color: "#334155" }}>
+                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
                   In Warehouse
                 </p>
               </div>
 
               <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#f59e0b" }}>
+                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#f59e0b", marginBottom: "8px" }}>
                   {inTransitCount}
                 </h3>
-                <p style={{ fontWeight: "bold", color: "#334155" }}>
+                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
                   In Transit
                 </p>
               </div>
 
               <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#16a34a" }}>
+                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#16a34a", marginBottom: "8px" }}>
                   {readyForPickupCount}
                 </h3>
-                <p style={{ fontWeight: "bold", color: "#334155" }}>
+                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
                   Ready for Pickup
                 </p>
               </div>
@@ -387,29 +412,22 @@ function CustomerDashboard({ customer }) {
           </div>
 
           <div style={{ marginBottom: "10px" }}>
-            <h2 style={{ marginBottom: "14px" }}>Account</h2>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: "20px",
-                marginBottom: "28px",
-              }}
-            >
+            <h2 style={sectionTitleStyle}>Account</h2>
+            <div className="dashboard-grid dashboard-grid-2">
               <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#dc2626" }}>
+                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#dc2626", marginBottom: "8px", wordBreak: "break-word" }}>
                   {formatCurrency(outstandingBalance)}
                 </h3>
-                <p style={{ fontWeight: "bold", color: "#334155" }}>
+                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
                   Outstanding Balance
                 </p>
               </div>
 
               <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#7c3aed" }}>
+                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#7c3aed", marginBottom: "8px" }}>
                   {Number(customer.pointsBalance || 0).toLocaleString()}
                 </h3>
-                <p style={{ fontWeight: "bold", color: "#334155" }}>
+                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
                   EK Points
                 </p>
               </div>
@@ -417,47 +435,40 @@ function CustomerDashboard({ customer }) {
           </div>
 
           <div style={{ marginBottom: "10px" }}>
-            <h2 style={{ marginBottom: "14px" }}>Notifications</h2>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: "20px",
-                marginBottom: "28px",
-              }}
-            >
+            <h2 style={sectionTitleStyle}>Notifications</h2>
+            <div className="dashboard-grid dashboard-grid-4">
               <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#0ea5e9" }}>
+                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#0ea5e9", marginBottom: "8px" }}>
                   {newInvoicesCount}
                 </h3>
-                <p style={{ fontWeight: "bold", color: "#334155" }}>
+                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
                   New Invoices
                 </p>
               </div>
 
               <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#f97316" }}>
+                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#f97316", marginBottom: "8px" }}>
                   {customsAlertsCount}
                 </h3>
-                <p style={{ fontWeight: "bold", color: "#334155" }}>
+                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
                   Customs Alerts
                 </p>
               </div>
 
               <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#16a34a" }}>
+                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#16a34a", marginBottom: "8px" }}>
                   {packagesReadyNotifications}
                 </h3>
-                <p style={{ fontWeight: "bold", color: "#334155" }}>
+                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
                   Packages Ready
                 </p>
               </div>
 
               <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#7c3aed" }}>
+                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#7c3aed", marginBottom: "8px" }}>
                   {unreadNotifications.length}
                 </h3>
-                <p style={{ fontWeight: "bold", color: "#334155" }}>
+                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
                   Unread Alerts
                 </p>
               </div>
@@ -488,6 +499,8 @@ function CustomerDashboard({ customer }) {
                     borderRadius: "6px",
                     cursor: "pointer",
                     fontWeight: "bold",
+                    width: "100%",
+                    maxWidth: "260px",
                   }}
                 >
                   Mark All Notifications as Read
@@ -517,16 +530,23 @@ function CustomerDashboard({ customer }) {
                         flexWrap: "wrap",
                       }}
                     >
-                      <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "10px",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                        }}
+                      >
                         {notificationBadge(item.type)}
-                        <strong>{item.title}</strong>
+                        <strong style={{ wordBreak: "break-word" }}>{item.title}</strong>
                       </div>
                       <span style={{ color: "#64748b", fontSize: "13px" }}>
                         {formatDate(item.date)}
                       </span>
                     </div>
 
-                    <div style={{ color: "#334155", marginBottom: "6px" }}>
+                    <div style={{ color: "#334155", marginBottom: "6px", lineHeight: 1.5 }}>
                       {item.message}
                     </div>
 
@@ -534,22 +554,26 @@ function CustomerDashboard({ customer }) {
                       Status: {item.status}
                     </div>
 
-                    {!item.isRead && item.notificationNumber && !String(item.notificationNumber).startsWith("ticket-") && (
-                      <button
-                        onClick={() => markNotificationRead(item.notificationNumber)}
-                        style={{
-                          marginTop: "10px",
-                          backgroundColor: "#0B3D91",
-                          color: "white",
-                          border: "none",
-                          padding: "8px 12px",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Mark as Read
-                      </button>
-                    )}
+                    {!item.isRead &&
+                      item.notificationNumber &&
+                      !String(item.notificationNumber).startsWith("ticket-") && (
+                        <button
+                          onClick={() => markNotificationRead(item.notificationNumber)}
+                          style={{
+                            marginTop: "10px",
+                            backgroundColor: "#0B3D91",
+                            color: "white",
+                            border: "none",
+                            padding: "8px 12px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            width: "100%",
+                            maxWidth: "180px",
+                          }}
+                        >
+                          Mark as Read
+                        </button>
+                      )}
                   </div>
                 ))}
               </div>
@@ -561,6 +585,46 @@ function CustomerDashboard({ customer }) {
           </div>
         </>
       )}
+
+      <style>
+        {`
+          .dashboard-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 28px;
+          }
+
+          .dashboard-grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+          }
+
+          .dashboard-grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+          }
+
+          .dashboard-grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          @media (max-width: 1100px) {
+            .dashboard-grid-4 {
+              grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-grid-3 {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+
+          @media (max-width: 700px) {
+            .dashboard-grid-4,
+            .dashboard-grid-3,
+            .dashboard-grid-2 {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }

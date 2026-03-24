@@ -16,7 +16,9 @@ function MyPackages() {
     try {
       setLoading(true);
 
-      const customerData = customer || JSON.parse(localStorage.getItem("ek_customer_data") || "null");
+      const customerData =
+        customer || JSON.parse(localStorage.getItem("ek_customer_data") || "null");
+
       if (!customerData?.ekonId) {
         setPackages([]);
         return;
@@ -118,14 +120,14 @@ function MyPackages() {
   const cardStyle = {
     backgroundColor: "white",
     borderRadius: "10px",
-    padding: "20px",
+    padding: "18px",
     border: "1px solid #e5e7eb",
   };
 
   const metricCardStyle = {
     backgroundColor: "white",
     borderRadius: "10px",
-    padding: "20px",
+    padding: "18px",
     border: "1px solid #e5e7eb",
     minHeight: "120px",
   };
@@ -154,59 +156,48 @@ function MyPackages() {
             borderRadius: "6px",
             cursor: "pointer",
             fontWeight: "bold",
+            width: "100%",
+            maxWidth: "160px",
           }}
         >
           Refresh
         </button>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "20px",
-          marginBottom: "24px",
-        }}
-      >
+      <div className="mypackages-summary-grid">
         <div style={metricCardStyle}>
-          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#1f3552" }}>
+          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#1f3552", marginBottom: "8px" }}>
             {summary.total}
           </h2>
-          <p style={{ fontWeight: "bold", color: "#334155" }}>Total Packages</p>
+          <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>Total Packages</p>
         </div>
 
         <div style={metricCardStyle}>
-          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#0B3D91" }}>
+          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#0B3D91", marginBottom: "8px" }}>
             {summary.atWarehouse}
           </h2>
-          <p style={{ fontWeight: "bold", color: "#334155" }}>At Warehouse</p>
+          <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>At Warehouse</p>
         </div>
 
         <div style={metricCardStyle}>
-          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#f59e0b" }}>
+          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#f59e0b", marginBottom: "8px" }}>
             {summary.inTransit}
           </h2>
-          <p style={{ fontWeight: "bold", color: "#334155" }}>In Transit</p>
+          <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>In Transit</p>
         </div>
 
         <div style={metricCardStyle}>
-          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#16a34a" }}>
+          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#16a34a", marginBottom: "8px" }}>
             {summary.ready}
           </h2>
-          <p style={{ fontWeight: "bold", color: "#334155" }}>Ready for Pickup</p>
+          <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>Ready for Pickup</p>
         </div>
       </div>
 
       <div style={{ ...cardStyle, marginBottom: "20px" }}>
         <h2 style={{ marginTop: 0 }}>Search & Filter</h2>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr",
-            gap: "15px",
-          }}
-        >
+        <div className="mypackages-filter-grid">
           <input
             type="text"
             placeholder="Search by tracking number, courier, status, or location"
@@ -237,61 +228,210 @@ function MyPackages() {
         {loading ? (
           <p>Loading your packages...</p>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table border="1" cellPadding="10" style={{ minWidth: "1500px", width: "100%" }}>
-              <thead>
-                <tr>
-                  <th>Tracking Number</th>
-                  <th>Courier</th>
-                  <th>Weight</th>
-                  <th>Estimated Charge</th>
-                  <th>Status</th>
-                  <th>Warehouse Location</th>
-                  <th>Invoice Status</th>
-                  <th>Date Received</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredPackages.length > 0 ? (
-                  filteredPackages.map((pkg, index) => (
-                    <tr key={pkg._id || index}>
-                      <td>{pkg.trackingNumber}</td>
-                      <td>{pkg.courier}</td>
-                      <td>{pkg.weight}</td>
-                      <td>{formatCurrency(pkg.estimatedCharge)}</td>
-                      <td>{getStatusBadge(pkg.status)}</td>
-                      <td>{pkg.warehouseLocation || ""}</td>
-                      <td>{pkg.invoiceStatus || ""}</td>
-                      <td>{formatDate(pkg.dateReceived)}</td>
-                      <td>
-                        <button
-                          onClick={() => handleUploadInvoice(pkg.trackingNumber)}
-                          style={{
-                            backgroundColor: "#0B3D91",
-                            color: "white",
-                            border: "none",
-                            padding: "6px 10px",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Upload Invoice
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
+          <>
+            <div className="mypackages-table-wrap">
+              <table
+                border="1"
+                cellPadding="10"
+                style={{ minWidth: "1500px", width: "100%" }}
+              >
+                <thead>
                   <tr>
-                    <td colSpan="9">No packages found.</td>
+                    <th>Tracking Number</th>
+                    <th>Courier</th>
+                    <th>Weight</th>
+                    <th>Estimated Charge</th>
+                    <th>Status</th>
+                    <th>Warehouse Location</th>
+                    <th>Invoice Status</th>
+                    <th>Date Received</th>
+                    <th>Actions</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+
+                <tbody>
+                  {filteredPackages.length > 0 ? (
+                    filteredPackages.map((pkg, index) => (
+                      <tr key={pkg._id || index}>
+                        <td>{pkg.trackingNumber}</td>
+                        <td>{pkg.courier}</td>
+                        <td>{pkg.weight}</td>
+                        <td>{formatCurrency(pkg.estimatedCharge)}</td>
+                        <td>{getStatusBadge(pkg.status)}</td>
+                        <td>{pkg.warehouseLocation || ""}</td>
+                        <td>{pkg.invoiceStatus || ""}</td>
+                        <td>{formatDate(pkg.dateReceived)}</td>
+                        <td>
+                          <button
+                            onClick={() => handleUploadInvoice(pkg.trackingNumber)}
+                            style={{
+                              backgroundColor: "#0B3D91",
+                              color: "white",
+                              border: "none",
+                              padding: "6px 10px",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Upload Invoice
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="9">No packages found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mypackages-mobile-list">
+              {filteredPackages.length > 0 ? (
+                filteredPackages.map((pkg, index) => (
+                  <div
+                    key={pkg._id || index}
+                    style={{
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "10px",
+                      padding: "14px",
+                      backgroundColor: "#f8fafc",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    <div style={{ marginBottom: "10px" }}>
+                      <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>
+                        Tracking Number
+                      </div>
+                      <div style={{ fontWeight: "bold", wordBreak: "break-word" }}>
+                        {pkg.trackingNumber}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gap: "10px",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Courier</div>
+                        <div>{pkg.courier || "-"}</div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Weight</div>
+                        <div>{pkg.weight}</div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Estimated Charge</div>
+                        <div>{formatCurrency(pkg.estimatedCharge)}</div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Status</div>
+                        <div>{getStatusBadge(pkg.status)}</div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Warehouse Location</div>
+                        <div>{pkg.warehouseLocation || "-"}</div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Invoice Status</div>
+                        <div>{pkg.invoiceStatus || "-"}</div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Date Received</div>
+                        <div>{formatDate(pkg.dateReceived)}</div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleUploadInvoice(pkg.trackingNumber)}
+                      style={{
+                        backgroundColor: "#0B3D91",
+                        color: "white",
+                        border: "none",
+                        padding: "10px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        width: "100%",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Upload Invoice
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div
+                  style={{
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "10px",
+                    padding: "14px",
+                    backgroundColor: "#f8fafc",
+                    color: "#64748b",
+                  }}
+                >
+                  No packages found.
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
+
+      <style>
+        {`
+          .mypackages-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+          }
+
+          .mypackages-filter-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+          }
+
+          .mypackages-mobile-list {
+            display: none;
+          }
+
+          .mypackages-table-wrap {
+            overflow-x: auto;
+          }
+
+          @media (max-width: 1100px) {
+            .mypackages-summary-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+
+          @media (max-width: 700px) {
+            .mypackages-summary-grid,
+            .mypackages-filter-grid {
+              grid-template-columns: 1fr;
+            }
+
+            .mypackages-table-wrap {
+              display: none;
+            }
+
+            .mypackages-mobile-list {
+              display: block;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }

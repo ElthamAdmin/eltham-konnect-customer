@@ -138,20 +138,16 @@ function MyRewards() {
             borderRadius: "6px",
             cursor: "pointer",
             fontWeight: "bold",
+            width: "100%",
+            maxWidth: "160px",
           }}
         >
           Refresh
         </button>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "20px",
-          marginBottom: "24px",
-        }}
-      >
+      {/* SUMMARY */}
+      <div className="rewards-summary-grid">
         <div style={metricCardStyle}>
           <h2 style={{ marginTop: 0, fontSize: "30px", color: "#7c3aed" }}>
             {summary.currentBalance.toLocaleString()}
@@ -210,43 +206,109 @@ function MyRewards() {
         {loading ? (
           <p>Loading your rewards history...</p>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table border="1" cellPadding="10" style={{ minWidth: "1100px", width: "100%" }}>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Customer</th>
-                  <th>EKON ID</th>
-                  <th>Action</th>
-                  <th>Points</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredHistory.length > 0 ? (
-                  filteredHistory.map((record) => (
-                    <tr key={record._id}>
-                      <td>{formatDate(record.date || record.createdAt)}</td>
-                      <td>{record.customerName}</td>
-                      <td>{record.customerEkonId}</td>
-                      <td>{record.action}</td>
-                      <td style={getPointsStyle(record.points)}>
-                        {Number(record.points || 0) > 0
-                          ? `+${Number(record.points || 0).toLocaleString()}`
-                          : Number(record.points || 0).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
+          <>
+            {/* DESKTOP TABLE */}
+            <div className="rewards-table">
+              <table border="1" cellPadding="10" style={{ minWidth: "1100px", width: "100%" }}>
+                <thead>
                   <tr>
-                    <td colSpan="5">No rewards activity found.</td>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>EKON ID</th>
+                    <th>Action</th>
+                    <th>Points</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+
+                <tbody>
+                  {filteredHistory.length > 0 ? (
+                    filteredHistory.map((record) => (
+                      <tr key={record._id}>
+                        <td>{formatDate(record.date || record.createdAt)}</td>
+                        <td>{record.customerName}</td>
+                        <td>{record.customerEkonId}</td>
+                        <td>{record.action}</td>
+                        <td style={getPointsStyle(record.points)}>
+                          {Number(record.points || 0) > 0
+                            ? `+${Number(record.points || 0).toLocaleString()}`
+                            : Number(record.points || 0).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5">No rewards activity found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* MOBILE CARDS */}
+            <div className="rewards-mobile">
+              {filteredHistory.map((record) => (
+                <div
+                  key={record._id}
+                  style={{
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "10px",
+                    padding: "14px",
+                    marginBottom: "12px",
+                    backgroundColor: "#f8fafc",
+                  }}
+                >
+                  <div><strong>Date:</strong> {formatDate(record.date || record.createdAt)}</div>
+                  <div><strong>Action:</strong> {record.action}</div>
+                  <div><strong>Points:</strong> 
+                    <span style={getPointsStyle(record.points)}>
+                      {" "}
+                      {Number(record.points || 0) > 0
+                        ? `+${Number(record.points || 0).toLocaleString()}`
+                        : Number(record.points || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
+
+      {/* RESPONSIVE CSS */}
+      <style>
+        {`
+          .rewards-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+          }
+
+          .rewards-mobile {
+            display: none;
+          }
+
+          @media (max-width: 900px) {
+            .rewards-summary-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+
+          @media (max-width: 600px) {
+            .rewards-summary-grid {
+              grid-template-columns: 1fr;
+            }
+
+            .rewards-table {
+              display: none;
+            }
+
+            .rewards-mobile {
+              display: block;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }

@@ -32,263 +32,169 @@ function UploadInvoice() {
       setPackages(customerPackages);
       setUploads(uploadsRes.data.data || []);
     } catch (error) {
-      console.error("Error loading invoice upload page:", error);
-      alert(
-        error?.response?.data?.message || "Could not load invoice upload data."
-      );
+      console.error(error);
     }
   };
 
   useEffect(() => {
-    if (customer?.ekonId) {
-      fetchPageData();
-    }
+    if (customer?.ekonId) fetchPageData();
   }, [customer?.ekonId]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleUpload = async () => {
-    try {
-      if (!formData.trackingNumber) {
-        alert("Please select a package tracking number.");
-        return;
-      }
-
-      if (!selectedFile) {
-        alert("Please choose an invoice file.");
-        return;
-      }
-
-      const body = new FormData();
-      body.append("trackingNumber", formData.trackingNumber);
-      body.append("invoiceNumber", formData.invoiceNumber);
-      body.append("notes", formData.notes);
-      body.append("invoiceFile", selectedFile);
-
-      const res = await api.post("/api/customer-invoices", body, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      alert(
-        res.data.message ||
-          `Invoice uploaded and connected to package ${formData.trackingNumber} successfully`
-      );
-
-      setFormData({
-        trackingNumber: "",
-        invoiceNumber: "",
-        notes: "",
-      });
-      setSelectedFile(null);
-
-      const fileInput = document.getElementById("customer-invoice-file");
-      if (fileInput) fileInput.value = "";
-
-      await fetchPageData();
-    } catch (error) {
-      console.error("Error uploading invoice:", error);
-      alert(error?.response?.data?.message || "Could not upload invoice.");
+    if (!formData.trackingNumber || !selectedFile) {
+      alert("Fill all required fields");
+      return;
     }
+
+    const body = new FormData();
+    body.append("trackingNumber", formData.trackingNumber);
+    body.append("invoiceNumber", formData.invoiceNumber);
+    body.append("notes", formData.notes);
+    body.append("invoiceFile", selectedFile);
+
+    await api.post("/api/customer-invoices", body);
+
+    setFormData({ trackingNumber: "", invoiceNumber: "", notes: "" });
+    setSelectedFile(null);
+
+    fetchPageData();
   };
 
-  const formatDate = (value) => {
-    if (!value) return "";
-    try {
-      return new Date(value).toLocaleString();
-    } catch {
-      return value;
-    }
-  };
-
-  const cardStyle = {
-    backgroundColor: "white",
-    padding: "20px",
-    borderRadius: "10px",
-    border: "1px solid #e5e7eb",
-  };
+  const formatDate = (value) =>
+    value ? new Date(value).toLocaleString() : "";
 
   return (
     <div>
       <h1>Upload Invoice</h1>
 
-      <div style={{ ...cardStyle, marginBottom: "20px" }}>
-        <h2 style={{ marginTop: 0 }}>Upload Your Package Invoice</h2>
-        <p style={{ color: "#64748b" }}>
-          Upload your package invoice as soon as your item reaches our warehouse
-          to help prevent customs clearance delays.
-        </p>
+      {/* FORM */}
+      <div className="card">
+        <select name="trackingNumber" value={formData.trackingNumber} onChange={handleChange}>
+          <option value="">Select Package</option>
+          {packages.map((pkg) => (
+            <option key={pkg._id} value={pkg.trackingNumber}>
+              {pkg.trackingNumber}
+            </option>
+          ))}
+        </select>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: "15px",
-          }}
-        >
-          <select
-            name="trackingNumber"
-            value={formData.trackingNumber}
-            onChange={handleChange}
-            style={{ padding: "10px" }}
-          >
-            <option value="">Select Package Tracking Number</option>
+        <input
+          name="invoiceNumber"
+          placeholder="Invoice Number"
+          value={formData.invoiceNumber}
+          onChange={handleChange}
+        />
+
+        <textarea
+          name="notes"
+          placeholder="Notes"
+          value={formData.notes}
+          onChange={handleChange}
+        />
+
+        <input
+          type="file"
+          onChange={(e) => setSelectedFile(e.target.files[0])}
+        />
+
+        <button onClick={handleUpload}>Upload</button>
+      </div>
+
+      {/* DESKTOP TABLE */}
+      <div className="desktop">
+        <table>
+          <thead>
+            <tr>
+              <th>Tracking</th>
+              <th>Status</th>
+              <th>Invoice</th>
+              <th>Date</th>
+              <th>File</th>
+            </tr>
+          </thead>
+
+          <tbody>
             {packages.map((pkg) => (
-              <option key={pkg._id} value={pkg.trackingNumber}>
-                {pkg.trackingNumber} - {pkg.status}
-                {pkg.customerInvoiceUploaded ? " - Invoice Uploaded" : ""}
-              </option>
+              <tr key={pkg._id}>
+                <td>{pkg.trackingNumber}</td>
+                <td>{pkg.status}</td>
+                <td>{pkg.customerInvoiceUploaded ? "Yes" : "No"}</td>
+                <td>{formatDate(pkg.customerInvoiceUploadedAt)}</td>
+                <td>
+                  {pkg.customerInvoiceFilePath && (
+                    <a href={`https://eltham-konnect-backend-c2sf.onrender.com${pkg.customerInvoiceFilePath}`} target="_blank" rel="noreferrer">
+                      View
+                    </a>
+                  )}
+                </td>
+              </tr>
             ))}
-          </select>
-
-          <input
-            type="text"
-            name="invoiceNumber"
-            placeholder="Invoice Number (optional)"
-            value={formData.invoiceNumber}
-            onChange={handleChange}
-            style={{ padding: "10px" }}
-          />
-
-          <textarea
-            name="notes"
-            placeholder="Notes (optional)"
-            value={formData.notes}
-            onChange={handleChange}
-            style={{
-              padding: "10px",
-              minHeight: "100px",
-              gridColumn: "span 2",
-            }}
-          />
-
-          <input
-            id="customer-invoice-file"
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png,.webp"
-            onChange={(e) => setSelectedFile(e.target.files[0] || null)}
-            style={{ padding: "10px", gridColumn: "span 2" }}
-          />
-        </div>
-
-        <button
-          onClick={handleUpload}
-          style={{
-            marginTop: "18px",
-            backgroundColor: "#0B3D91",
-            color: "white",
-            border: "none",
-            padding: "10px 16px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "bold",
-          }}
-        >
-          Upload Invoice
-        </button>
+          </tbody>
+        </table>
       </div>
 
-      <div style={{ ...cardStyle, marginBottom: "20px" }}>
-        <h2 style={{ marginTop: 0 }}>My Packages Invoice Status</h2>
-
-        <div style={{ overflowX: "auto" }}>
-          <table border="1" cellPadding="10" style={{ width: "100%", minWidth: "1100px" }}>
-            <thead>
-              <tr>
-                <th>Tracking Number</th>
-                <th>Status</th>
-                <th>Invoice Uploaded</th>
-                <th>Invoice Number</th>
-                <th>Uploaded At</th>
-                <th>File</th>
-              </tr>
-            </thead>
-            <tbody>
-              {packages.length > 0 ? (
-                packages.map((pkg) => (
-                  <tr key={pkg._id}>
-                    <td>{pkg.trackingNumber}</td>
-                    <td>{pkg.status}</td>
-                    <td>{pkg.customerInvoiceUploaded ? "Yes" : "No"}</td>
-                    <td>{pkg.customerInvoiceNumber || ""}</td>
-                    <td>{formatDate(pkg.customerInvoiceUploadedAt)}</td>
-                    <td>
-                      {pkg.customerInvoiceFilePath ? (
-                        <a
-                          href={`https://eltham-konnect-backend-c2sf.onrender.com${pkg.customerInvoiceFilePath}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          View File
-                        </a>
-                      ) : (
-                        ""
-                      )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6">No package records found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* MOBILE CARDS */}
+      <div className="mobile">
+        {packages.map((pkg) => (
+          <div key={pkg._id} className="mobile-card">
+            <strong>{pkg.trackingNumber}</strong>
+            <div>Status: {pkg.status}</div>
+            <div>Invoice: {pkg.customerInvoiceUploaded ? "Yes" : "No"}</div>
+            <div>{formatDate(pkg.customerInvoiceUploadedAt)}</div>
+          </div>
+        ))}
       </div>
 
-      <div style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>My Uploaded Invoices</h2>
-
-        <div style={{ overflowX: "auto" }}>
-          <table border="1" cellPadding="10" style={{ width: "100%", minWidth: "1100px" }}>
-            <thead>
-              <tr>
-                <th>Upload Number</th>
-                <th>Tracking Number</th>
-                <th>Invoice Number</th>
-                <th>File</th>
-                <th>Status</th>
-                <th>Notes</th>
-                <th>Uploaded At</th>
-              </tr>
-            </thead>
-            <tbody>
-              {uploads.length > 0 ? (
-                uploads.map((upload) => (
-                  <tr key={upload._id}>
-                    <td>{upload.uploadNumber}</td>
-                    <td>{upload.trackingNumber || ""}</td>
-                    <td>{upload.invoiceNumber || ""}</td>
-                    <td>
-                      <a
-                        href={`https://eltham-konnect-backend-c2sf.onrender.com${upload.filePath}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        View File
-                      </a>
-                    </td>
-                    <td>{upload.status}</td>
-                    <td>{upload.notes}</td>
-                    <td>{formatDate(upload.createdAt)}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7">No invoice uploads found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* UPLOAD HISTORY */}
+      <div className="mobile">
+        {uploads.map((u) => (
+          <div key={u._id} className="mobile-card">
+            <strong>{u.uploadNumber}</strong>
+            <div>{u.trackingNumber}</div>
+            <div>{u.invoiceNumber}</div>
+            <div>{u.status}</div>
+            <div>{formatDate(u.createdAt)}</div>
+          </div>
+        ))}
       </div>
+
+      {/* CSS */}
+      <style>{`
+        .card {
+          display: grid;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+
+        .desktop {
+          display: block;
+        }
+
+        .mobile {
+          display: none;
+        }
+
+        .mobile-card {
+          border: 1px solid #ddd;
+          padding: 12px;
+          margin-bottom: 10px;
+          border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+          .desktop {
+            display: none;
+          }
+
+          .mobile {
+            display: block;
+          }
+        }
+      `}</style>
     </div>
   );
 }
