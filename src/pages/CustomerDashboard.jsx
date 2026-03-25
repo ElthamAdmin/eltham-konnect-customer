@@ -5,6 +5,7 @@ function CustomerDashboard({ customer }) {
   const [packages, setPackages] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [communications, setCommunications] = useState([]);
   const [supportTickets, setSupportTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
@@ -18,6 +19,7 @@ function CustomerDashboard({ customer }) {
         api.get("/api/invoices"),
         api.get("/api/customer-notifications/mine"),
         api.get("/api/support-tickets"),
+        api.get("/api/communication"),
       ]);
 
       const packagesRes =
@@ -28,6 +30,8 @@ function CustomerDashboard({ customer }) {
         results[2].status === "fulfilled" ? results[2].value : null;
       const ticketsRes =
         results[3].status === "fulfilled" ? results[3].value : null;
+      const communicationsRes =
+        results[4].status === "fulfilled" ? results[4].value : null;
 
       if (results[2].status === "rejected") {
         console.error(
@@ -36,10 +40,15 @@ function CustomerDashboard({ customer }) {
         );
       }
 
+      if (results[4].status === "rejected") {
+        console.error("Customer communication request failed:", results[4].reason);
+      }
+
       const allPackages = packagesRes?.data?.data || [];
       const allInvoices = invoicesRes?.data?.data || [];
       const customerNotifications = notificationsRes?.data?.data || [];
       const customerTickets = ticketsRes?.data?.data || [];
+      const customerCommunications = communicationsRes?.data?.data || [];
 
       const customerPackages = allPackages.filter(
         (pkg) => pkg.customerEkonId === customer.ekonId
@@ -54,6 +63,7 @@ function CustomerDashboard({ customer }) {
       setPackages(customerPackages);
       setInvoices(customerInvoices);
       setNotifications(customerNotifications);
+      setCommunications(customerCommunications);
       setSupportTickets(customerTickets);
       setShowNotificationPopup(unreadItems.length > 0);
     } catch (error) {
@@ -126,6 +136,8 @@ function CustomerDashboard({ customer }) {
     [notifications]
   );
 
+  const communicationCount = useMemo(() => communications.length, [communications]);
+
   const latestNotifications = useMemo(() => {
     const appNotifications = notifications.map((item) => ({
       type: item.type || "Notification",
@@ -136,6 +148,17 @@ function CustomerDashboard({ customer }) {
       sortDate: item.createdAt || item.date,
       isRead: item.isRead,
       notificationNumber: item.notificationNumber,
+    }));
+
+    const communicationItems = communications.map((item) => ({
+      type: item.channel || "Communication",
+      title: item.subject || "Communication",
+      message: item.message,
+      date: item.date || item.createdAt,
+      status: item.status || "Sent",
+      sortDate: item.createdAt || item.date,
+      isRead: true,
+      notificationNumber: `communication-${item.logNumber || item._id}`,
     }));
 
     const ticketItems = supportTickets.map((item) => ({
@@ -149,10 +172,10 @@ function CustomerDashboard({ customer }) {
       notificationNumber: `ticket-${item.ticketNumber}`,
     }));
 
-    return [...appNotifications, ...ticketItems]
+    return [...appNotifications, ...communicationItems, ...ticketItems]
       .sort((a, b) => new Date(b.sortDate) - new Date(a.sortDate))
-      .slice(0, 10);
-  }, [notifications, supportTickets]);
+      .slice(0, 12);
+  }, [notifications, communications, supportTickets]);
 
   const markNotificationRead = async (notificationNumber) => {
     try {
@@ -210,6 +233,10 @@ function CustomerDashboard({ customer }) {
     if (type === "Invoice Update") backgroundColor = "#7c3aed";
     if (type === "Package Update") backgroundColor = "#16a34a";
     if (type === "Support Ticket") backgroundColor = "#f59e0b";
+    if (type === "Email") backgroundColor = "#0B3D91";
+    if (type === "WhatsApp") backgroundColor = "#16a34a";
+    if (type === "SMS") backgroundColor = "#f97316";
+    if (type === "Communication") backgroundColor = "#334155";
 
     return (
       <span
@@ -486,6 +513,33 @@ function CustomerDashboard({ customer }) {
                 </h3>
                 <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
                   Unread Alerts
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: "10px" }}>
+            <h2 style={sectionTitleStyle}>Communication</h2>
+            <div className="dashboard-grid dashboard-grid-2">
+              <div style={metricCardStyle}>
+                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#0B3D91", marginBottom: "8px" }}>
+                  {communicationCount}
+                </h3>
+                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
+                  Messages from Eltham Konnect
+                </p>
+              </div>
+
+              <div style={metricCardStyle}>
+                <h3 style={{ marginTop: 0, fontSize: "18px", color: "#D4AF37", marginBottom: "8px", lineHeight: 1.4 }}>
+                  {communications.length > 0
+                    ? communications[0].subject
+                    : "No communication yet"}
+                </h3>
+                <p style={{ color: "#334155", margin: 0 }}>
+                  {communications.length > 0
+                    ? formatDate(communications[0].date || communications[0].createdAt)
+                    : "Check back later"}
                 </p>
               </div>
             </div>
