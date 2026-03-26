@@ -52,21 +52,14 @@ function PreAlerts() {
       payload.append("courier", formData.courier);
       payload.append("storeName", formData.storeName);
       payload.append("itemDescription", formData.itemDescription);
-      payload.append(
-        "estimatedWeight",
-        Number(formData.estimatedWeight || 0)
-      );
+      payload.append("estimatedWeight", Number(formData.estimatedWeight || 0));
       payload.append("notes", formData.notes);
 
       if (selectedInvoiceFile) {
         payload.append("invoiceFile", selectedInvoiceFile);
       }
 
-      const res = await api.post("/api/pre-alerts", payload, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await api.post("/api/pre-alerts", payload);
 
       alert(res.data.message);
 
@@ -80,7 +73,7 @@ function PreAlerts() {
       });
 
       setSelectedInvoiceFile(null);
-      fetchPreAlerts();
+      await fetchPreAlerts();
     } catch (error) {
       console.error("Error submitting pre-alert:", error);
       alert(error?.response?.data?.message || "Could not submit pre-alert.");
