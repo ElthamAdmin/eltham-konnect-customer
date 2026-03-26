@@ -5,6 +5,7 @@ function PreAlerts() {
   const [preAlerts, setPreAlerts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [selectedInvoiceFile, setSelectedInvoiceFile] = useState(null);
 
   const [formData, setFormData] = useState({
     trackingNumber: "",
@@ -46,12 +47,27 @@ function PreAlerts() {
         return;
       }
 
-      const payload = {
-        ...formData,
-        estimatedWeight: Number(formData.estimatedWeight || 0),
-      };
+      const payload = new FormData();
+      payload.append("trackingNumber", formData.trackingNumber);
+      payload.append("courier", formData.courier);
+      payload.append("storeName", formData.storeName);
+      payload.append("itemDescription", formData.itemDescription);
+      payload.append(
+        "estimatedWeight",
+        Number(formData.estimatedWeight || 0)
+      );
+      payload.append("notes", formData.notes);
 
-      const res = await api.post("/api/pre-alerts", payload);
+      if (selectedInvoiceFile) {
+        payload.append("invoiceFile", selectedInvoiceFile);
+      }
+
+      const res = await api.post("/api/pre-alerts", payload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       alert(res.data.message);
 
       setFormData({
@@ -63,6 +79,7 @@ function PreAlerts() {
         notes: "",
       });
 
+      setSelectedInvoiceFile(null);
       fetchPreAlerts();
     } catch (error) {
       console.error("Error submitting pre-alert:", error);
@@ -82,6 +99,7 @@ function PreAlerts() {
     return {
       total: preAlerts.length,
       submitted: preAlerts.filter((item) => item.status === "Submitted").length,
+      withInvoice: preAlerts.filter((item) => item.invoiceFilePath).length,
     };
   }, [preAlerts]);
 
@@ -155,6 +173,13 @@ function PreAlerts() {
           </h2>
           <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>Submitted</p>
         </div>
+
+        <div style={metricCardStyle}>
+          <h2 style={{ marginTop: 0, fontSize: "30px", color: "#16a34a", marginBottom: "8px" }}>
+            {summary.withInvoice}
+          </h2>
+          <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>With Invoice</p>
+        </div>
       </div>
 
       <div style={{ ...cardStyle, marginBottom: "20px" }}>
@@ -218,6 +243,39 @@ function PreAlerts() {
             }}
             className="prealerts-span-2"
           />
+
+          <div className="prealerts-span-2">
+            <label
+              style={{
+                display: "block",
+                fontWeight: "bold",
+                color: "#334155",
+                marginBottom: "8px",
+              }}
+            >
+              Upload Invoice (Optional)
+            </label>
+
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,.webp"
+              onChange={(e) => setSelectedInvoiceFile(e.target.files?.[0] || null)}
+              style={{ padding: "10px", width: "100%" }}
+            />
+
+            {selectedInvoiceFile && (
+              <div
+                style={{
+                  marginTop: "8px",
+                  color: "#475569",
+                  fontSize: "14px",
+                  wordBreak: "break-word",
+                }}
+              >
+                Selected file: {selectedInvoiceFile.name}
+              </div>
+            )}
+          </div>
         </div>
 
         <button
@@ -259,7 +317,7 @@ function PreAlerts() {
         ) : (
           <>
             <div className="prealerts-table-wrap">
-              <table border="1" cellPadding="10" style={{ minWidth: "1400px", width: "100%" }}>
+              <table border="1" cellPadding="10" style={{ minWidth: "1600px", width: "100%" }}>
                 <thead>
                   <tr>
                     <th>Pre-Alert Number</th>
@@ -268,6 +326,7 @@ function PreAlerts() {
                     <th>Store Name</th>
                     <th>Item Description</th>
                     <th>Estimated Weight</th>
+                    <th>Invoice</th>
                     <th>Status</th>
                     <th>Date</th>
                     <th>Notes</th>
@@ -284,6 +343,24 @@ function PreAlerts() {
                         <td>{alert.storeName}</td>
                         <td>{alert.itemDescription}</td>
                         <td>{alert.estimatedWeight}</td>
+                        <td>
+                          {alert.invoiceFilePath ? (
+                            <a
+                              href={`https://eltham-konnect-backend-c2sf.onrender.com${alert.invoiceFilePath}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                color: "#0B3D91",
+                                fontWeight: "bold",
+                                textDecoration: "none",
+                              }}
+                            >
+                              View Invoice
+                            </a>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
                         <td>{alert.status}</td>
                         <td>{formatDate(alert.date || alert.createdAt)}</td>
                         <td>{alert.notes}</td>
@@ -291,7 +368,7 @@ function PreAlerts() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="9">No pre-alerts found.</td>
+                      <td colSpan="10">No pre-alerts found.</td>
                     </tr>
                   )}
                 </tbody>
@@ -347,6 +424,28 @@ function PreAlerts() {
                       </div>
 
                       <div>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Invoice</div>
+                        <div>
+                          {alert.invoiceFilePath ? (
+                            <a
+                              href={`https://eltham-konnect-backend-c2sf.onrender.com${alert.invoiceFilePath}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                color: "#0B3D91",
+                                fontWeight: "bold",
+                                textDecoration: "none",
+                              }}
+                            >
+                              View Invoice
+                            </a>
+                          ) : (
+                            "-"
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
                         <div style={{ fontSize: "12px", color: "#64748b" }}>Status</div>
                         <div>{alert.status || "-"}</div>
                       </div>
@@ -385,7 +484,7 @@ function PreAlerts() {
         {`
           .prealerts-summary-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin-bottom: 24px;
           }
