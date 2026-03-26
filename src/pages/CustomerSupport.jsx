@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import api from "../api";
 
 function CustomerSupport() {
@@ -513,28 +513,31 @@ function CustomerSupport() {
                 style={{
                   width: "100%",
                   borderCollapse: "collapse",
-                  minWidth: "900px",
+                  minWidth: "980px",
+                  tableLayout: "fixed",
                 }}
                 border="1"
                 cellPadding="12"
               >
                 <thead style={{ backgroundColor: "#eef4ff" }}>
                   <tr>
-                    <th>Ticket</th>
-                    <th>Subject</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Thread</th>
+                    <th style={{ width: "22%" }}>Ticket</th>
+                    <th style={{ width: "34%" }}>Subject</th>
+                    <th style={{ width: "16%" }}>Status</th>
+                    <th style={{ width: "14%" }}>Date</th>
+                    <th style={{ width: "14%" }}>Thread</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {filteredTickets.length > 0 ? (
                     filteredTickets.map((t) => (
-                      <tbody key={t._id}>
+                      <Fragment key={t._id}>
                         <tr style={{ backgroundColor: WHITE }}>
-                          <td style={{ fontWeight: "800", color: TEXT }}>{t.ticketNumber}</td>
-                          <td>{t.subject}</td>
+                          <td style={{ fontWeight: "800", color: TEXT, wordBreak: "break-word" }}>
+                            {t.ticketNumber}
+                          </td>
+                          <td style={{ wordBreak: "break-word" }}>{t.subject}</td>
                           <td>{statusBadge(t.status)}</td>
                           <td>{formatDate(t.date || t.createdAt)}</td>
                           <td>
@@ -553,6 +556,7 @@ function CustomerSupport() {
                                 borderRadius: "8px",
                                 cursor: "pointer",
                                 fontWeight: "700",
+                                minWidth: "88px",
                               }}
                             >
                               {expandedTicket === t.ticketNumber ? "Close" : "Open"}
@@ -565,7 +569,7 @@ function CustomerSupport() {
                             <td colSpan="5">{renderThread(t)}</td>
                           </tr>
                         )}
-                      </tbody>
+                      </Fragment>
                     ))
                   ) : (
                     <tr>
