@@ -10,6 +10,14 @@ function CustomerDashboard({ customer }) {
   const [loading, setLoading] = useState(true);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
 
+  const ROYAL_BLUE = "#0B3D91";
+  const GOLD = "#D4AF37";
+  const WHITE = "#ffffff";
+  const LIGHT_BG = "#f4f7fb";
+  const BORDER = "#dbe3ef";
+  const MUTED = "#64748b";
+  const TEXT = "#0f172a";
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -208,23 +216,26 @@ function CustomerDashboard({ customer }) {
   };
 
   const cardStyle = {
-    backgroundColor: "white",
-    padding: "18px",
-    borderRadius: "10px",
-    border: "1px solid #e5e7eb",
-  };
-
-  const metricCardStyle = {
-    backgroundColor: "white",
-    borderRadius: "10px",
-    padding: "18px",
-    border: "1px solid #e5e7eb",
-    minHeight: "120px",
+    backgroundColor: WHITE,
+    padding: "20px",
+    borderRadius: "16px",
+    border: `1px solid ${BORDER}`,
+    boxShadow: "0 6px 20px rgba(15,23,42,0.05)",
   };
 
   const sectionTitleStyle = {
     marginBottom: "14px",
-    fontSize: "22px",
+    fontSize: "23px",
+    color: TEXT,
+  };
+
+  const metricCardBase = {
+    borderRadius: "16px",
+    padding: "20px",
+    minHeight: "126px",
+    border: `1px solid ${BORDER}`,
+    boxShadow: "0 6px 20px rgba(15,23,42,0.05)",
+    backgroundColor: WHITE,
   };
 
   const notificationBadge = (type) => {
@@ -233,7 +244,7 @@ function CustomerDashboard({ customer }) {
     if (type === "Invoice Update") backgroundColor = "#7c3aed";
     if (type === "Package Update") backgroundColor = "#16a34a";
     if (type === "Support Ticket") backgroundColor = "#f59e0b";
-    if (type === "Email") backgroundColor = "#0B3D91";
+    if (type === "Email") backgroundColor = ROYAL_BLUE;
     if (type === "WhatsApp") backgroundColor = "#16a34a";
     if (type === "SMS") backgroundColor = "#f97316";
     if (type === "Communication") backgroundColor = "#334155";
@@ -242,9 +253,9 @@ function CustomerDashboard({ customer }) {
       <span
         style={{
           backgroundColor,
-          color: "white",
-          padding: "4px 10px",
-          borderRadius: "6px",
+          color: WHITE,
+          padding: "5px 10px",
+          borderRadius: "999px",
           fontSize: "12px",
           fontWeight: "bold",
           whiteSpace: "nowrap",
@@ -255,9 +266,70 @@ function CustomerDashboard({ customer }) {
     );
   };
 
+  const quickCard = (value, label, valueColor, accentBg) => (
+    <div
+      style={{
+        ...metricCardBase,
+        background: `linear-gradient(180deg, ${WHITE}, ${accentBg})`,
+      }}
+    >
+      <h3
+        style={{
+          marginTop: 0,
+          fontSize: "32px",
+          color: valueColor,
+          marginBottom: "10px",
+          fontWeight: "800",
+        }}
+      >
+        {value}
+      </h3>
+      <p style={{ fontWeight: "700", color: "#334155", margin: 0 }}>
+        {label}
+      </p>
+    </div>
+  );
+
   return (
-    <div>
-      <h1 style={{ marginTop: 0, marginBottom: "18px" }}>Customer Dashboard</h1>
+    <div style={{ backgroundColor: LIGHT_BG }}>
+      <div
+        style={{
+          marginBottom: "20px",
+          display: "flex",
+          justifyContent: "space-between",
+          gap: "16px",
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        <div>
+          <h1 style={{ marginTop: 0, marginBottom: "6px", color: TEXT, fontSize: "42px" }}>
+            Customer Dashboard
+          </h1>
+          <p style={{ margin: 0, color: MUTED, fontSize: "15px" }}>
+            Welcome back, {customer.name}. Here is your latest account activity.
+          </p>
+        </div>
+
+        <div
+          style={{
+            ...cardStyle,
+            minWidth: "240px",
+            background: "linear-gradient(180deg, #fffdf5, #fff8e1)",
+            border: "1px solid #f3dd90",
+          }}
+        >
+          <div style={{ color: MUTED, fontSize: "13px", fontWeight: "700", marginBottom: "8px" }}>
+            Available Rewards
+          </div>
+          <div style={{ color: GOLD, fontSize: "30px", fontWeight: "800" }}>
+            {Number(customer.pointsBalance || 0).toLocaleString()} EK Points
+          </div>
+          <div style={{ color: "#8a6a00", fontSize: "13px", marginTop: "6px" }}>
+            1 point = JMD $1
+          </div>
+        </div>
+      </div>
 
       {showNotificationPopup && unreadNotifications.length > 0 && (
         <>
@@ -266,7 +338,7 @@ function CustomerDashboard({ customer }) {
             style={{
               position: "fixed",
               inset: 0,
-              backgroundColor: "rgba(15, 23, 42, 0.4)",
+              backgroundColor: "rgba(15, 23, 42, 0.45)",
               zIndex: 9998,
             }}
           />
@@ -277,16 +349,16 @@ function CustomerDashboard({ customer }) {
               top: "16px",
               left: "16px",
               right: "16px",
-              maxWidth: "420px",
+              maxWidth: "450px",
               width: "auto",
               margin: "0 auto",
-              maxHeight: "75vh",
+              maxHeight: "76vh",
               overflowY: "auto",
-              backgroundColor: "white",
-              border: "1px solid #e5e7eb",
-              borderRadius: "12px",
-              boxShadow: "0 15px 40px rgba(0,0,0,0.18)",
-              padding: "16px",
+              backgroundColor: WHITE,
+              border: `1px solid ${BORDER}`,
+              borderRadius: "16px",
+              boxShadow: "0 20px 45px rgba(0,0,0,0.18)",
+              padding: "18px",
               zIndex: 9999,
             }}
           >
@@ -295,19 +367,19 @@ function CustomerDashboard({ customer }) {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: "12px",
+                marginBottom: "14px",
                 gap: "10px",
                 flexWrap: "wrap",
               }}
             >
-              <h3 style={{ margin: 0 }}>New Notifications</h3>
+              <h3 style={{ margin: 0, color: TEXT }}>New Notifications</h3>
               <button
                 onClick={() => setShowNotificationPopup(false)}
                 style={{
                   border: "none",
                   backgroundColor: "#e2e8f0",
-                  borderRadius: "6px",
-                  padding: "8px 10px",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
                   cursor: "pointer",
                   fontWeight: "bold",
                 }}
@@ -321,9 +393,9 @@ function CustomerDashboard({ customer }) {
                 <div
                   key={item.notificationNumber}
                   style={{
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "10px",
-                    padding: "12px",
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: "14px",
+                    padding: "14px",
                     backgroundColor: "#f8fafc",
                   }}
                 >
@@ -338,12 +410,12 @@ function CustomerDashboard({ customer }) {
                     }}
                   >
                     {notificationBadge(item.type)}
-                    <span style={{ fontSize: "12px", color: "#64748b" }}>
+                    <span style={{ fontSize: "12px", color: MUTED }}>
                       {formatDate(item.date || item.createdAt)}
                     </span>
                   </div>
 
-                  <div style={{ fontWeight: "bold", marginBottom: "6px" }}>
+                  <div style={{ fontWeight: "800", marginBottom: "6px", color: TEXT }}>
                     {item.title}
                   </div>
 
@@ -354,13 +426,14 @@ function CustomerDashboard({ customer }) {
                   <button
                     onClick={() => markNotificationRead(item.notificationNumber)}
                     style={{
-                      backgroundColor: "#0B3D91",
-                      color: "white",
+                      backgroundColor: ROYAL_BLUE,
+                      color: WHITE,
                       border: "none",
-                      padding: "8px 12px",
-                      borderRadius: "6px",
+                      padding: "9px 12px",
+                      borderRadius: "8px",
                       cursor: "pointer",
                       width: "100%",
+                      fontWeight: "700",
                     }}
                   >
                     Mark as Read
@@ -375,10 +448,10 @@ function CustomerDashboard({ customer }) {
                 style={{
                   marginTop: "14px",
                   backgroundColor: "#16a34a",
-                  color: "white",
+                  color: WHITE,
                   border: "none",
-                  padding: "10px 14px",
-                  borderRadius: "6px",
+                  padding: "11px 14px",
+                  borderRadius: "8px",
                   cursor: "pointer",
                   width: "100%",
                   fontWeight: "bold",
@@ -391,152 +464,108 @@ function CustomerDashboard({ customer }) {
         </>
       )}
 
-      <div style={{ ...cardStyle, marginBottom: "20px" }}>
-        <h2 style={{ marginTop: 0 }}>Welcome</h2>
-        <p style={{ marginBottom: "8px", wordBreak: "break-word" }}>
-          <strong>Name:</strong> {customer.name}
-        </p>
-        <p style={{ marginBottom: "8px", wordBreak: "break-word" }}>
-          <strong>EKON ID:</strong> {customer.ekonId}
-        </p>
-        <p style={{ marginBottom: 0, wordBreak: "break-word" }}>
-          <strong>Email:</strong> {customer.email}
-        </p>
-      </div>
+      <div
+        style={{
+          ...cardStyle,
+          marginBottom: "24px",
+          background: `linear-gradient(135deg, ${ROYAL_BLUE}, #1f4fb0)`,
+          color: WHITE,
+          border: "none",
+        }}
+      >
+        <div className="dashboard-hero-grid">
+          <div>
+            <div style={{ fontSize: "13px", opacity: 0.85, marginBottom: "10px", fontWeight: "700" }}>
+              ACCOUNT OVERVIEW
+            </div>
+            <h2 style={{ marginTop: 0, marginBottom: "12px", fontSize: "30px" }}>
+              Welcome, {customer.name}
+            </h2>
+            <div style={{ display: "grid", gap: "8px", lineHeight: 1.6 }}>
+              <div><strong>EKON ID:</strong> {customer.ekonId}</div>
+              <div><strong>Email:</strong> {customer.email}</div>
+              <div><strong>Branch:</strong> {customer.branch || "Eltham Park Mainstore"}</div>
+            </div>
+          </div>
 
-      <div style={{ ...cardStyle, marginBottom: "24px" }}>
-        <h2 style={{ marginTop: 0 }}>Your Mailbox Address</h2>
-        <div style={{ lineHeight: "1.8", wordBreak: "break-word" }}>
-          <div><strong>1. Name:</strong> {customer.name} EKON</div>
-          <div><strong>2. Address Line 1:</strong> 1447 Banks Road</div>
-          <div><strong>3. Address Line 2:</strong> {customer.ekonId}</div>
-          <div><strong>4. City:</strong> Margate</div>
-          <div><strong>5. State:</strong> Florida</div>
-          <div><strong>6. ZIP:</strong> 33063</div>
+          <div
+            style={{
+              backgroundColor: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.16)",
+              borderRadius: "16px",
+              padding: "18px",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            <div style={{ fontSize: "13px", fontWeight: "700", opacity: 0.9, marginBottom: "10px" }}>
+              MAILBOX ADDRESS
+            </div>
+            <div style={{ lineHeight: "1.8", wordBreak: "break-word" }}>
+              <div><strong>1. Name:</strong> {customer.name} EKON</div>
+              <div><strong>2. Address Line 1:</strong> 1447 Banks Road</div>
+              <div><strong>3. Address Line 2:</strong> {customer.ekonId}</div>
+              <div><strong>4. City:</strong> Margate</div>
+              <div><strong>5. State:</strong> Florida</div>
+              <div><strong>6. ZIP:</strong> 33063</div>
+            </div>
+          </div>
         </div>
       </div>
 
       {loading ? (
         <div style={cardStyle}>
-          <p style={{ margin: 0 }}>Loading dashboard data...</p>
+          <p style={{ margin: 0, color: MUTED }}>Loading dashboard data...</p>
         </div>
       ) : (
         <>
-          <div style={{ marginBottom: "10px" }}>
+          <div style={{ marginBottom: "6px" }}>
             <h2 style={sectionTitleStyle}>Packages</h2>
             <div className="dashboard-grid dashboard-grid-3">
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#0B3D91", marginBottom: "8px" }}>
-                  {inWarehouseCount}
-                </h3>
-                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
-                  In Warehouse
-                </p>
-              </div>
-
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#f59e0b", marginBottom: "8px" }}>
-                  {inTransitCount}
-                </h3>
-                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
-                  In Transit
-                </p>
-              </div>
-
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#16a34a", marginBottom: "8px" }}>
-                  {readyForPickupCount}
-                </h3>
-                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
-                  Ready for Pickup
-                </p>
-              </div>
+              {quickCard(inWarehouseCount, "In Warehouse", ROYAL_BLUE, "#f3f7ff")}
+              {quickCard(inTransitCount, "In Transit", "#f59e0b", "#fff8ea")}
+              {quickCard(readyForPickupCount, "Ready for Pickup", "#16a34a", "#effcf4")}
             </div>
           </div>
 
-          <div style={{ marginBottom: "10px" }}>
+          <div style={{ marginBottom: "6px" }}>
             <h2 style={sectionTitleStyle}>Account</h2>
             <div className="dashboard-grid dashboard-grid-2">
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#dc2626", marginBottom: "8px", wordBreak: "break-word" }}>
-                  {formatCurrency(outstandingBalance)}
-                </h3>
-                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
-                  Outstanding Balance
-                </p>
-              </div>
-
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#7c3aed", marginBottom: "8px" }}>
-                  {Number(customer.pointsBalance || 0).toLocaleString()}
-                </h3>
-                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
-                  EK Points
-                </p>
-              </div>
+              {quickCard(formatCurrency(outstandingBalance), "Outstanding Balance", "#dc2626", "#fff3f2")}
+              {quickCard(Number(customer.pointsBalance || 0).toLocaleString(), "EK Points", "#7c3aed", "#f7f2ff")}
             </div>
           </div>
 
-          <div style={{ marginBottom: "10px" }}>
+          <div style={{ marginBottom: "6px" }}>
             <h2 style={sectionTitleStyle}>Notifications</h2>
             <div className="dashboard-grid dashboard-grid-4">
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#0ea5e9", marginBottom: "8px" }}>
-                  {newInvoicesCount}
-                </h3>
-                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
-                  New Invoices
-                </p>
-              </div>
-
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#f97316", marginBottom: "8px" }}>
-                  {customsAlertsCount}
-                </h3>
-                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
-                  Customs Alerts
-                </p>
-              </div>
-
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#16a34a", marginBottom: "8px" }}>
-                  {packagesReadyNotifications}
-                </h3>
-                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
-                  Packages Ready
-                </p>
-              </div>
-
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#7c3aed", marginBottom: "8px" }}>
-                  {unreadNotifications.length}
-                </h3>
-                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
-                  Unread Alerts
-                </p>
-              </div>
+              {quickCard(newInvoicesCount, "New Invoices", "#0ea5e9", "#eff9ff")}
+              {quickCard(customsAlertsCount, "Customs Alerts", "#f97316", "#fff4ed")}
+              {quickCard(packagesReadyNotifications, "Packages Ready", "#16a34a", "#effcf4")}
+              {quickCard(unreadNotifications.length, "Unread Alerts", "#7c3aed", "#f7f2ff")}
             </div>
           </div>
 
-          <div style={{ marginBottom: "10px" }}>
+          <div style={{ marginBottom: "6px" }}>
             <h2 style={sectionTitleStyle}>Communication</h2>
             <div className="dashboard-grid dashboard-grid-2">
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "30px", color: "#0B3D91", marginBottom: "8px" }}>
-                  {communicationCount}
-                </h3>
-                <p style={{ fontWeight: "bold", color: "#334155", margin: 0 }}>
-                  Messages from Eltham Konnect
-                </p>
-              </div>
+              {quickCard(communicationCount, "Messages from Eltham Konnect", ROYAL_BLUE, "#f3f7ff")}
 
-              <div style={metricCardStyle}>
-                <h3 style={{ marginTop: 0, fontSize: "18px", color: "#D4AF37", marginBottom: "8px", lineHeight: 1.4 }}>
+              <div style={{ ...metricCardBase, background: "linear-gradient(180deg, #fffdf7, #fff9ec)" }}>
+                <h3
+                  style={{
+                    marginTop: 0,
+                    fontSize: "18px",
+                    color: GOLD,
+                    marginBottom: "10px",
+                    lineHeight: 1.4,
+                    fontWeight: "800",
+                  }}
+                >
                   {communications.length > 0
                     ? communications[0].subject
                     : "No communication yet"}
                 </h3>
-                <p style={{ color: "#334155", margin: 0 }}>
+                <p style={{ color: "#334155", margin: 0, fontWeight: "600" }}>
                   {communications.length > 0
                     ? formatDate(communications[0].date || communications[0].createdAt)
                     : "Check back later"}
@@ -553,20 +582,27 @@ function CustomerDashboard({ customer }) {
                 alignItems: "center",
                 gap: "12px",
                 flexWrap: "wrap",
-                marginBottom: "14px",
+                marginBottom: "16px",
               }}
             >
-              <h2 style={{ marginTop: 0, marginBottom: 0 }}>Latest Alerts</h2>
+              <div>
+                <h2 style={{ marginTop: 0, marginBottom: "4px", color: TEXT }}>
+                  Latest Alerts
+                </h2>
+                <p style={{ margin: 0, color: MUTED, fontSize: "14px" }}>
+                  Notifications, messages, and support updates in one place.
+                </p>
+              </div>
 
               {unreadNotifications.length > 0 && (
                 <button
                   onClick={markAllNotificationsRead}
                   style={{
                     backgroundColor: "#16a34a",
-                    color: "white",
+                    color: WHITE,
                     border: "none",
                     padding: "10px 14px",
-                    borderRadius: "6px",
+                    borderRadius: "8px",
                     cursor: "pointer",
                     fontWeight: "bold",
                     width: "100%",
@@ -584,10 +620,11 @@ function CustomerDashboard({ customer }) {
                   <div
                     key={item.notificationNumber}
                     style={{
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "10px",
-                      padding: "14px",
-                      backgroundColor: item.isRead ? "#f8fafc" : "#eff6ff",
+                      border: `1px solid ${BORDER}`,
+                      borderRadius: "14px",
+                      padding: "15px",
+                      backgroundColor: item.isRead ? "#fbfcfe" : "#eff6ff",
+                      boxShadow: "0 4px 12px rgba(15,23,42,0.03)",
                     }}
                   >
                     <div
@@ -609,18 +646,20 @@ function CustomerDashboard({ customer }) {
                         }}
                       >
                         {notificationBadge(item.type)}
-                        <strong style={{ wordBreak: "break-word" }}>{item.title}</strong>
+                        <strong style={{ wordBreak: "break-word", color: TEXT }}>
+                          {item.title}
+                        </strong>
                       </div>
-                      <span style={{ color: "#64748b", fontSize: "13px" }}>
+                      <span style={{ color: MUTED, fontSize: "13px" }}>
                         {formatDate(item.date)}
                       </span>
                     </div>
 
-                    <div style={{ color: "#334155", marginBottom: "6px", lineHeight: 1.5 }}>
+                    <div style={{ color: "#334155", marginBottom: "8px", lineHeight: 1.55 }}>
                       {item.message}
                     </div>
 
-                    <div style={{ color: "#64748b", fontSize: "13px" }}>
+                    <div style={{ color: MUTED, fontSize: "13px" }}>
                       Status: {item.status}
                     </div>
 
@@ -631,14 +670,15 @@ function CustomerDashboard({ customer }) {
                           onClick={() => markNotificationRead(item.notificationNumber)}
                           style={{
                             marginTop: "10px",
-                            backgroundColor: "#0B3D91",
-                            color: "white",
+                            backgroundColor: ROYAL_BLUE,
+                            color: WHITE,
                             border: "none",
-                            padding: "8px 12px",
-                            borderRadius: "6px",
+                            padding: "9px 12px",
+                            borderRadius: "8px",
                             cursor: "pointer",
                             width: "100%",
                             maxWidth: "180px",
+                            fontWeight: "700",
                           }}
                         >
                           Mark as Read
@@ -648,7 +688,7 @@ function CustomerDashboard({ customer }) {
                 ))}
               </div>
             ) : (
-              <p style={{ margin: 0, color: "#64748b" }}>
+              <p style={{ margin: 0, color: MUTED }}>
                 No alerts available yet.
               </p>
             )}
@@ -676,6 +716,13 @@ function CustomerDashboard({ customer }) {
             grid-template-columns: repeat(2, 1fr);
           }
 
+          .dashboard-hero-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 18px;
+            align-items: stretch;
+          }
+
           @media (max-width: 1100px) {
             .dashboard-grid-4 {
               grid-template-columns: repeat(2, 1fr);
@@ -683,6 +730,10 @@ function CustomerDashboard({ customer }) {
 
             .dashboard-grid-3 {
               grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-hero-grid {
+              grid-template-columns: 1fr;
             }
           }
 

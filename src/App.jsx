@@ -22,6 +22,15 @@ function CustomerPortalLayout() {
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const ROYAL_BLUE = "#0B3D91";
+  const SIDEBAR_BLUE = "#1f3a93";
+  const GOLD = "#D4AF37";
+  const WHITE = "#ffffff";
+  const BG = "#f4f7fb";
+  const TEXT = "#0f172a";
+  const MUTED = "#64748b";
+  const BORDER = "#dbe3ef";
+
   useEffect(() => {
     const loadCustomer = async () => {
       try {
@@ -51,20 +60,26 @@ function CustomerPortalLayout() {
   }
 
   const navItemStyle = (active) => ({
-    color: "white",
+    color: WHITE,
     textDecoration: "none",
-    padding: "14px 20px",
+    padding: "14px 18px",
     display: "block",
-    borderBottom: "1px solid rgba(255,255,255,0.15)",
-    fontWeight: "bold",
-    opacity: active ? 1 : 0.92,
-    backgroundColor: active ? "rgba(255,255,255,0.12)" : "transparent",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    fontWeight: active ? "700" : "600",
+    opacity: active ? 1 : 0.94,
+    background: active
+      ? "linear-gradient(90deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08))"
+      : "transparent",
+    borderLeft: active ? `4px solid ${GOLD}` : "4px solid transparent",
+    transition: "all 0.2s ease",
   });
 
   const initials = useMemo(() => {
     const parts = (customer.name || "").split(" ").filter(Boolean);
     if (parts.length === 0) return "EK";
-    return ((parts[0][0] || "E") + (parts[1]?.[0] || parts[0]?.[1] || "K")).toUpperCase();
+    return (
+      ((parts[0][0] || "E") + (parts[1]?.[0] || parts[0]?.[1] || "K")).toUpperCase()
+    );
   }, [customer.name]);
 
   const hasAcceptedPolicies = customer.termsAccepted && customer.privacyAccepted;
@@ -78,12 +93,17 @@ function CustomerPortalLayout() {
       <div
         style={{
           padding: "22px 20px",
-          fontSize: "22px",
-          fontWeight: "bold",
-          borderBottom: "1px solid rgba(255,255,255,0.2)",
+          borderBottom: "1px solid rgba(255,255,255,0.12)",
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0))",
         }}
       >
-        Eltham Konnect
+        <div style={{ fontSize: "18px", fontWeight: "800", letterSpacing: "0.3px" }}>
+          Eltham Konnect
+        </div>
+        <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "4px" }}>
+          Customer Portal
+        </div>
       </div>
 
       <Link to="/" style={navItemStyle(location.pathname === "/")}>
@@ -118,7 +138,7 @@ function CustomerPortalLayout() {
       style={{
         minHeight: "100vh",
         fontFamily: "Arial, sans-serif",
-        backgroundColor: "#eef2f7",
+        backgroundColor: BG,
       }}
     >
       {mobileMenuOpen && (
@@ -127,7 +147,7 @@ function CustomerPortalLayout() {
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(15, 23, 42, 0.45)",
+            backgroundColor: "rgba(15, 23, 42, 0.48)",
             zIndex: 40,
           }}
         />
@@ -136,12 +156,13 @@ function CustomerPortalLayout() {
       <div style={{ display: "flex", minHeight: "100vh" }}>
         <div
           style={{
-            width: "250px",
-            backgroundColor: "#253a95",
-            color: "white",
+            width: "260px",
+            background: `linear-gradient(180deg, ${SIDEBAR_BLUE}, ${ROYAL_BLUE})`,
+            color: WHITE,
             display: "flex",
             flexDirection: "column",
             flexShrink: 0,
+            boxShadow: "8px 0 24px rgba(15,23,42,0.08)",
           }}
           className="desktop-sidebar"
         >
@@ -152,16 +173,16 @@ function CustomerPortalLayout() {
           style={{
             position: "fixed",
             top: 0,
-            left: mobileMenuOpen ? 0 : "-280px",
-            width: "250px",
+            left: mobileMenuOpen ? 0 : "-290px",
+            width: "260px",
             height: "100vh",
-            backgroundColor: "#253a95",
-            color: "white",
+            background: `linear-gradient(180deg, ${SIDEBAR_BLUE}, ${ROYAL_BLUE})`,
+            color: WHITE,
             display: "flex",
             flexDirection: "column",
             zIndex: 50,
             transition: "left 0.25s ease",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+            boxShadow: "0 18px 40px rgba(0,0,0,0.28)",
           }}
           className="mobile-sidebar"
         >
@@ -171,17 +192,23 @@ function CustomerPortalLayout() {
               justifyContent: "space-between",
               alignItems: "center",
               padding: "18px 20px",
-              borderBottom: "1px solid rgba(255,255,255,0.2)",
+              borderBottom: "1px solid rgba(255,255,255,0.16)",
             }}
           >
-            <div style={{ fontSize: "22px", fontWeight: "bold" }}>Eltham Konnect</div>
+            <div>
+              <div style={{ fontSize: "18px", fontWeight: "800" }}>Eltham Konnect</div>
+              <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "3px" }}>
+                Customer Portal
+              </div>
+            </div>
+
             <button
               onClick={() => setMobileMenuOpen(false)}
               style={{
                 backgroundColor: "transparent",
-                color: "white",
+                color: WHITE,
                 border: "1px solid rgba(255,255,255,0.25)",
-                borderRadius: "6px",
+                borderRadius: "8px",
                 padding: "6px 10px",
                 cursor: "pointer",
                 fontWeight: "bold",
@@ -196,22 +223,23 @@ function CustomerPortalLayout() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
-              minHeight: "76px",
-              backgroundColor: "white",
-              borderBottom: "1px solid #e5e7eb",
+              minHeight: "82px",
+              backgroundColor: WHITE,
+              borderBottom: `1px solid ${BORDER}`,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "12px 16px",
+              padding: "14px 18px",
               gap: "14px",
               flexWrap: "wrap",
+              boxShadow: "0 2px 10px rgba(15,23,42,0.03)",
             }}
           >
             <button
               onClick={() => setMobileMenuOpen(true)}
               style={{
-                fontSize: "22px",
-                color: "#64748b",
+                fontSize: "24px",
+                color: MUTED,
                 backgroundColor: "transparent",
                 border: "none",
                 cursor: "pointer",
@@ -225,7 +253,7 @@ function CustomerPortalLayout() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "10px",
+                gap: "12px",
                 flexWrap: "wrap",
                 justifyContent: "flex-end",
                 marginLeft: "auto",
@@ -233,32 +261,56 @@ function CustomerPortalLayout() {
             >
               <div
                 style={{
-                  width: "42px",
-                  height: "42px",
+                  width: "46px",
+                  height: "46px",
                   borderRadius: "50%",
-                  backgroundColor: "#f1f5f9",
+                  background: "linear-gradient(180deg, #f8fafc, #e2e8f0)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   color: "#475569",
                   fontWeight: "bold",
                   flexShrink: 0,
+                  border: "1px solid #e2e8f0",
                 }}
               >
                 {initials}
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1, minWidth: 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  lineHeight: 1.2,
+                  minWidth: 0,
+                  textAlign: "left",
+                }}
+              >
                 <span
                   style={{
-                    color: "#334155",
-                    fontWeight: "bold",
+                    color: TEXT,
+                    fontWeight: "800",
                     wordBreak: "break-word",
+                    fontSize: "15px",
                   }}
                 >
                   {customer.name}
                 </span>
-                <span style={{ color: "#64748b", fontSize: "12px" }}>{customer.ekonId}</span>
+
+                <span style={{ color: MUTED, fontSize: "12px" }}>
+                  {customer.ekonId}
+                </span>
+
+                <span
+                  style={{
+                    color: GOLD,
+                    fontSize: "12px",
+                    fontWeight: "700",
+                    marginTop: "2px",
+                  }}
+                >
+                  EK Points: {Number(customer.pointsBalance || 0).toLocaleString()}
+                </span>
               </div>
 
               <button
@@ -269,10 +321,10 @@ function CustomerPortalLayout() {
                 }}
                 style={{
                   backgroundColor: "#dc2626",
-                  color: "white",
+                  color: WHITE,
                   border: "none",
-                  padding: "8px 12px",
-                  borderRadius: "6px",
+                  padding: "9px 13px",
+                  borderRadius: "8px",
                   cursor: "pointer",
                   fontWeight: "bold",
                 }}
@@ -285,19 +337,20 @@ function CustomerPortalLayout() {
           <div
             style={{
               margin: "16px 16px 0 16px",
-              backgroundColor: "#fef3c7",
-              border: "1px solid #f59e0b",
-              color: "#92400e",
+              background: "linear-gradient(180deg, #fff7db, #fef3c7)",
+              border: "1px solid #f2c94c",
+              color: "#8a5a00",
               padding: "14px 16px",
-              borderRadius: "10px",
-              fontWeight: "bold",
+              borderRadius: "14px",
+              fontWeight: "700",
               lineHeight: 1.5,
+              boxShadow: "0 4px 14px rgba(212,175,55,0.08)",
             }}
           >
             Upload your package invoice as soon as your item reaches our warehouse to help prevent customs clearance delays.
           </div>
 
-          <div style={{ padding: "16px" }}>
+          <div style={{ padding: "18px 16px 24px 16px" }}>
             <Routes>
               <Route path="/" element={<CustomerDashboard customer={customer} />} />
               <Route path="/my-packages" element={<MyPackages />} />
