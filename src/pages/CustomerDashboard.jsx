@@ -9,6 +9,7 @@ function CustomerDashboard({ customer }) {
   const [supportTickets, setSupportTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
+
   const [alertsPage, setAlertsPage] = useState(1);
   const [expandedAlerts, setExpandedAlerts] = useState({});
 
@@ -19,6 +20,8 @@ function CustomerDashboard({ customer }) {
   const BORDER = "#dbe3ef";
   const MUTED = "#64748b";
   const TEXT = "#0f172a";
+
+  const alertsPerPage = 5;
 
   const fetchDashboardData = async () => {
     try {
@@ -89,12 +92,6 @@ function CustomerDashboard({ customer }) {
     }
   }, [customer?.ekonId]);
 
-  useEffect(() => {
-  if (alertsPage > totalAlertsPages) {
-    setAlertsPage(1);
-  }
-}, [alertsPage, totalAlertsPages]);
-
   const unreadNotifications = useMemo(
     () => notifications.filter((item) => !item.isRead),
     [notifications]
@@ -155,68 +152,59 @@ function CustomerDashboard({ customer }) {
   const communicationCount = useMemo(() => communications.length, [communications]);
 
   const latestNotifications = useMemo(() => {
-  const appNotifications = notifications.map((item) => ({
-    type: item.type || "Notification",
-    title: item.title,
-    message: item.message,
-    date: item.date || item.createdAt,
-    status: item.isRead ? "Read" : "Unread",
-    sortDate: item.createdAt || item.date,
-    isRead: item.isRead,
-    notificationNumber: item.notificationNumber,
-  }));
+    const appNotifications = notifications.map((item) => ({
+      type: item.type || "Notification",
+      title: item.title,
+      message: item.message,
+      date: item.date || item.createdAt,
+      status: item.isRead ? "Read" : "Unread",
+      sortDate: item.createdAt || item.date,
+      isRead: item.isRead,
+      notificationNumber: item.notificationNumber,
+    }));
 
-  const communicationItems = communications.map((item) => ({
-    type: item.channel || "Communication",
-    title: item.subject || "Communication",
-    message: item.message,
-    date: item.date || item.createdAt,
-    status: item.status || "Sent",
-    sortDate: item.createdAt || item.date,
-    isRead: true,
-    notificationNumber: `communication-${item.logNumber || item._id}`,
-  }));
+    const communicationItems = communications.map((item) => ({
+      type: item.channel || "Communication",
+      title: item.subject || "Communication",
+      message: item.message,
+      date: item.date || item.createdAt,
+      status: item.status || "Sent",
+      sortDate: item.createdAt || item.date,
+      isRead: true,
+      notificationNumber: `communication-${item.logNumber || item._id}`,
+    }));
 
-  const ticketItems = supportTickets.map((item) => ({
-    type: "Support Ticket",
-    title: item.subject,
-    message: `Ticket ${item.ticketNumber} is ${item.status}`,
-    date: item.date || item.createdAt,
-    status: item.status,
-    sortDate: item.createdAt || item.date,
-    isRead: true,
-    notificationNumber: `ticket-${item.ticketNumber}`,
-  }));
+    const ticketItems = supportTickets.map((item) => ({
+      type: "Support Ticket",
+      title: item.subject,
+      message: `Ticket ${item.ticketNumber} is ${item.status}`,
+      date: item.date || item.createdAt,
+      status: item.status,
+      sortDate: item.createdAt || item.date,
+      isRead: true,
+      notificationNumber: `ticket-${item.ticketNumber}`,
+    }));
 
-  return [...appNotifications, ...communicationItems, ...ticketItems].sort(
-    (a, b) => new Date(b.sortDate) - new Date(a.sortDate)
+    return [...appNotifications, ...communicationItems, ...ticketItems].sort(
+      (a, b) => new Date(b.sortDate) - new Date(a.sortDate)
+    );
+  }, [notifications, communications, supportTickets]);
+
+  const totalAlertsPages = Math.max(
+    1,
+    Math.ceil(latestNotifications.length / alertsPerPage)
   );
-}, [notifications, communications, supportTickets]);
 
-const alertsPerPage = 5;
+  const paginatedAlerts = useMemo(() => {
+    const startIndex = (alertsPage - 1) * alertsPerPage;
+    return latestNotifications.slice(startIndex, startIndex + alertsPerPage);
+  }, [latestNotifications, alertsPage]);
 
-const totalAlertsPages = Math.max(
-  1,
-  Math.ceil(latestNotifications.length / alertsPerPage)
-);
-
-const paginatedAlerts = useMemo(() => {
-  const startIndex = (alertsPage - 1) * alertsPerPage;
-  return latestNotifications.slice(startIndex, startIndex + alertsPerPage);
-}, [latestNotifications, alertsPage]);
-
-const getAlertPreview = (message = "", expanded = false) => {
-  if (expanded) return message;
-  if (message.length <= 180) return message;
-  return `${message.slice(0, 180)}...`;
-};
-
-const toggleExpandedAlert = (notificationNumber) => {
-  setExpandedAlerts((prev) => ({
-    ...prev,
-    [notificationNumber]: !prev[notificationNumber],
-  }));
-};
+  useEffect(() => {
+    if (alertsPage > totalAlertsPages) {
+      setAlertsPage(1);
+    }
+  }, [alertsPage, totalAlertsPages]);
 
   const markNotificationRead = async (notificationNumber) => {
     try {
@@ -246,6 +234,19 @@ const toggleExpandedAlert = (notificationNumber) => {
     } catch {
       return String(value).slice(0, 10);
     }
+  };
+
+  const getAlertPreview = (message = "", expanded = false) => {
+    if (expanded) return message;
+    if (message.length <= 180) return message;
+    return `${message.slice(0, 180)}...`;
+  };
+
+  const toggleExpandedAlert = (notificationNumber) => {
+    setExpandedAlerts((prev) => ({
+      ...prev,
+      [notificationNumber]: !prev[notificationNumber],
+    }));
   };
 
   const cardStyle = {
@@ -608,217 +609,217 @@ const toggleExpandedAlert = (notificationNumber) => {
           </div>
 
           <div style={cardStyle}>
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      gap: "12px",
-      flexWrap: "wrap",
-      marginBottom: "16px",
-    }}
-  >
-    <div>
-      <h2 style={{ marginTop: 0, marginBottom: "4px", color: TEXT }}>
-        Latest Alerts
-      </h2>
-      <p style={{ margin: 0, color: MUTED, fontSize: "14px" }}>
-        Notifications, messages, and support updates in one place.
-      </p>
-    </div>
-
-    {unreadNotifications.length > 0 && (
-      <button
-        onClick={markAllNotificationsRead}
-        style={{
-          backgroundColor: "#16a34a",
-          color: WHITE,
-          border: "none",
-          padding: "10px 14px",
-          borderRadius: "8px",
-          cursor: "pointer",
-          fontWeight: "bold",
-          width: "100%",
-          maxWidth: "260px",
-        }}
-      >
-        Mark All Notifications as Read
-      </button>
-    )}
-  </div>
-
-  {latestNotifications.length > 0 ? (
-    <>
-      <div style={{ display: "grid", gap: "14px" }}>
-        {paginatedAlerts.map((item) => {
-          const isExpanded = !!expandedAlerts[item.notificationNumber];
-
-          return (
             <div
-              key={item.notificationNumber}
               style={{
-                border: `1px solid ${BORDER}`,
-                borderRadius: "14px",
-                padding: "15px",
-                backgroundColor: item.isRead ? "#fbfcfe" : "#eff6ff",
-                boxShadow: "0 4px 12px rgba(15,23,42,0.03)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "12px",
+                flexWrap: "wrap",
+                marginBottom: "16px",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "10px",
-                  gap: "10px",
-                  flexWrap: "wrap",
-                }}
-              >
+              <div>
+                <h2 style={{ marginTop: 0, marginBottom: "4px", color: TEXT }}>
+                  Latest Alerts
+                </h2>
+                <p style={{ margin: 0, color: MUTED, fontSize: "14px" }}>
+                  Notifications, messages, and support updates in one place.
+                </p>
+              </div>
+
+              {unreadNotifications.length > 0 && (
+                <button
+                  onClick={markAllNotificationsRead}
+                  style={{
+                    backgroundColor: "#16a34a",
+                    color: WHITE,
+                    border: "none",
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                    width: "100%",
+                    maxWidth: "260px",
+                  }}
+                >
+                  Mark All Notifications as Read
+                </button>
+              )}
+            </div>
+
+            {latestNotifications.length > 0 ? (
+              <>
+                <div style={{ display: "grid", gap: "14px" }}>
+                  {paginatedAlerts.map((item) => {
+                    const isExpanded = !!expandedAlerts[item.notificationNumber];
+
+                    return (
+                      <div
+                        key={item.notificationNumber}
+                        style={{
+                          border: `1px solid ${BORDER}`,
+                          borderRadius: "14px",
+                          padding: "15px",
+                          backgroundColor: item.isRead ? "#fbfcfe" : "#eff6ff",
+                          boxShadow: "0 4px 12px rgba(15,23,42,0.03)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            marginBottom: "10px",
+                            gap: "10px",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "10px",
+                              alignItems: "center",
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {notificationBadge(item.type)}
+                            <strong style={{ wordBreak: "break-word", color: TEXT }}>
+                              {item.title}
+                            </strong>
+                          </div>
+
+                          <span style={{ color: MUTED, fontSize: "13px" }}>
+                            {formatDate(item.date)}
+                          </span>
+                        </div>
+
+                        <div
+                          style={{
+                            color: "#334155",
+                            marginBottom: "10px",
+                            lineHeight: 1.65,
+                            whiteSpace: "pre-wrap",
+                          }}
+                        >
+                          {getAlertPreview(item.message, isExpanded)}
+                        </div>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "10px",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <div style={{ color: MUTED, fontSize: "13px" }}>
+                            Status: {item.status}
+                          </div>
+
+                          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                            {item.message && item.message.length > 180 && (
+                              <button
+                                onClick={() => toggleExpandedAlert(item.notificationNumber)}
+                                style={{
+                                  backgroundColor: "#e2e8f0",
+                                  color: TEXT,
+                                  border: "none",
+                                  padding: "9px 12px",
+                                  borderRadius: "8px",
+                                  cursor: "pointer",
+                                  fontWeight: "700",
+                                }}
+                              >
+                                {isExpanded ? "Show Less" : "View More"}
+                              </button>
+                            )}
+
+                            {!item.isRead &&
+                              item.notificationNumber &&
+                              !String(item.notificationNumber).startsWith("ticket-") && (
+                                <button
+                                  onClick={() => markNotificationRead(item.notificationNumber)}
+                                  style={{
+                                    backgroundColor: ROYAL_BLUE,
+                                    color: WHITE,
+                                    border: "none",
+                                    padding: "9px 12px",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    fontWeight: "700",
+                                  }}
+                                >
+                                  Mark as Read
+                                </button>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
                 <div
                   style={{
+                    marginTop: "18px",
                     display: "flex",
-                    gap: "10px",
+                    justifyContent: "space-between",
                     alignItems: "center",
+                    gap: "12px",
                     flexWrap: "wrap",
                   }}
                 >
-                  {notificationBadge(item.type)}
-                  <strong style={{ wordBreak: "break-word", color: TEXT }}>
-                    {item.title}
-                  </strong>
-                </div>
+                  <div style={{ color: MUTED, fontSize: "14px", fontWeight: "600" }}>
+                    Page {alertsPage} of {totalAlertsPages}
+                  </div>
 
-                <span style={{ color: MUTED, fontSize: "13px" }}>
-                  {formatDate(item.date)}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  color: "#334155",
-                  marginBottom: "10px",
-                  lineHeight: 1.65,
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {getAlertPreview(item.message, isExpanded)}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "10px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div style={{ color: MUTED, fontSize: "13px" }}>
-                  Status: {item.status}
-                </div>
-
-                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                  {item.message && item.message.length > 180 && (
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                     <button
-                      onClick={() => toggleExpandedAlert(item.notificationNumber)}
+                      onClick={() => setAlertsPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={alertsPage === 1}
                       style={{
-                        backgroundColor: "#e2e8f0",
-                        color: TEXT,
+                        backgroundColor: alertsPage === 1 ? "#cbd5e1" : ROYAL_BLUE,
+                        color: WHITE,
                         border: "none",
-                        padding: "9px 12px",
+                        padding: "9px 14px",
                         borderRadius: "8px",
-                        cursor: "pointer",
-                        fontWeight: "700",
+                        cursor: alertsPage === 1 ? "not-allowed" : "pointer",
+                        fontWeight: "bold",
                       }}
                     >
-                      {isExpanded ? "Show Less" : "View More"}
+                      Previous
                     </button>
-                  )}
 
-                  {!item.isRead &&
-                    item.notificationNumber &&
-                    !String(item.notificationNumber).startsWith("ticket-") && (
-                      <button
-                        onClick={() => markNotificationRead(item.notificationNumber)}
-                        style={{
-                          backgroundColor: ROYAL_BLUE,
-                          color: WHITE,
-                          border: "none",
-                          padding: "9px 12px",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          fontWeight: "700",
-                        }}
-                      >
-                        Mark as Read
-                      </button>
-                    )}
+                    <button
+                      onClick={() =>
+                        setAlertsPage((prev) => Math.min(prev + 1, totalAlertsPages))
+                      }
+                      disabled={alertsPage === totalAlertsPages}
+                      style={{
+                        backgroundColor:
+                          alertsPage === totalAlertsPages ? "#cbd5e1" : ROYAL_BLUE,
+                        color: WHITE,
+                        border: "none",
+                        padding: "9px 14px",
+                        borderRadius: "8px",
+                        cursor:
+                          alertsPage === totalAlertsPages ? "not-allowed" : "pointer",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div
-        style={{
-          marginTop: "18px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "12px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ color: MUTED, fontSize: "14px", fontWeight: "600" }}>
-          Page {alertsPage} of {totalAlertsPages}
-        </div>
-
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <button
-            onClick={() => setAlertsPage((prev) => Math.max(prev - 1, 1))}
-            disabled={alertsPage === 1}
-            style={{
-              backgroundColor: alertsPage === 1 ? "#cbd5e1" : ROYAL_BLUE,
-              color: WHITE,
-              border: "none",
-              padding: "9px 14px",
-              borderRadius: "8px",
-              cursor: alertsPage === 1 ? "not-allowed" : "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Previous
-          </button>
-
-          <button
-            onClick={() =>
-              setAlertsPage((prev) => Math.min(prev + 1, totalAlertsPages))
-            }
-            disabled={alertsPage === totalAlertsPages}
-            style={{
-              backgroundColor:
-                alertsPage === totalAlertsPages ? "#cbd5e1" : ROYAL_BLUE,
-              color: WHITE,
-              border: "none",
-              padding: "9px 14px",
-              borderRadius: "8px",
-              cursor:
-                alertsPage === totalAlertsPages ? "not-allowed" : "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    </>
-  ) : (
-    <p style={{ margin: 0, color: MUTED }}>
-      No alerts available yet.
-    </p>
-  )}
-</div>
+              </>
+            ) : (
+              <p style={{ margin: 0, color: MUTED }}>
+                No alerts available yet.
+              </p>
+            )}
+          </div>
         </>
       )}
 
