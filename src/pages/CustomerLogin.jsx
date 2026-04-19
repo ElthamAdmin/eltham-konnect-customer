@@ -165,56 +165,94 @@ function CustomerLogin() {
           </div>
 
           <div className="ek-login-hero-card">
-            <div className="ek-login-hero-badge">Customer Portal</div>
+  <div className="ek-login-hero-badge">Customer Portal</div>
 
-            <h1 className="ek-login-hero-title">
-              Your packages, invoices, rewards, and updates in one place.
-            </h1>
+  <h1 className="ek-login-hero-title">
+    Ship with confidence through Eltham Konnect.
+  </h1>
 
-            <p className="ek-login-hero-copy">
-              Sign in to check shipment status, see balances, upload invoices,
-              and receive alerts from Eltham Konnect.
-            </p>
+  <p className="ek-login-hero-copy">
+    Manage your packages, track air and sea shipments, view invoices, upload
+    documents, and stay updated every step of the way.
+  </p>
 
-            <div className="ek-login-feature-grid">
-              <div className="ek-login-feature-item">
-                <div className="ek-login-feature-icon">📦</div>
-                <div>
-                  <strong>Track Packages</strong>
-                  <p>Know when items arrive and when they are ready for pickup.</p>
-                </div>
-              </div>
+  <div className="ek-login-visual-row">
+    <div className="ek-login-visual-card">
+      <div className="ek-login-visual-icon">📦</div>
+      <div className="ek-login-visual-title">Packages</div>
+      <div className="ek-login-visual-text">
+        Track arrivals, updates, and pickup readiness.
+      </div>
+    </div>
 
-              <div className="ek-login-feature-item">
-                <div className="ek-login-feature-icon">🧾</div>
-                <div>
-                  <strong>View Invoices</strong>
-                  <p>Check balances and payment activity anytime.</p>
-                </div>
-              </div>
+    <div className="ek-login-visual-card">
+      <div className="ek-login-visual-icon">✈️</div>
+      <div className="ek-login-visual-title">Air Shipments</div>
+      <div className="ek-login-visual-text">
+        Fast delivery for urgent and time-sensitive items.
+      </div>
+    </div>
 
-              <div className="ek-login-feature-item">
-                <div className="ek-login-feature-icon">🎁</div>
-                <div>
-                  <strong>EK Rewards</strong>
-                  <p>Follow your points and rewards activity easily.</p>
-                </div>
-              </div>
+    <div className="ek-login-visual-card">
+      <div className="ek-login-visual-icon">🚢</div>
+      <div className="ek-login-visual-title">Sea Shipments</div>
+      <div className="ek-login-visual-text">
+        Affordable shipping for larger and heavier items.
+      </div>
+    </div>
+  </div>
 
-              <div className="ek-login-feature-item">
-                <div className="ek-login-feature-icon">🔔</div>
-                <div>
-                  <strong>Portal Alerts</strong>
-                  <p>Get updates when admin changes your package or invoice.</p>
-                </div>
-              </div>
-            </div>
+  <div className="ek-login-feature-grid">
+  <div className="ek-login-feature-item">
+    <div className="ek-login-feature-icon">🧾</div>
+    <div>
+      <strong>View Invoices</strong>
+      <p>Check balances, payments, and package-related charges anytime.</p>
+    </div>
+  </div>
+
+  <div className="ek-login-feature-item">
+    <div className="ek-login-feature-icon">🔔</div>
+    <div>
+      <strong>Live Shipment Alerts</strong>
+      <p>Receive updates when your package arrives, moves, or is ready for pickup.</p>
+    </div>
+  </div>
+
+  <div className="ek-login-feature-item">
+    <div className="ek-login-feature-icon">🎁</div>
+    <div>
+      <strong>EK Rewards</strong>
+      <p>Track your rewards balance and points earned from qualifying activity.</p>
+    </div>
+  </div>
+
+  <div className="ek-login-feature-item">
+    <div className="ek-login-feature-icon">🛒</div>
+    <div>
+      <strong>Amazon Associate Picks</strong>
+      <p>Eltham Konnect is now an Amazon Associate with selected items available to browse.</p>
+    </div>
+  </div>
+</div>
 
             <div className="ek-login-trust-row">
-              <span>Florida Warehouse</span>
-              <span>Jamaica Delivery</span>
-              <span>Live Updates</span>
-            </div>
+  <span>Florida Warehouse</span>
+  <span>Air & Sea Shipping</span>
+  <span>Jamaica Delivery</span>
+  <span>Live Updates</span>
+</div>
+
+<div className="ek-login-amazon-banner">
+  <div className="ek-login-amazon-badge">NEW</div>
+  <div>
+    <strong>Eltham Konnect is now an Amazon Associate.</strong>
+    <p>
+      Customers can now browse selected Amazon items through Eltham Konnect and
+      ship them using their EKON mailbox address.
+    </p>
+  </div>
+</div>
           </div>
         </div>
 
