@@ -57,33 +57,50 @@ function AmazonAssociateLinks() {
               }}
             >
               {item.imageUrl ? (
-                <img
-                  src={`${api.defaults.baseURL}${item.imageUrl}`}
-                  alt={item.title}
-                  style={{
-                    width: "100%",
-                    height: "220px",
-                    objectFit: "cover",
-                    borderRadius: "12px",
-                    marginBottom: "12px",
-                  }}
-                />
+                <div
+  style={{
+    width: "100%",
+    height: "280px",
+    backgroundColor: "#f8fafc",
+    borderRadius: "12px",
+    marginBottom: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    padding: "12px",
+  }}
+>
+  <img
+    src={`${api.defaults.baseURL}${item.imageUrl}`}
+    alt={item.title}
+    style={{
+      maxWidth: "100%",
+      maxHeight: "100%",
+      width: "auto",
+      height: "auto",
+      objectFit: "contain",
+      display: "block",
+    }}
+  />
+</div>
               ) : (
                 <div
-                  style={{
-                    height: "220px",
-                    backgroundColor: "#f8fafc",
-                    borderRadius: "12px",
-                    marginBottom: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: MUTED,
-                    fontWeight: "bold",
-                  }}
-                >
-                  No Image
-                </div>
+  style={{
+    width: "100%",
+    height: "280px",
+    backgroundColor: "#f8fafc",
+    borderRadius: "12px",
+    marginBottom: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: MUTED,
+    fontWeight: "bold",
+  }}
+>
+  No Image
+</div>
               )}
 
               <div style={{ fontWeight: "800", color: TEXT, marginBottom: "8px" }}>
