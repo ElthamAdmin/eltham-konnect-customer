@@ -227,7 +227,7 @@ console.error("Error marking all notifications as read:", error);
 }
 };
 
-const formatCurrency = (value) => 'JMD${Number( value || 0).toLocaleString()}';
+const formatCurrency = (value) => `JMD ${Number(value || 0).toLocaleString()}`;
 
 const formatDate = (value) => {
 if (!value) return "";
