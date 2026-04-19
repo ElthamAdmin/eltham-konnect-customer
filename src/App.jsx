@@ -13,6 +13,7 @@ import MyRewards from "./pages/MyRewards";
 import CustomerSupport from "./pages/CustomerSupport";
 import UploadInvoice from "./pages/UploadInvoice";
 import ProfileSettings from "./pages/ProfileSettings";
+import AmazonAssociateLinks from "./pages/AmazonAssociateLinks";
 
 function CustomerPortalLayout() {
   const location = useLocation();
@@ -121,6 +122,12 @@ function CustomerPortalLayout() {
       <Link to="/my-rewards" style={navItemStyle(location.pathname === "/my-rewards")}>
         My Rewards
       </Link>
+      <Link
+  to="/amazon-associate-links"
+  style={navItemStyle(location.pathname === "/amazon-associate-links")}
+>
+  Amazon Associate Links
+</Link>
       <Link to="/support" style={navItemStyle(location.pathname === "/support")}>
         Support Tickets
       </Link>
@@ -357,6 +364,7 @@ function CustomerPortalLayout() {
               <Route path="/pre-alerts" element={<PreAlerts />} />
               <Route path="/my-invoices" element={<MyInvoices />} />
               <Route path="/my-rewards" element={<MyRewards />} />
+              <Route path="/amazon-associate-links" element={<AmazonAssociateLinks />} />
               <Route path="/support" element={<CustomerSupport />} />
               <Route path="/upload-invoice" element={<UploadInvoice />} />
               <Route path="/profile-settings" element={<ProfileSettings />} />
