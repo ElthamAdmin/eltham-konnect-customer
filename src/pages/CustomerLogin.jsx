@@ -176,32 +176,13 @@ function CustomerLogin() {
     documents, and stay updated every step of the way.
   </p>
 
-  <div className="ek-login-visual-row">
-    <div className="ek-login-visual-card">
-      <div className="ek-login-visual-icon">📦</div>
-      <div className="ek-login-visual-title">Packages</div>
-      <div className="ek-login-visual-text">
-        Track arrivals, updates, and pickup readiness.
-      </div>
-    </div>
-
-    <div className="ek-login-visual-card">
-      <div className="ek-login-visual-icon">✈️</div>
-      <div className="ek-login-visual-title">Air Shipments</div>
-      <div className="ek-login-visual-text">
-        Fast delivery for urgent and time-sensitive items.
-      </div>
-    </div>
-
-    <div className="ek-login-visual-card">
-      <div className="ek-login-visual-icon">🚢</div>
-      <div className="ek-login-visual-title">Sea Shipments</div>
-      <div className="ek-login-visual-text">
-        Affordable shipping for larger and heavier items.
-      </div>
-    </div>
-  </div>
-
+  <div className="ek-login-banner-image-wrap">
+  <img
+    src="/login-shipping-banner.png"
+    alt="Eltham Konnect shipping services"
+    className="ek-login-banner-image"
+  />
+</div>
   <div className="ek-login-feature-grid">
   <div className="ek-login-feature-item">
     <div className="ek-login-feature-icon">🧾</div>
