@@ -18,7 +18,9 @@ body {
 }
 
 /* HEADINGS */
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   color: #1e293b;
 }
 
@@ -30,13 +32,16 @@ table {
   color: #1e293b;
 }
 
-th, td {
+th,
+td {
   padding: 10px;
   border: 1px solid #ddd;
 }
 
 /* INPUTS */
-input, select, textarea {
+input,
+select,
+textarea {
   background-color: white;
   color: #1e293b;
   border: 1px solid #ccc;
@@ -54,7 +59,7 @@ button {
   font-family: inherit;
 }
 
-/* CUSTOMER LOGIN UPGRADE */
+/* CUSTOMER LOGIN */
 .ek-login-page {
   min-height: 100vh;
   background: #f4f7fb;
@@ -62,7 +67,7 @@ button {
 
 .ek-login-shell {
   display: grid;
-  grid-template-columns: 1.08fr 0.92fr;
+  grid-template-columns: minmax(0, 1.08fr) minmax(420px, 0.92fr);
   min-height: 100vh;
 }
 
@@ -86,6 +91,7 @@ button {
   width: 56px;
   height: 56px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .ek-login-brand-text {
@@ -96,19 +102,22 @@ button {
 .ek-login-brand-name {
   font-size: 22px;
   font-weight: 800;
+  line-height: 1.1;
 }
 
 .ek-login-brand-tag {
   font-size: 13px;
   opacity: 0.85;
+  margin-top: 4px;
 }
 
 .ek-login-hero-card {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 20px;
+  border-radius: 24px;
   padding: 28px;
   backdrop-filter: blur(6px);
+  overflow: hidden;
 }
 
 .ek-login-hero-badge {
@@ -120,6 +129,7 @@ button {
   font-size: 12px;
   font-weight: 700;
   margin-bottom: 14px;
+  color: #ffffff;
 }
 
 .ek-login-hero-title {
@@ -133,7 +143,7 @@ button {
   color: rgba(255, 255, 255, 0.92);
   font-size: 15px;
   line-height: 1.7;
-  margin-bottom: 18px;
+  margin: 0 0 18px 0;
 }
 
 .ek-login-banner-image-wrap {
@@ -142,13 +152,15 @@ button {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
+  width: 100%;
 }
 
 .ek-login-banner-image {
   display: block;
   width: 100%;
-  height: auto;
+  height: 260px;
   object-fit: cover;
+  object-position: center center;
 }
 
 .ek-login-feature-grid {
@@ -192,6 +204,7 @@ button {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
+  color: #ffffff;
 }
 
 .ek-login-amazon-banner {
@@ -254,6 +267,7 @@ button {
   width: 48px;
   height: 48px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .ek-login-form-title {
@@ -371,6 +385,7 @@ button {
   width: 42px;
   height: 42px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .ek-login-mobile-brand {
@@ -387,9 +402,28 @@ button {
   opacity: 0.82;
 }
 
+@media (max-width: 1200px) {
+  .ek-login-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 0.95fr);
+  }
+
+  .ek-login-brand-panel {
+    padding: 32px;
+  }
+
+  .ek-login-hero-title {
+    font-size: 30px;
+  }
+
+  .ek-login-banner-image {
+    height: 220px;
+  }
+}
+
 @media (max-width: 980px) {
   .ek-login-shell {
     grid-template-columns: 1fr;
+    min-height: auto;
   }
 
   .ek-login-brand-panel {
@@ -412,5 +446,28 @@ button {
 
   .ek-login-hero-title {
     font-size: 28px;
+  }
+
+  .ek-login-hero-copy {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .ek-login-banner-image {
+    height: 130px;
+    object-position: center center;
+  }
+
+  .ek-login-trust-row {
+    gap: 8px;
+  }
+
+  .ek-login-trust-row span {
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+
+  .ek-login-amazon-banner {
+    padding: 12px;
   }
 }
