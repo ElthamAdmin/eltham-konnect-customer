@@ -21,6 +21,15 @@ function CustomerDashboard({ customer }) {
   const MUTED = "#64748b";
   const TEXT = "#0f172a";
 
+  const PACKAGE_IMAGE =
+  "https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=1200&q=80";
+const AIR_IMAGE =
+  "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1200&q=80";
+const SEA_IMAGE =
+  "https://images.unsplash.com/photo-1568947236508-3e3d0cfd9f34?auto=format&fit=crop&w=1200&q=80";
+const AMAZON_IMAGE =
+  "https://images.unsplash.com/photo-1607082350899-7e105aa886ae?auto=format&fit=crop&w=1200&q=80";
+
   const alertsPerPage = 5;
 
   const fetchDashboardData = async () => {
@@ -547,13 +556,247 @@ function CustomerDashboard({ customer }) {
       </div>
 
       {loading ? (
-        <div style={cardStyle}>
-          <p style={{ margin: 0, color: MUTED }}>Loading dashboard data...</p>
+  <div style={cardStyle}>
+    <p style={{ margin: 0, color: MUTED }}>Loading dashboard data...</p>
+  </div>
+) : (
+  <>
+    <div
+      style={{
+        ...cardStyle,
+        marginBottom: "24px",
+        padding: "0",
+        overflow: "hidden",
+        background: "linear-gradient(135deg, #f8fbff, #eef4ff)",
+      }}
+    >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.1fr 1fr",
+          gap: "0",
+        }}
+        className="dashboard-service-hero"
+      >
+        <div style={{ padding: "24px" }}>
+          <div
+            style={{
+              fontSize: "13px",
+              color: ROYAL_BLUE,
+              fontWeight: "800",
+              marginBottom: "10px",
+              textTransform: "uppercase",
+              letterSpacing: "0.4px",
+            }}
+          >
+            Shipping With Confidence
+          </div>
+
+          <h2
+            style={{
+              marginTop: 0,
+              marginBottom: "12px",
+              color: TEXT,
+              fontSize: "30px",
+              lineHeight: 1.25,
+            }}
+          >
+            Air freight, sea shipping, and package updates all in one place.
+          </h2>
+
+          <p
+            style={{
+              margin: 0,
+              color: MUTED,
+              lineHeight: 1.7,
+              fontSize: "15px",
+            }}
+          >
+            Track your shipments, manage invoices, receive pickup alerts, and
+            stay informed every step of the way with Eltham Konnect.
+          </p>
         </div>
-      ) : (
-        <>
-          <div style={{ marginBottom: "6px" }}>
-            <h2 style={sectionTitleStyle}>Packages</h2>
+
+        <div
+          style={{
+            minHeight: "280px",
+            backgroundImage: `url(${PACKAGE_IMAGE})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+      </div>
+    </div>
+
+    <div style={{ marginBottom: "24px" }}>
+      <h2 style={sectionTitleStyle}>Our Shipping Services</h2>
+
+      <div className="dashboard-grid dashboard-grid-3">
+        <div style={{ ...cardStyle, padding: "0", overflow: "hidden" }}>
+          <img
+            src={AIR_IMAGE}
+            alt="Air shipments"
+            style={{
+              width: "100%",
+              height: "180px",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
+          <div style={{ padding: "18px" }}>
+            <h3 style={{ marginTop: 0, marginBottom: "8px", color: TEXT }}>
+              ✈️ Air Shipments
+            </h3>
+            <p style={{ margin: 0, color: MUTED, lineHeight: 1.6 }}>
+              Fast delivery for urgent and time-sensitive items shipped through
+              our Florida warehouse to Jamaica.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ ...cardStyle, padding: "0", overflow: "hidden" }}>
+          <img
+            src={SEA_IMAGE}
+            alt="Sea shipments"
+            style={{
+              width: "100%",
+              height: "180px",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
+          <div style={{ padding: "18px" }}>
+            <h3 style={{ marginTop: 0, marginBottom: "8px", color: TEXT }}>
+              🚢 Sea Shipments
+            </h3>
+            <p style={{ margin: 0, color: MUTED, lineHeight: 1.6 }}>
+              A more affordable option for larger or heavier items when you want
+              dependable value shipping.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ ...cardStyle, padding: "0", overflow: "hidden" }}>
+          <img
+            src={PACKAGE_IMAGE}
+            alt="Package handling"
+            style={{
+              width: "100%",
+              height: "180px",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
+          <div style={{ padding: "18px" }}>
+            <h3 style={{ marginTop: 0, marginBottom: "8px", color: TEXT }}>
+              📦 Package Handling
+            </h3>
+            <p style={{ margin: 0, color: MUTED, lineHeight: 1.6 }}>
+              Stay updated when your items arrive, move in transit, and become
+              ready for pickup.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      style={{
+        ...cardStyle,
+        marginBottom: "24px",
+        padding: "0",
+        overflow: "hidden",
+        border: "1px solid #f2c94c",
+        background: "linear-gradient(135deg, #fff9e8, #fff2c7)",
+      }}
+    >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1.1fr",
+          gap: "0",
+        }}
+        className="dashboard-amazon-promo"
+      >
+        <div
+          style={{
+            minHeight: "260px",
+            backgroundImage: `url(${AMAZON_IMAGE})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+
+        <div style={{ padding: "24px" }}>
+          <div
+            style={{
+              fontSize: "13px",
+              color: "#8a6a00",
+              fontWeight: "800",
+              marginBottom: "10px",
+              textTransform: "uppercase",
+              letterSpacing: "0.4px",
+            }}
+          >
+            Amazon Associate
+          </div>
+
+          <h2
+            style={{
+              marginTop: 0,
+              marginBottom: "12px",
+              color: "#5c4300",
+              fontSize: "28px",
+              lineHeight: 1.25,
+            }}
+          >
+            Eltham Konnect is now an Amazon Associate.
+          </h2>
+
+          <p
+            style={{
+              marginTop: 0,
+              marginBottom: "16px",
+              color: "#6b5400",
+              lineHeight: 1.7,
+              fontSize: "15px",
+            }}
+          >
+            Browse selected Amazon items through our recommended links and ship
+            them using your Eltham Konnect mailbox address.
+          </p>
+
+          <button
+            onClick={() => (window.location.href = "/amazon-associate-links")}
+            style={{
+              backgroundColor: ROYAL_BLUE,
+              color: WHITE,
+              border: "none",
+              padding: "12px 18px",
+              borderRadius: "10px",
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+          >
+            View Amazon Picks
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div style={{ marginBottom: "24px" }}>
+      <h2 style={sectionTitleStyle}>How It Works</h2>
+
+      <div className="dashboard-grid dashboard-grid-3">
+        <div style={quickCard("1", "Shop online or use our Amazon links", ROYAL_BLUE, "#f3f7ff")} />
+        <div style={quickCard("2", "Send items to your Florida EKON address", "#f59e0b", "#fff8ea")} />
+        <div style={quickCard("3", "Track, pay, and collect through the portal", "#16a34a", "#effcf4")} />
+      </div>
+    </div>
+
+    <div style={{ marginBottom: "6px" }}>
+      <h2 style={sectionTitleStyle}>Packages</h2>
+
             <div className="dashboard-grid dashboard-grid-3">
               {quickCard(inWarehouseCount, "In Warehouse", ROYAL_BLUE, "#f3f7ff")}
               {quickCard(inTransitCount, "In Transit", "#f59e0b", "#fff8ea")}
@@ -844,25 +1087,37 @@ function CustomerDashboard({ customer }) {
           }
 
           .dashboard-hero-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 18px;
-            align-items: stretch;
-          }
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.dashboard-service-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+}
+
+.dashboard-amazon-promo {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+}
 
           @media (max-width: 1100px) {
-            .dashboard-grid-4 {
-              grid-template-columns: repeat(2, 1fr);
-            }
+  .dashboard-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-            .dashboard-grid-3 {
-              grid-template-columns: repeat(2, 1fr);
-            }
+  .dashboard-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-            .dashboard-hero-grid {
-              grid-template-columns: 1fr;
-            }
-          }
+  .dashboard-hero-grid,
+  .dashboard-service-hero,
+  .dashboard-amazon-promo {
+    grid-template-columns: 1fr;
+  }
+}
 
           @media (max-width: 700px) {
             .dashboard-grid-4,
