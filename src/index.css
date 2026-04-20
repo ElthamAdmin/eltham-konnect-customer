@@ -432,10 +432,6 @@ button {
     display: flex;
   }
 
-  .ek-login-mobile-promo {
-    display: block;
-  }
-
   .ek-login-form-panel {
     padding: 20px 16px 30px 16px;
     flex-direction: column;

@@ -238,30 +238,7 @@ function CustomerLogin() {
         </div>
 
         <div className="ek-login-form-panel">
-  <div className="ek-login-mobile-promo">
-    <div className="ek-login-mobile-promo-badge">Customer Portal</div>
-    <h2 className="ek-login-mobile-promo-title">
-      Ship with confidence through Eltham Konnect.
-    </h2>
-    <p className="ek-login-mobile-promo-copy">
-      Track packages, follow air and sea shipments, and browse selected Amazon picks through Eltham Konnect.
-    </p>
-
-    <div className="ek-login-mobile-promo-image-wrap">
-      <img
-        src="/login-shipping-banner.png"
-        alt="Eltham Konnect shipping services"
-        className="ek-login-mobile-promo-image"
-      />
-    </div>
-
-    <div className="ek-login-mobile-promo-tags">
-      <span>Packages</span>
-      <span>Air Shipping</span>
-      <span>Sea Shipping</span>
-      <span>Amazon Associate</span>
-    </div>
-  </div>
+  
 
   <div className="ek-login-form-card">
             <div className="ek-login-form-header">
