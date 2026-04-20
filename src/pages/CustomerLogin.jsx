@@ -151,9 +151,9 @@ function CustomerLogin() {
     </div>
   </div>
 
-  <button type="button" className="ek-login-mobile-signup">
-    Sign Up
-  </button>
+  <Link to="/amazon-associate-links" className="ek-login-mobile-signup">
+  Shop Amazon
+</Link>
 </div>
 
       <div className="ek-login-shell">
