@@ -137,16 +137,24 @@ function CustomerLogin() {
   return (
     <div className="ek-login-page">
       <div className="ek-login-mobile-header">
-        <img
-          src="/ek-logo.png"
-          alt="Eltham Konnect"
-          className="ek-login-mobile-logo"
-        />
-        <div className="ek-login-mobile-brand">
-          <div className="ek-login-mobile-name">Eltham Konnect</div>
-          <div className="ek-login-mobile-tag">Your Konnection, Our Priority</div>
-        </div>
-      </div>
+  <button type="button" className="ek-login-mobile-menu">☰</button>
+
+  <div className="ek-login-mobile-brand-wrap">
+    <img
+      src="/ek-logo.png"
+      alt="Eltham Konnect"
+      className="ek-login-mobile-logo"
+    />
+    <div className="ek-login-mobile-brand">
+      <div className="ek-login-mobile-name">Eltham Konnect</div>
+      <div className="ek-login-mobile-tag">Your Konnection, Our Priority</div>
+    </div>
+  </div>
+
+  <button type="button" className="ek-login-mobile-signup">
+    Sign Up
+  </button>
+</div>
 
       <div className="ek-login-shell">
         <div className="ek-login-brand-panel">
@@ -237,7 +245,30 @@ function CustomerLogin() {
           </div>
         </div>
 
-        <div className="ek-login-form-panel">
+       <div className="ek-login-form-panel">
+  <div className="ek-login-mobile-hero">
+    <img
+      src="/login-shipping-banner.png"
+      alt="Eltham Konnect logistics services"
+      className="ek-login-mobile-hero-image"
+    />
+
+    <div className="ek-login-mobile-hero-overlay">
+      <div className="ek-login-mobile-hero-badge">Customer Portal</div>
+      <h1 className="ek-login-mobile-hero-title">
+        Shipping made simple with Eltham Konnect.
+      </h1>
+      <p className="ek-login-mobile-hero-copy">
+        Air freight, sea shipping, package tracking, and Amazon Associate shopping support in one place.
+      </p>
+
+      <div className="ek-login-mobile-hero-tags">
+        <span>Air Freight</span>
+        <span>Sea Shipping</span>
+        <span>Amazon Associate</span>
+      </div>
+    </div>
+  </div>
   
 
   <div className="ek-login-form-card">

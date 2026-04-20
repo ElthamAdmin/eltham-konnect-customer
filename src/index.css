@@ -373,15 +373,46 @@ button {
 .ek-login-mobile-header {
   display: none;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #dbe3ef;
+  color: #0f172a;
+}
+
+.ek-login-mobile-brand-wrap {
+  display: flex;
+  align-items: center;
   gap: 10px;
-  padding: 14px 16px;
+  min-width: 0;
+}
+
+.ek-login-mobile-menu {
+  border: none;
+  background: transparent;
+  color: #0f172a;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.ek-login-mobile-signup {
   background: #0b3d91;
   color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .ek-login-mobile-logo {
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -389,15 +420,100 @@ button {
 .ek-login-mobile-brand {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .ek-login-mobile-name {
   font-weight: 800;
+  font-size: 15px;
+  color: #0f172a;
+  line-height: 1.1;
 }
 
 .ek-login-mobile-tag {
   font-size: 12px;
-  opacity: 0.82;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.ek-login-mobile-hero {
+  display: none;
+  position: relative;
+  width: 100%;
+  border-radius: 22px;
+  overflow: hidden;
+  min-height: 360px;
+  margin-bottom: 18px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+  background: #0b3d91;
+}
+
+.ek-login-mobile-hero-image {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  object-fit: cover;
+  display: block;
+}
+
+.ek-login-mobile-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 61, 145, 0.18) 0%,
+    rgba(11, 61, 145, 0.48) 45%,
+    rgba(11, 61, 145, 0.82) 100%
+  );
+  padding: 24px 20px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.ek-login-mobile-hero-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.ek-login-mobile-hero-title {
+  margin: 0 0 10px 0;
+  color: #ffffff;
+  font-size: 26px;
+  line-height: 1.15;
+  max-width: 320px;
+}
+
+.ek-login-mobile-hero-copy {
+  margin: 0 0 14px 0;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 360px;
+}
+
+.ek-login-mobile-hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ek-login-mobile-hero-tags span {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 @media (max-width: 1200px) {
@@ -432,10 +548,20 @@ button {
     display: flex;
   }
 
+  .ek-login-mobile-hero {
+    display: block;
+  }
+
   .ek-login-form-panel {
-    padding: 20px 16px 30px 16px;
+    padding: 18px 16px 30px 16px;
     flex-direction: column;
     align-items: stretch;
+    background: #f4f7fb;
+  }
+
+  .ek-login-form-card {
+    max-width: 100%;
+    border-radius: 22px;
   }
 }
 
@@ -444,13 +570,40 @@ button {
     padding: 22px 18px;
   }
 
-  .ek-login-hero-title {
-    font-size: 28px;
+  .ek-login-mobile-header {
+    padding: 14px 14px;
   }
 
-  .ek-login-hero-copy {
-    font-size: 14px;
-    line-height: 1.6;
+  .ek-login-mobile-menu {
+    font-size: 26px;
+  }
+
+  .ek-login-mobile-signup {
+    padding: 9px 12px;
+    font-size: 11px;
+  }
+
+  .ek-login-mobile-hero {
+    min-height: 330px;
+    border-radius: 20px;
+  }
+
+  .ek-login-mobile-hero-image {
+    min-height: 330px;
+  }
+
+  .ek-login-mobile-hero-overlay {
+    padding: 22px 18px 20px 18px;
+  }
+
+  .ek-login-mobile-hero-title {
+    font-size: 24px;
+    max-width: 280px;
+  }
+
+  .ek-login-mobile-hero-copy {
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   .ek-login-banner-image {
