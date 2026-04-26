@@ -6,12 +6,13 @@ function CustomerSignup() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    branch: "Eltham Park Mainstore",
-    password: "",
-  });
+  name: "",
+  email: "",
+  phone: "",
+  branch: "Eltham Park Mainstore",
+  password: "",
+  referralCode: "",
+});
 
   const [loading, setLoading] = useState(false);
 
@@ -38,6 +39,13 @@ function CustomerSignup() {
       setLoading(true);
 
       const res = await api.post("/api/customer-auth/signup", formData);
+
+if (formData.referralCode && res.data?.data?.ekonId) {
+  await api.post("/api/referrals/apply", {
+    referralCode: formData.referralCode.trim().toUpperCase(),
+    newCustomerEkonId: res.data.data.ekonId,
+  });
+}
 
       localStorage.setItem("ek_customer_token", res.data.token);
       localStorage.setItem("ek_customer_data", JSON.stringify(res.data.data));
@@ -156,7 +164,24 @@ function CustomerSignup() {
               gridColumn: "span 2",
             }}
           />
+
+          <input
+  type="text"
+  name="referralCode"
+  placeholder="Referral Code (Optional)"
+  value={formData.referralCode}
+  onChange={handleChange}
+  style={{
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #cbd5e1",
+    gridColumn: "span 2",
+    textTransform: "uppercase",
+  }}
+/>
         </div>
+
+        
 
         <div
           style={{
@@ -171,7 +196,7 @@ function CustomerSignup() {
         >
           <strong style={{ color: "#0B3D91" }}>Branch Selection:</strong>
           <div style={{ marginTop: "6px" }}>
-            Choose the branch you want linked to your account for pickup and service support.
+            Choose the branch you want linked to your account for pickup and service support. If someone referred you, enter their referral code above. Your bonus points will be applied when your first package arrives at our warehouse.
           </div>
         </div>
 

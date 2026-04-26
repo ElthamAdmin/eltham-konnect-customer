@@ -120,8 +120,11 @@ function CustomerPortalLayout() {
         My Invoices
       </Link>
       <Link to="/my-rewards" style={navItemStyle(location.pathname === "/my-rewards")}>
-        My Rewards
-      </Link>
+  My Rewards
+</Link>
+<Link to="/my-rewards" style={navItemStyle(location.pathname === "/my-rewards")}>
+  My Referral Code
+</Link>
       <Link
   to="/amazon-associate-links"
   style={navItemStyle(location.pathname === "/amazon-associate-links")}

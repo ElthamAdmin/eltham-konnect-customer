@@ -8,6 +8,7 @@ function MyRewards() {
   });
 
   const [pointsHistory, setPointsHistory] = useState([]);
+  const [referrals, setReferrals] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -32,10 +33,11 @@ function MyRewards() {
         return;
       }
 
-      const [profileRes, historyRes] = await Promise.all([
-        api.get("/api/customer-auth/me"),
-        api.get("/api/customers/points-history"),
-      ]);
+      const [profileRes, historyRes, referralRes] = await Promise.all([
+  api.get("/api/customer-auth/me"),
+  api.get("/api/customers/points-history"),
+  api.get(`/api/referrals/customer/${savedCustomer.ekonId}`),
+]);
 
       const freshCustomer = profileRes.data?.data || null;
       const allRecords = historyRes.data?.data || [];
@@ -52,6 +54,7 @@ function MyRewards() {
       );
 
       setPointsHistory(customerRecords);
+      setReferrals(referralRes.data?.data || []);
     } catch (error) {
       console.error("Error loading rewards data:", error);
       alert(error?.response?.data?.message || "Could not load rewards data.");
@@ -259,6 +262,91 @@ function MyRewards() {
           </div>
         </div>
       </div>
+
+      <div style={{ ...cardStyle, marginBottom: "22px" }}>
+  <h2 style={{ marginTop: 0, color: TEXT }}>My Referral Code</h2>
+
+  <p style={{ color: MUTED }}>
+    Share your referral code with someone. When they sign up with your code and their first package arrives at our warehouse, you earn 100 EK Points and they earn 150 EK Points.
+  </p>
+
+  {referrals.find((item) => item.referrerEkonId === customer?.ekonId && item.status === "Active") ? (
+    <div
+      style={{
+        display: "flex",
+        gap: "12px",
+        alignItems: "center",
+        flexWrap: "wrap",
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "#eef4ff",
+          border: `1px solid ${BORDER}`,
+          borderRadius: "12px",
+          padding: "14px 18px",
+          fontSize: "24px",
+          fontWeight: "800",
+          color: ROYAL_BLUE,
+          letterSpacing: "1px",
+        }}
+      >
+        {
+          referrals.find(
+            (item) => item.referrerEkonId === customer?.ekonId && item.status === "Active"
+          )?.referralCode
+        }
+      </div>
+
+      <button
+        onClick={() => {
+          const activeReferral = referrals.find(
+            (item) => item.referrerEkonId === customer?.ekonId && item.status === "Active"
+          );
+          navigator.clipboard.writeText(activeReferral?.referralCode || "");
+          alert("Referral code copied.");
+        }}
+        style={{
+          backgroundColor: GOLD,
+          color: "black",
+          border: "none",
+          padding: "12px 16px",
+          borderRadius: "10px",
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+      >
+        Copy Code
+      </button>
+    </div>
+  ) : (
+    <button
+      onClick={async () => {
+        try {
+          const res = await api.post("/api/referrals/create", {
+            ekonId: customer?.ekonId,
+          });
+
+          alert(res.data.message || "Referral code created.");
+          await fetchRewardsData();
+        } catch (error) {
+          alert(error?.response?.data?.message || "Could not create referral code.");
+        }
+      }}
+      style={{
+        backgroundColor: ROYAL_BLUE,
+        color: WHITE,
+        border: "none",
+        padding: "12px 16px",
+        borderRadius: "10px",
+        cursor: "pointer",
+        fontWeight: "bold",
+      }}
+    >
+      Generate My Referral Code
+    </button>
+  )}
+</div>
 
       <div className="rewards-summary-grid">
         {summaryCard(
