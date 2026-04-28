@@ -44,6 +44,14 @@ const hasEntered = (postId) => {
   return entries.some((entry) => String(entry.rewardsHubId) === String(postId));
 };
 
+const hasWon = (postId) => {
+  return entries.some(
+    (entry) =>
+      String(entry.rewardsHubId) === String(postId) &&
+      (entry.isWinner || entry.hasWon)
+  );
+};
+
 const enterHubPost = async (postId) => {
   try {
     const savedCustomer = JSON.parse(
@@ -203,6 +211,22 @@ const enterHubPost = async (postId) => {
                 ) : null}
 
                 <p style={{ color: TEXT, lineHeight: 1.7 }}>{post.description}</p>
+
+                {hasWon(post._id) ? (
+  <div
+    style={{
+      backgroundColor: "#fffbeb",
+      border: "1px solid #facc15",
+      borderRadius: "12px",
+      padding: "12px",
+      color: "#854d0e",
+      fontWeight: "bold",
+      marginBottom: "12px",
+    }}
+  >
+    🎉 Congratulations! You won this Rewards Hub activity.
+  </div>
+) : null}
 
                 {post.rewardText ? (
                   <div
