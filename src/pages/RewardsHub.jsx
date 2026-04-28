@@ -40,18 +40,6 @@ function RewardsHub() {
   }
 };
 
-  const enterHubPost = async (postId) => {
-  try {
-    await api.post("/api/rewards-hub-entries/enter", {
-      rewardsHubId: postId,
-    });
-
-    alert("You have successfully entered.");
-  } catch (error) {
-    alert(error?.response?.data?.message || "Could not enter this promotion.");
-  }
-};
-
 const hasEntered = (postId) => {
   return entries.some((entry) => String(entry.rewardsHubId) === String(postId));
 };
