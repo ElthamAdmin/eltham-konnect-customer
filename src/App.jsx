@@ -15,6 +15,7 @@ import UploadInvoice from "./pages/UploadInvoice";
 import ProfileSettings from "./pages/ProfileSettings";
 import AmazonAssociateLinks from "./pages/AmazonAssociateLinks";
 import RatesCalculator from "./pages/RatesCalculator";
+import RewardsHub from "./pages/RewardsHub";
 
 function CustomerPortalLayout() {
   const location = useLocation();
@@ -126,6 +127,14 @@ function CustomerPortalLayout() {
 >
   Rates Calculator
 </Link>
+
+<Link
+  to="/rewards-hub"
+  style={navItemStyle(location.pathname === "/rewards-hub")}
+>
+  EK Rewards Hub
+</Link>
+
       <Link to="/my-rewards" style={navItemStyle(location.pathname === "/my-rewards")}>
   My Rewards
 </Link>
@@ -374,6 +383,7 @@ function CustomerPortalLayout() {
               <Route path="/pre-alerts" element={<PreAlerts />} />
               <Route path="/my-invoices" element={<MyInvoices />} />
               <Route path="/rates-calculator" element={<RatesCalculator />} />
+              <Route path="/rewards-hub" element={<RewardsHub />} />
               <Route path="/my-rewards" element={<MyRewards />} />
               <Route path="/amazon-associate-links" element={<AmazonAssociateLinks />} />
               <Route path="/support" element={<CustomerSupport />} />
