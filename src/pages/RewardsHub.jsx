@@ -3,6 +3,7 @@ import api from "../api";
 
 function RewardsHub() {
   const [posts, setPosts] = useState([]);
+  const [entries, setEntries] = useState([]);
   const [activeType, setActiveType] = useState("All");
   const [loading, setLoading] = useState(true);
 
@@ -16,20 +17,68 @@ function RewardsHub() {
   const TEXT = "#0f172a";
 
   const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/api/rewards-hub");
-      setPosts(res.data.data || []);
-    } catch (error) {
-      console.error("Error loading Rewards Hub:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+    const savedCustomer = JSON.parse(
+      localStorage.getItem("ek_customer_data") || "null"
+    );
+
+    const [postsRes, entriesRes] = await Promise.all([
+      api.get("/api/rewards-hub"),
+      savedCustomer?.ekonId
+        ? api.get(`/api/rewards-hub-entries/customer/${savedCustomer.ekonId}`)
+        : Promise.resolve({ data: { data: [] } }),
+    ]);
+
+    setPosts(postsRes.data.data || []);
+    setEntries(entriesRes.data.data || []);
+  } catch (error) {
+    console.error("Error loading Rewards Hub:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const enterHubPost = async (postId) => {
+  try {
+    await api.post("/api/rewards-hub-entries/enter", {
+      rewardsHubId: postId,
+    });
+
+    alert("You have successfully entered.");
+  } catch (error) {
+    alert(error?.response?.data?.message || "Could not enter this promotion.");
+  }
+};
+
+const hasEntered = (postId) => {
+  return entries.some((entry) => String(entry.rewardsHubId) === String(postId));
+};
+
+const enterHubPost = async (postId) => {
+  try {
+    const savedCustomer = JSON.parse(
+      localStorage.getItem("ek_customer_data") || "null"
+    );
+
+    if (!savedCustomer?.ekonId) {
+      alert("Please log in again before entering.");
+      return;
+    }
+
+    await api.post("/api/rewards-hub-entries/enter", {
+      rewardsHubId: postId,
+      customerEkonId: savedCustomer.ekonId,
+      customerName: savedCustomer.name,
+    });
+
+    alert("You have successfully entered.");
+    await fetchPosts();
+  } catch (error) {
+    alert(error?.response?.data?.message || "Could not enter this promotion.");
+  }
+};
 
   const filteredPosts = useMemo(() => {
     if (activeType === "All") return posts;
@@ -183,25 +232,51 @@ function RewardsHub() {
                   </div>
                 ) : null}
 
-                {post.externalLink ? (
-                  <a
-                    href={post.externalLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      display: "inline-block",
-                      backgroundColor: GOLD,
-                      color: "black",
-                      padding: "10px 14px",
-                      borderRadius: "10px",
-                      textDecoration: "none",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Open Link
-                  </a>
-                ) : null}
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+  {["Giveaway", "Gift Card", "Game", "Promotion"].includes(post.type) ? (
+    <button
+      onClick={() => enterHubPost(post._id)}
+      disabled={hasEntered(post._id)}
+      style={{
+        display: "inline-block",
+        backgroundColor: hasEntered(post._id) ? "#94a3b8" : ROYAL_BLUE,
+        color: WHITE,
+        padding: "10px 14px",
+        borderRadius: "10px",
+        border: "none",
+        fontWeight: "bold",
+        cursor: hasEntered(post._id) ? "not-allowed" : "pointer",
+      }}
+    >
+      {hasEntered(post._id)
+        ? "Already Entered"
+        : post.type === "Game"
+        ? "Join Game"
+        : post.type === "Promotion"
+        ? "Claim Offer"
+        : "Enter"}
+    </button>
+  ) : null}
 
+  {post.externalLink ? (
+    <a
+      href={post.externalLink}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        display: "inline-block",
+        backgroundColor: GOLD,
+        color: "black",
+        padding: "10px 14px",
+        borderRadius: "10px",
+        textDecoration: "none",
+        fontWeight: "bold",
+      }}
+    >
+      Open Link
+    </a>
+  ) : null}
+</div>
                 <div style={{ marginTop: "12px", color: MUTED, fontSize: "13px" }}>
                   {post.startDate ? (
                     <span style={{ marginRight: "12px" }}>
