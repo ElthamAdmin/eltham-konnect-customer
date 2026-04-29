@@ -49,6 +49,10 @@ function RewardsHub() {
   }
 };
 
+useEffect(() => {
+  fetchPosts();
+}, []);
+
 const hasEntered = (postId) => {
   return entries.some((entry) => String(entry.rewardsHubId) === String(postId));
 };
