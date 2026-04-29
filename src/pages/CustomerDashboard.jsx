@@ -210,7 +210,7 @@ setAlertsPage(1);
 
 const markNotificationRead = async (notificationNumber) => {
 try {
-await api.put('/api/customer-notifications/${notificationNumber}/read');
+await api.put(`/api/customer-notifications/${notificationNumber}/read`);
 await fetchDashboardData();
 } catch (error) {
 console.error("Error marking notification as read:", error);
@@ -284,12 +284,13 @@ if (type === "Email") backgroundColor = ROYAL_BLUE;
 if (type === "WhatsApp") backgroundColor = "#16a34a";  
 if (type === "SMS") backgroundColor = "#f97316";  
 if (type === "Communication") backgroundColor = "#334155";  
+if (type === "Rewards Hub") backgroundColor = GOLD;
 
 return (  
   <span  
     style={{  
       backgroundColor,  
-      color: WHITE,  
+      color: type === "Rewards Hub" ? "black" : WHITE,  
       padding: "5px 10px",  
       borderRadius: "999px",  
       fontSize: "12px",  
