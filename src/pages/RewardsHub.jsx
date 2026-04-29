@@ -7,6 +7,10 @@ function RewardsHub() {
   const [games, setGames] = useState([]);
   const [gamePlays, setGamePlays] = useState([]);
   const [answers, setAnswers] = useState({});
+  const [leaderboard, setLeaderboard] = useState({
+  gameLeaderboard: [],
+  entryLeaderboard: [],
+});
   const [activeType, setActiveType] = useState("All");
   const [loading, setLoading] = useState(true);
 
@@ -28,20 +32,26 @@ function RewardsHub() {
     );
 
     const results = await Promise.allSettled([
-      api.get("/api/rewards-hub"),
-      savedCustomer?.ekonId
-        ? api.get(`/api/rewards-hub-entries/customer/${savedCustomer.ekonId}`)
-        : Promise.resolve({ data: { data: [] } }),
-      api.get("/api/rewards-hub-games"),
-      savedCustomer?.ekonId
-        ? api.get(`/api/rewards-hub-games/customer/${savedCustomer.ekonId}/plays`)
-        : Promise.resolve({ data: { data: [] } }),
-    ]);
+  api.get("/api/rewards-hub"),
+  savedCustomer?.ekonId
+    ? api.get(`/api/rewards-hub-entries/customer/${savedCustomer.ekonId}`)
+    : Promise.resolve({ data: { data: [] } }),
+  api.get("/api/rewards-hub-games"),
+  savedCustomer?.ekonId
+    ? api.get(`/api/rewards-hub-games/customer/${savedCustomer.ekonId}/plays`)
+    : Promise.resolve({ data: { data: [] } }),
+  api.get("/api/rewards-hub-leaderboard"),
+]);
 
     setPosts(results[0].status === "fulfilled" ? results[0].value.data.data || [] : []);
     setEntries(results[1].status === "fulfilled" ? results[1].value.data.data || [] : []);
     setGames(results[2].status === "fulfilled" ? results[2].value.data.data || [] : []);
     setGamePlays(results[3].status === "fulfilled" ? results[3].value.data.data || [] : []);
+    setLeaderboard(
+  results[4].status === "fulfilled"
+    ? results[4].value.data.data || { gameLeaderboard: [], entryLeaderboard: [] }
+    : { gameLeaderboard: [], entryLeaderboard: [] }
+);
   } catch (error) {
     console.error("Error loading Rewards Hub:", error);
   } finally {
@@ -232,6 +242,92 @@ const playGame = async (game) => {
   <div style={cardStyle}>Loading Rewards Hub...</div>
 ) : (
   <>
+
+  <div style={{ ...cardStyle, marginBottom: "22px" }}>
+  <h2 style={{ marginTop: 0, color: ROYAL_BLUE }}>🏆 EK Rewards Leaderboard</h2>
+  <p style={{ color: MUTED, marginTop: 0 }}>
+    Customer names are hidden for privacy. Only EKON IDs are shown.
+  </p>
+
+  <div className="leaderboard-grid">
+    <div>
+      <h3 style={{ color: TEXT }}>Top Game Players</h3>
+      <table
+        border="1"
+        cellPadding="10"
+        style={{ width: "100%", borderCollapse: "collapse", borderColor: BORDER }}
+      >
+        <thead style={{ backgroundColor: "#eef4ff" }}>
+          <tr>
+            <th>Rank</th>
+            <th>EKON ID</th>
+            <th>Games</th>
+            <th>Correct</th>
+            <th>Rewards</th>
+          </tr>
+        </thead>
+        <tbody>
+          {leaderboard.gameLeaderboard.length > 0 ? (
+            leaderboard.gameLeaderboard.map((item, index) => (
+              <tr key={item._id}>
+                <td>{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
+                <td style={{ fontWeight: "bold", color: ROYAL_BLUE }}>{item._id}</td>
+                <td>{item.totalGames}</td>
+                <td>{item.correctAnswers}</td>
+                <td>{item.rewardsEarned}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="5" style={{ textAlign: "center", color: MUTED }}>
+                No game leaderboard yet.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h3 style={{ color: TEXT }}>Top Rewards Participants</h3>
+      <table
+        border="1"
+        cellPadding="10"
+        style={{ width: "100%", borderCollapse: "collapse", borderColor: BORDER }}
+      >
+        <thead style={{ backgroundColor: "#eef4ff" }}>
+          <tr>
+            <th>Rank</th>
+            <th>EKON ID</th>
+            <th>Entries</th>
+            <th>Wins</th>
+            <th>Rewards</th>
+          </tr>
+        </thead>
+        <tbody>
+          {leaderboard.entryLeaderboard.length > 0 ? (
+            leaderboard.entryLeaderboard.map((item, index) => (
+              <tr key={item._id}>
+                <td>{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
+                <td style={{ fontWeight: "bold", color: ROYAL_BLUE }}>{item._id}</td>
+                <td>{item.totalEntries}</td>
+                <td>{item.wins}</td>
+                <td>{item.rewardsGiven}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="5" style={{ textAlign: "center", color: MUTED }}>
+                No Rewards Hub entries yet.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
     <div style={{ marginBottom: "22px" }}>
       <h2 style={{ color: ROYAL_BLUE }}>Play & Win Games</h2>
 
@@ -549,20 +645,31 @@ const playGame = async (game) => {
 )}
 
       <style>
-        {`
-          .hub-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
-          }
+  {`
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
 
-          @media (max-width: 800px) {
-            .hub-grid {
-              grid-template-columns: 1fr;
-            }
-          }
-        `}
-      </style>
+    .leaderboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 800px) {
+      .hub-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .leaderboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  `}
+</style>
     </div>
   );
 }
