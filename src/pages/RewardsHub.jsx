@@ -27,17 +27,21 @@ function RewardsHub() {
       localStorage.getItem("ek_customer_data") || "null"
     );
 
-    const [postsRes, entriesRes, gamesRes] = await Promise.all([
+    const results = await Promise.allSettled([
       api.get("/api/rewards-hub"),
       savedCustomer?.ekonId
         ? api.get(`/api/rewards-hub-entries/customer/${savedCustomer.ekonId}`)
         : Promise.resolve({ data: { data: [] } }),
       api.get("/api/rewards-hub-games"),
+      savedCustomer?.ekonId
+        ? api.get(`/api/rewards-hub-games/customer/${savedCustomer.ekonId}/plays`)
+        : Promise.resolve({ data: { data: [] } }),
     ]);
 
-    setPosts(postsRes.data.data || []);
-    setEntries(entriesRes.data.data || []);
-    setGames(gamesRes.data.data || []);
+    setPosts(results[0].status === "fulfilled" ? results[0].value.data.data || [] : []);
+    setEntries(results[1].status === "fulfilled" ? results[1].value.data.data || [] : []);
+    setGames(results[2].status === "fulfilled" ? results[2].value.data.data || [] : []);
+    setGamePlays(results[3].status === "fulfilled" ? results[3].value.data.data || [] : []);
   } catch (error) {
     console.error("Error loading Rewards Hub:", error);
   } finally {
