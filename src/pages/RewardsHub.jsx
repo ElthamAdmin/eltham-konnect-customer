@@ -4,6 +4,9 @@ import api from "../api";
 function RewardsHub() {
   const [posts, setPosts] = useState([]);
   const [entries, setEntries] = useState([]);
+  const [games, setGames] = useState([]);
+  const [gamePlays, setGamePlays] = useState([]);
+  const [answers, setAnswers] = useState({});
   const [activeType, setActiveType] = useState("All");
   const [loading, setLoading] = useState(true);
 
@@ -24,15 +27,17 @@ function RewardsHub() {
       localStorage.getItem("ek_customer_data") || "null"
     );
 
-    const [postsRes, entriesRes] = await Promise.all([
+    const [postsRes, entriesRes, gamesRes] = await Promise.all([
       api.get("/api/rewards-hub"),
       savedCustomer?.ekonId
         ? api.get(`/api/rewards-hub-entries/customer/${savedCustomer.ekonId}`)
         : Promise.resolve({ data: { data: [] } }),
+      api.get("/api/rewards-hub-games"),
     ]);
 
     setPosts(postsRes.data.data || []);
     setEntries(entriesRes.data.data || []);
+    setGames(gamesRes.data.data || []);
   } catch (error) {
     console.error("Error loading Rewards Hub:", error);
   } finally {
@@ -73,6 +78,46 @@ const enterHubPost = async (postId) => {
     await fetchPosts();
   } catch (error) {
     alert(error?.response?.data?.message || "Could not enter this promotion.");
+  }
+};
+
+const hasPlayedGame = (gameId) => {
+  return gamePlays.some((play) => String(play.gameId) === String(gameId));
+};
+
+const playGame = async (game) => {
+  try {
+    const savedCustomer = JSON.parse(
+      localStorage.getItem("ek_customer_data") || "null"
+    );
+
+    if (!savedCustomer?.ekonId) {
+      alert("Please log in again before playing.");
+      return;
+    }
+
+    const submittedAnswer = answers[game._id] || "";
+
+    if (
+      ["Trivia", "Scavenger Hunt", "Match Image"].includes(game.gameType) &&
+      !submittedAnswer
+    ) {
+      alert("Please enter or select your answer.");
+      return;
+    }
+
+    const res = await api.post("/api/rewards-hub-games/play", {
+      gameId: game._id,
+      customerEkonId: savedCustomer.ekonId,
+      customerName: savedCustomer.name,
+      submittedAnswer,
+    });
+
+    alert(res.data?.message || "Game submitted successfully.");
+
+    setGamePlays((prev) => [...prev, res.data.data.play]);
+  } catch (error) {
+    alert(error?.response?.data?.message || "Could not submit game.");
   }
 };
 
@@ -176,9 +221,193 @@ const enterHubPost = async (postId) => {
       </div>
 
       {loading ? (
-        <div style={cardStyle}>Loading Rewards Hub...</div>
-      ) : (
-        <div className="hub-grid">
+  <div style={cardStyle}>Loading Rewards Hub...</div>
+) : (
+  <>
+    <div style={{ marginBottom: "22px" }}>
+      <h2 style={{ color: ROYAL_BLUE }}>Play & Win Games</h2>
+
+      <div className="hub-grid">
+        {games.length > 0 ? (
+          games.map((game) => (
+            <div key={game._id} style={cardStyle}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                  alignItems: "flex-start",
+                  marginBottom: "10px",
+                }}
+              >
+                <h2 style={{ margin: 0, color: ROYAL_BLUE }}>{game.title}</h2>
+                <span style={badgeStyle("Game")}>{game.gameType}</span>
+              </div>
+
+              <p style={{ color: TEXT, lineHeight: 1.7 }}>{game.instructions}</p>
+
+              {game.question ? (
+                <div
+                  style={{
+                    backgroundColor: "#f8fafc",
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: "12px",
+                    padding: "12px",
+                    marginBottom: "12px",
+                    fontWeight: "bold",
+                    color: TEXT,
+                  }}
+                >
+                  {game.question}
+                </div>
+              ) : null}
+
+              {game.options?.length > 0 ? (
+                <select
+                  value={answers[game._id] || ""}
+                  onChange={(e) =>
+                    setAnswers((prev) => ({
+                      ...prev,
+                      [game._id]: e.target.value,
+                    }))
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: "10px",
+                    border: `1px solid ${BORDER}`,
+                    marginBottom: "12px",
+                  }}
+                >
+                  <option value="">Select answer</option>
+                  {game.options.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              ) : ["Trivia", "Scavenger Hunt", "Match Image"].includes(game.gameType) ? (
+                <input
+                  type="text"
+                  placeholder="Enter your answer"
+                  value={answers[game._id] || ""}
+                  onChange={(e) =>
+                    setAnswers((prev) => ({
+                      ...prev,
+                      [game._id]: e.target.value,
+                    }))
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: "10px",
+                    border: `1px solid ${BORDER}`,
+                    marginBottom: "12px",
+                    boxSizing: "border-box",
+                  }}
+                />
+              ) : null}
+
+              {game.gameType === "Spin Wheel" ? (
+                <div
+                  style={{
+                    backgroundColor: "#f7f2ff",
+                    border: "1px solid #ddd6fe",
+                    borderRadius: "50%",
+                    width: "170px",
+                    height: "170px",
+                    margin: "12px auto",
+                    display: "grid",
+                    placeItems: "center",
+                    fontWeight: "bold",
+                    color: "#7c3aed",
+                    textAlign: "center",
+                  }}
+                >
+                  🎡<br />Spin & Win
+                </div>
+              ) : null}
+
+              {game.gameType === "Scratch Card" ? (
+                <div
+                  style={{
+                    backgroundColor: "#e2e8f0",
+                    border: `2px dashed ${ROYAL_BLUE}`,
+                    borderRadius: "14px",
+                    padding: "30px",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    color: ROYAL_BLUE,
+                    marginBottom: "12px",
+                  }}
+                >
+                  🎁 Scratch Card Surprise
+                </div>
+              ) : null}
+
+              {game.rewardText ? (
+                <div
+                  style={{
+                    backgroundColor: "#f0fdf4",
+                    border: "1px solid #bbf7d0",
+                    borderRadius: "12px",
+                    padding: "12px",
+                    color: "#166534",
+                    fontWeight: "bold",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Reward: {game.rewardText}
+                </div>
+              ) : null}
+
+              {Number(game.rewardPoints || 0) > 0 ? (
+                <div
+                  style={{
+                    backgroundColor: "#eef4ff",
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: "12px",
+                    padding: "12px",
+                    color: ROYAL_BLUE,
+                    fontWeight: "bold",
+                    marginBottom: "12px",
+                  }}
+                >
+                  EK Points: {Number(game.rewardPoints || 0).toLocaleString()}
+                </div>
+              ) : null}
+
+              <button
+                onClick={() => playGame(game)}
+                disabled={hasPlayedGame(game._id)}
+                style={{
+                  backgroundColor: hasPlayedGame(game._id) ? "#94a3b8" : GOLD,
+                  color: "black",
+                  border: "none",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  fontWeight: "bold",
+                  cursor: hasPlayedGame(game._id) ? "not-allowed" : "pointer",
+                  width: "100%",
+                }}
+              >
+                {hasPlayedGame(game._id) ? "Already Played" : `Play ${game.gameType}`}
+              </button>
+
+              {game.endDate ? (
+                <div style={{ marginTop: "12px", color: "#dc2626", fontWeight: "bold" }}>
+                  Ends: {String(game.endDate).slice(0, 10)}
+                </div>
+              ) : null}
+            </div>
+          ))
+        ) : (
+          <div style={cardStyle}>No active games available right now.</div>
+        )}
+      </div>
+    </div>
+
+    <div className="hub-grid">
           {filteredPosts.length > 0 ? (
             filteredPosts.map((post) => (
               <div key={post._id} style={cardStyle}>
@@ -307,8 +536,9 @@ const enterHubPost = async (postId) => {
           ) : (
             <div style={cardStyle}>No active Rewards Hub posts found.</div>
           )}
-        </div>
-      )}
+                </div>
+      </>
+)}
 
       <style>
         {`
