@@ -12,6 +12,8 @@ function AmazonAssociateLinks() {
   const MUTED = "#64748b";
   const TEXT = "#0f172a";
 
+  const FILE_BASE = "https://eltham-konnect-backend-c2sf.onrender.com";
+
   const fetchItems = async () => {
     try {
       const res = await api.get("/api/amazon-associate/active");
