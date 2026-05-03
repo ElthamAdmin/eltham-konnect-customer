@@ -72,7 +72,7 @@ function AmazonAssociateLinks() {
   }}
 >
   <img
-    src={`${api.defaults.baseURL}${item.imageUrl}`}
+    src={`${FILE_BASE}${item.imageUrl}`}
     alt={item.title}
     style={{
       maxWidth: "100%",
