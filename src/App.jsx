@@ -26,13 +26,13 @@ function CustomerPortalLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const ROYAL_BLUE = "#0B3D91";
-  const SIDEBAR_BLUE = "#1f3a93";
   const GOLD = "#D4AF37";
   const WHITE = "#ffffff";
   const BG = "#f4f7fb";
-  const TEXT = "#0f172a";
   const MUTED = "#64748b";
   const BORDER = "#dbe3ef";
+
+  const isMobile = window.innerWidth <= 768;
 
   useEffect(() => {
     const loadCustomer = async () => {
@@ -58,31 +58,12 @@ function CustomerPortalLayout() {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  if (!customer) {
-    return <Navigate to="/login" replace />;
-  }
-
-  const navItemStyle = (active) => ({
-    color: WHITE,
-    textDecoration: "none",
-    padding: "14px 18px",
-    display: "block",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
-    fontWeight: active ? "700" : "600",
-    opacity: active ? 1 : 0.94,
-    background: active
-      ? "linear-gradient(90deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08))"
-      : "transparent",
-    borderLeft: active ? `4px solid ${GOLD}` : "4px solid transparent",
-    transition: "all 0.2s ease",
-  });
+  if (!customer) return <Navigate to="/login" replace />;
 
   const initials = useMemo(() => {
     const parts = (customer.name || "").split(" ").filter(Boolean);
     if (parts.length === 0) return "EK";
-    return (
-      ((parts[0][0] || "E") + (parts[1]?.[0] || parts[0]?.[1] || "K")).toUpperCase()
-    );
+    return ((parts[0][0] || "E") + (parts[1]?.[0] || parts[0]?.[1] || "K")).toUpperCase();
   }, [customer.name]);
 
   const hasAcceptedPolicies = customer.termsAccepted && customer.privacyAccepted;
@@ -91,344 +72,182 @@ function CustomerPortalLayout() {
     return <Navigate to="/policy-acceptance" replace />;
   }
 
-  const sidebarContent = (
-    <>
-      <div
-        style={{
-          padding: "22px 20px",
-          borderBottom: "1px solid rgba(255,255,255,0.12)",
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0))",
-        }}
-      >
-        <div style={{ fontSize: "18px", fontWeight: "800", letterSpacing: "0.3px" }}>
-          Eltham Konnect
-        </div>
-        <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "4px" }}>
-          Customer Portal
-        </div>
-      </div>
+  const navItems = [
+    { label: "Dashboard", path: "/" },
+    { label: "Packages", path: "/my-packages" },
+    { label: "Pre-Alerts", path: "/pre-alerts" },
+    { label: "Invoices", path: "/my-invoices" },
+    { label: "Calculator", path: "/rates-calculator" },
+    { label: "Rewards Hub", path: "/rewards-hub" },
+    { label: "My Rewards", path: "/my-rewards" },
+    { label: "Amazon Links", path: "/amazon-associate-links" },
+    { label: "Support", path: "/support" },
+    { label: "Upload Invoice", path: "/upload-invoice" },
+    { label: "Profile", path: "/profile-settings" },
+  ];
 
-      <Link to="/" style={navItemStyle(location.pathname === "/")}>
-        Dashboard
-      </Link>
-      <Link to="/my-packages" style={navItemStyle(location.pathname === "/my-packages")}>
-        My Packages
-      </Link>
-      <Link to="/pre-alerts" style={navItemStyle(location.pathname === "/pre-alerts")}>
-        Pre-Alerts
-      </Link>
-      <Link to="/my-invoices" style={navItemStyle(location.pathname === "/my-invoices")}>
-        My Invoices
-      </Link>
-      <Link
-  to="/rates-calculator"
-  style={navItemStyle(location.pathname === "/rates-calculator")}
->
-  Rates Calculator
-</Link>
+  const bottomItems = [
+    { label: "Home", path: "/" },
+    { label: "Packages", path: "/my-packages" },
+    { label: "Invoices", path: "/my-invoices" },
+    { label: "Rewards", path: "/my-rewards" },
+    { label: "More", path: "__more" },
+  ];
 
-<Link
-  to="/rewards-hub"
-  style={navItemStyle(location.pathname === "/rewards-hub")}
->
-  EK Rewards Hub
-</Link>
+  const logout = () => {
+    localStorage.removeItem("ek_customer_token");
+    localStorage.removeItem("ek_customer_data");
+    setCustomer(null);
+  };
 
-      <Link to="/my-rewards" style={navItemStyle(location.pathname === "/my-rewards")}>
-  My Rewards
-</Link>
-<Link to="/my-rewards" style={navItemStyle(location.pathname === "/my-rewards")}>
-  My Referral Code
-</Link>
-      <Link
-  to="/amazon-associate-links"
-  style={navItemStyle(location.pathname === "/amazon-associate-links")}
->
-  Amazon Associate Links
-</Link>
-      <Link to="/support" style={navItemStyle(location.pathname === "/support")}>
-        Support Tickets
-      </Link>
-      <Link to="/upload-invoice" style={navItemStyle(location.pathname === "/upload-invoice")}>
-        Upload Invoice
-      </Link>
-      <Link to="/profile-settings" style={navItemStyle(location.pathname === "/profile-settings")}>
-        Profile Settings
-      </Link>
-    </>
+  const navItemStyle = (active) => ({
+    color: WHITE,
+    textDecoration: "none",
+    padding: "14px 20px",
+    display: "block",
+    borderBottom: "1px solid rgba(255,255,255,0.15)",
+    fontWeight: "bold",
+    backgroundColor: active ? "rgba(255,255,255,0.14)" : "transparent",
+  });
+
+  const renderRoutes = () => (
+    <Routes>
+      <Route path="/" element={<CustomerDashboard customer={customer} />} />
+      <Route path="/my-packages" element={<MyPackages />} />
+      <Route path="/pre-alerts" element={<PreAlerts />} />
+      <Route path="/my-invoices" element={<MyInvoices />} />
+      <Route path="/rates-calculator" element={<RatesCalculator />} />
+      <Route path="/rewards-hub" element={<RewardsHub />} />
+      <Route path="/my-rewards" element={<MyRewards />} />
+      <Route path="/amazon-associate-links" element={<AmazonAssociateLinks />} />
+      <Route path="/support" element={<CustomerSupport />} />
+      <Route path="/upload-invoice" element={<UploadInvoice />} />
+      <Route path="/profile-settings" element={<ProfileSettings />} />
+      <Route
+        path="/policy-acceptance"
+        element={
+          <PolicyAcceptance
+            customer={customer}
+            onAccept={(updatedCustomer) => setCustomer(updatedCustomer)}
+          />
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        fontFamily: "Arial, sans-serif",
-        backgroundColor: BG,
-      }}
-    >
-      {mobileMenuOpen && (
-        <div
-          onClick={() => setMobileMenuOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(15, 23, 42, 0.48)",
-            zIndex: 40,
-          }}
-        />
-      )}
-
-      <div style={{ display: "flex", minHeight: "100vh" }}>
-        <div
-          style={{
-            width: "260px",
-            background: `linear-gradient(180deg, ${SIDEBAR_BLUE}, ${ROYAL_BLUE})`,
-            color: WHITE,
-            display: "flex",
-            flexDirection: "column",
-            flexShrink: 0,
-            boxShadow: "8px 0 24px rgba(15,23,42,0.08)",
-          }}
-          className="desktop-sidebar"
-        >
-          {sidebarContent}
-        </div>
-
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: mobileMenuOpen ? 0 : "-290px",
-            width: "260px",
-            height: "100vh",
-            background: `linear-gradient(180deg, ${SIDEBAR_BLUE}, ${ROYAL_BLUE})`,
-            color: WHITE,
-            display: "flex",
-            flexDirection: "column",
-            zIndex: 50,
-            transition: "left 0.25s ease",
-            boxShadow: "0 18px 40px rgba(0,0,0,0.28)",
-          }}
-          className="mobile-sidebar"
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "18px 20px",
-              borderBottom: "1px solid rgba(255,255,255,0.16)",
-            }}
-          >
-            <div>
-              <div style={{ fontSize: "18px", fontWeight: "800" }}>Eltham Konnect</div>
-              <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "3px" }}>
-                Customer Portal
-              </div>
-            </div>
-
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              style={{
-                backgroundColor: "transparent",
-                color: WHITE,
-                border: "1px solid rgba(255,255,255,0.25)",
-                borderRadius: "8px",
-                padding: "6px 10px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
-            >
-              ✕
-            </button>
-          </div>
-          {sidebarContent}
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              minHeight: "82px",
-              backgroundColor: WHITE,
-              borderBottom: `1px solid ${BORDER}`,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "14px 18px",
-              gap: "14px",
-              flexWrap: "wrap",
-              boxShadow: "0 2px 10px rgba(15,23,42,0.03)",
-            }}
-          >
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              style={{
-                fontSize: "24px",
-                color: MUTED,
-                backgroundColor: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: "6px 8px",
-              }}
-            >
+  if (isMobile) {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: BG, fontFamily: "Arial, sans-serif", paddingBottom: "78px" }}>
+        <div style={{ backgroundColor: ROYAL_BLUE, color: WHITE, padding: "16px", position: "sticky", top: 0, zIndex: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+            <button onClick={() => setMobileMenuOpen(true)} style={{ background: "transparent", border: "none", color: WHITE, fontSize: "28px" }}>
               ☰
             </button>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                flexWrap: "wrap",
-                justifyContent: "flex-end",
-                marginLeft: "auto",
-              }}
-            >
-              <div
-                style={{
-                  width: "46px",
-                  height: "46px",
-                  borderRadius: "50%",
-                  background: "linear-gradient(180deg, #f8fafc, #e2e8f0)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#475569",
-                  fontWeight: "bold",
-                  flexShrink: 0,
-                  border: "1px solid #e2e8f0",
-                }}
-              >
-                {initials}
-              </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "18px", fontWeight: "bold" }}>Eltham Konnect</div>
+              <div style={{ fontSize: "12px", opacity: 0.9 }}>{customer.name}</div>
+            </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  lineHeight: 1.2,
-                  minWidth: 0,
-                  textAlign: "left",
-                }}
-              >
-                <span
-                  style={{
-                    color: TEXT,
-                    fontWeight: "800",
-                    wordBreak: "break-word",
-                    fontSize: "15px",
-                  }}
-                >
-                  {customer.name}
-                </span>
+            <div style={{ color: GOLD, fontWeight: "bold", fontSize: "14px" }}>
+              ✦ {Number(customer.pointsBalance || 0).toLocaleString()}
+            </div>
 
-                <span style={{ color: MUTED, fontSize: "12px" }}>
-                  {customer.ekonId}
-                </span>
+            <div style={{ width: "42px", height: "42px", borderRadius: "50%", backgroundColor: WHITE, color: ROYAL_BLUE, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
+              {initials}
+            </div>
+          </div>
+        </div>
 
-                <span
-                  style={{
-                    color: GOLD,
-                    fontSize: "12px",
-                    fontWeight: "700",
-                    marginTop: "2px",
-                  }}
-                >
-                  EK Points: {Number(customer.pointsBalance || 0).toLocaleString()}
-                </span>
-              </div>
+        <div style={{ margin: "14px", backgroundColor: WHITE, border: `1px solid ${BORDER}`, borderRadius: "14px", padding: "14px", color: MUTED, lineHeight: 1.5 }}>
+          Upload your package invoice as soon as your item reaches our warehouse to prevent customs delays.
+        </div>
 
-              <button
-                onClick={() => {
-                  localStorage.removeItem("ek_customer_token");
-                  localStorage.removeItem("ek_customer_data");
-                  setCustomer(null);
-                }}
-                style={{
-                  backgroundColor: "#dc2626",
-                  color: WHITE,
-                  border: "none",
-                  padding: "9px 13px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
-              >
+        {mobileMenuOpen && (
+          <div onClick={() => setMobileMenuOpen(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 50 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: "82%", maxWidth: "330px", height: "100%", backgroundColor: ROYAL_BLUE, overflowY: "auto" }}>
+              <div style={{ padding: "20px", color: WHITE, fontSize: "22px", fontWeight: "bold" }}>Eltham Konnect</div>
+              {navItems.map((item) => (
+                <Link key={item.path} to={item.path} style={navItemStyle(location.pathname === item.path)}>
+                  {item.label}
+                </Link>
+              ))}
+              <button onClick={logout} style={{ margin: "18px", width: "calc(100% - 36px)", backgroundColor: "#dc2626", color: WHITE, border: "none", padding: "12px", borderRadius: "10px", fontWeight: "bold" }}>
                 Logout
               </button>
             </div>
           </div>
+        )}
 
-          <div
-            style={{
-              margin: "16px 16px 0 16px",
-              background: "linear-gradient(180deg, #fff7db, #fef3c7)",
-              border: "1px solid #f2c94c",
-              color: "#8a5a00",
-              padding: "14px 16px",
-              borderRadius: "14px",
-              fontWeight: "700",
-              lineHeight: 1.5,
-              boxShadow: "0 4px 14px rgba(212,175,55,0.08)",
-            }}
-          >
-            Upload your package invoice as soon as your item reaches our warehouse to help prevent customs clearance delays.
-          </div>
+        <main style={{ padding: "14px", overflowX: "hidden" }}>{renderRoutes()}</main>
 
-          <div style={{ padding: "18px 16px 24px 16px" }}>
-            <Routes>
-              <Route path="/" element={<CustomerDashboard customer={customer} />} />
-              <Route path="/my-packages" element={<MyPackages />} />
-              <Route path="/pre-alerts" element={<PreAlerts />} />
-              <Route path="/my-invoices" element={<MyInvoices />} />
-              <Route path="/rates-calculator" element={<RatesCalculator />} />
-              <Route path="/rewards-hub" element={<RewardsHub />} />
-              <Route path="/my-rewards" element={<MyRewards />} />
-              <Route path="/amazon-associate-links" element={<AmazonAssociateLinks />} />
-              <Route path="/support" element={<CustomerSupport />} />
-              <Route path="/upload-invoice" element={<UploadInvoice />} />
-              <Route path="/profile-settings" element={<ProfileSettings />} />
-              <Route
-                path="/policy-acceptance"
-                element={
-                  <PolicyAcceptance
-                    customer={customer}
-                    onAccept={(updatedCustomer) => setCustomer(updatedCustomer)}
-                  />
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </div>
-        </div>
+        <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, height: "70px", backgroundColor: WHITE, borderTop: `1px solid ${BORDER}`, display: "grid", gridTemplateColumns: "repeat(5, 1fr)", zIndex: 30 }}>
+          {bottomItems.map((item) =>
+            item.path === "__more" ? (
+              <button key={item.label} onClick={() => setMobileMenuOpen(true)} style={bottomNavStyle(false, ROYAL_BLUE, MUTED)}>
+                ⋯<span>{item.label}</span>
+              </button>
+            ) : (
+              <Link key={item.path} to={item.path} style={bottomNavStyle(location.pathname === item.path, ROYAL_BLUE, MUTED)}>
+                ●<span>{item.label}</span>
+              </Link>
+            )
+          )}
+        </nav>
       </div>
+    );
+  }
 
-      <style>
-        {`
-          .mobile-sidebar {
-            display: none;
-          }
+  return (
+    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: BG, fontFamily: "Arial, sans-serif" }}>
+      <aside style={{ width: "260px", backgroundColor: ROYAL_BLUE, color: WHITE }}>
+        <div style={{ padding: "22px 20px", fontSize: "20px", fontWeight: "bold" }}>Eltham Konnect</div>
+        {navItems.map((item) => (
+          <Link key={item.path} to={item.path} style={navItemStyle(location.pathname === item.path)}>
+            {item.label}
+          </Link>
+        ))}
+      </aside>
 
-          @media (max-width: 900px) {
-            .desktop-sidebar {
-              display: none !important;
-            }
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <header style={{ minHeight: "82px", backgroundColor: WHITE, borderBottom: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 24px" }}>
+          <div>
+            <strong>{customer.name}</strong>
+            <div style={{ color: MUTED, fontSize: "12px" }}>{customer.ekonId}</div>
+          </div>
 
-            .mobile-sidebar {
-              display: flex !important;
-            }
-          }
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <span style={{ color: GOLD, fontWeight: "bold" }}>
+              EK Points: {Number(customer.pointsBalance || 0).toLocaleString()}
+            </span>
+            <button onClick={logout} style={{ backgroundColor: "#dc2626", color: WHITE, border: "none", padding: "9px 13px", borderRadius: "8px", fontWeight: "bold" }}>
+              Logout
+            </button>
+          </div>
+        </header>
 
-          @media (min-width: 901px) {
-            .mobile-sidebar {
-              display: none !important;
-            }
-          }
-        `}
-      </style>
+        <main style={{ padding: "18px 16px 24px" }}>{renderRoutes()}</main>
+      </div>
     </div>
   );
+}
+
+function bottomNavStyle(active, activeColor, mutedColor) {
+  return {
+    border: "none",
+    backgroundColor: "white",
+    color: active ? activeColor : mutedColor,
+    textDecoration: "none",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "4px",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer",
+  };
 }
 
 export default function App() {
