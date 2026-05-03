@@ -60,8 +60,7 @@ function MyInvoices() {
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
 
-      const matchesStatus =
-        statusFilter === "All" || inv.status === statusFilter;
+      const matchesStatus = statusFilter === "All" || inv.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -96,18 +95,7 @@ function MyInvoices() {
 
   const getStatusBadge = (status) => {
     const backgroundColor =
-      status === "Paid"
-        ? "#16a34a"
-        : status === "Unpaid"
-        ? "#dc2626"
-        : "#64748b";
-
-    const glowColor =
-      status === "Paid"
-        ? "rgba(22, 163, 74, 0.18)"
-        : status === "Unpaid"
-        ? "rgba(220, 38, 38, 0.18)"
-        : "rgba(100, 116, 139, 0.18)";
+      status === "Paid" ? "#16a34a" : status === "Unpaid" ? "#dc2626" : "#64748b";
 
     return (
       <span
@@ -119,7 +107,6 @@ function MyInvoices() {
           fontWeight: "bold",
           fontSize: "12px",
           display: "inline-block",
-          boxShadow: `0 6px 16px ${glowColor}`,
           whiteSpace: "nowrap",
         }}
       >
@@ -129,8 +116,8 @@ function MyInvoices() {
   };
 
   const printReceipt = () => {
-  window.print();
-};
+    window.print();
+  };
 
   const handlePayNow = (invoice) => {
     if (invoice.paymentLink) {
@@ -160,14 +147,6 @@ function MyInvoices() {
     minHeight: "125px",
   };
 
-  const receiptRowStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: "12px",
-  padding: "12px 14px",
-  borderBottom: `1px solid ${BORDER}`,
-};
-
   const summaryCard = (value, label, valueColor, bgTone) => (
     <div
       style={{
@@ -191,6 +170,21 @@ function MyInvoices() {
     </div>
   );
 
+  const receiptRow = (label, value, bold = false, color = TEXT) => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "12px",
+        padding: "12px 0",
+        borderBottom: `1px solid ${BORDER}`,
+      }}
+    >
+      <span style={{ color: MUTED }}>{label}</span>
+      <strong style={{ color, fontWeight: bold ? "900" : "700" }}>{value}</strong>
+    </div>
+  );
+
   return (
     <div style={{ backgroundColor: LIGHT_BG }}>
       <div
@@ -204,7 +198,9 @@ function MyInvoices() {
         }}
       >
         <div>
-          <h1 style={{ margin: 0, color: TEXT, fontSize: "38px" }}>My Invoices</h1>
+          <h1 style={{ margin: 0, color: TEXT, fontSize: "38px" }}>
+            My Invoices
+          </h1>
           <p style={{ margin: "6px 0 0 0", color: MUTED }}>
             View your balances, payment status, and pay outstanding invoices.
           </p>
@@ -297,8 +293,8 @@ function MyInvoices() {
               Invoice Records
             </h2>
             <p style={{ margin: 0, color: MUTED, fontSize: "14px" }}>
-              {filteredInvoices.length} invoice{filteredInvoices.length === 1 ? "" : "s"} matched
-              your current search.
+              {filteredInvoices.length} invoice
+              {filteredInvoices.length === 1 ? "" : "s"} matched your current search.
             </p>
           </div>
         </div>
@@ -364,20 +360,20 @@ function MyInvoices() {
                             </button>
                           ) : (
                             <button
-  onClick={() => setSelectedReceipt(inv)}
-  style={{
-    backgroundColor: ROYAL_BLUE,
-    color: WHITE,
-    border: "none",
-    padding: "9px 14px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontWeight: "800",
-    minWidth: "110px",
-  }}
->
-  View Receipt
-</button>
+                              onClick={() => setSelectedReceipt(inv)}
+                              style={{
+                                backgroundColor: ROYAL_BLUE,
+                                color: WHITE,
+                                border: "none",
+                                padding: "9px 14px",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontWeight: "800",
+                                minWidth: "120px",
+                              }}
+                            >
+                              View Receipt
+                            </button>
                           )}
                         </td>
                       </tr>
@@ -401,7 +397,6 @@ function MyInvoices() {
                 filteredInvoices.map((inv) => (
                   <div
                     key={inv._id}
-                    className="mobile-card"
                     style={{
                       border: `1px solid ${BORDER}`,
                       padding: "16px",
@@ -463,20 +458,20 @@ function MyInvoices() {
                       </button>
                     ) : (
                       <button
-  onClick={() => setSelectedReceipt(inv)}
-  style={{
-    backgroundColor: ROYAL_BLUE,
-    color: WHITE,
-    border: "none",
-    padding: "11px 14px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    width: "100%",
-    fontWeight: "800",
-  }}
->
-  View Receipt
-</button>
+                        onClick={() => setSelectedReceipt(inv)}
+                        style={{
+                          backgroundColor: ROYAL_BLUE,
+                          color: WHITE,
+                          border: "none",
+                          padding: "11px 14px",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          width: "100%",
+                          fontWeight: "800",
+                        }}
+                      >
+                        View Receipt
+                      </button>
                     )}
                   </div>
                 ))
@@ -499,219 +494,277 @@ function MyInvoices() {
       </div>
 
       {selectedReceipt && (
-  <div
-    className="receipt-overlay"
-    style={{
-      position: "fixed",
-      inset: 0,
-      backgroundColor: "rgba(15,23,42,0.65)",
-      zIndex: 9999,
-      padding: "20px",
-      overflowY: "auto",
-    }}
-  >
-    <div
-      className="receipt-card"
-      style={{
-        maxWidth: "760px",
-        margin: "0 auto",
-        backgroundColor: WHITE,
-        borderRadius: "18px",
-        overflow: "hidden",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: ROYAL_BLUE,
-          color: WHITE,
-          padding: "24px",
-          display: "flex",
-          justifyContent: "space-between",
-          gap: "12px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <h1 style={{ margin: 0, fontSize: "28px" }}>ELTHAM KONNECT</h1>
-          <p style={{ margin: "6px 0 0", opacity: 0.9 }}>
-            Payment Receipt
-          </p>
-        </div>
-
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontWeight: "bold" }}>
-            {selectedReceipt.invoiceNumber}
-          </div>
-          <div style={{ fontSize: "13px", opacity: 0.9 }}>
-            Paid: {formatDate(selectedReceipt.paidDate || selectedReceipt.paidAt)}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ padding: "24px" }}>
         <div
+          className="receipt-overlay"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "14px",
-            marginBottom: "20px",
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(15,23,42,0.72)",
+            zIndex: 9999,
+            padding: "18px",
+            overflowY: "auto",
           }}
         >
-          <div>
-            <div style={{ color: MUTED, fontSize: "12px" }}>Customer</div>
-            <strong>{selectedReceipt.customerName}</strong>
-          </div>
-
-          <div>
-            <div style={{ color: MUTED, fontSize: "12px" }}>EKON ID</div>
-            <strong>{selectedReceipt.customerEkonId}</strong>
-          </div>
-
-          <div>
-            <div style={{ color: MUTED, fontSize: "12px" }}>Status</div>
-            {getStatusBadge(selectedReceipt.status)}
-          </div>
-
-          <div>
-            <div style={{ color: MUTED, fontSize: "12px" }}>Package Count</div>
-            <strong>{selectedReceipt.packageCount || 0}</strong>
-          </div>
-        </div>
-
-        <h3 style={{ color: ROYAL_BLUE }}>Package Details</h3>
-
-        <div style={{ overflowX: "auto" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              marginBottom: "20px",
-            }}
-          >
-            <thead style={{ backgroundColor: "#eef4ff" }}>
-              <tr>
-                <th style={{ padding: "10px", textAlign: "left" }}>Tracking</th>
-                <th style={{ padding: "10px", textAlign: "left" }}>Weight</th>
-                <th style={{ padding: "10px", textAlign: "right" }}>Rate</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {(selectedReceipt.packages || []).map((pkg, index) => (
-                <tr key={index}>
-                  <td style={{ padding: "10px", borderBottom: `1px solid ${BORDER}` }}>
-                    {pkg.trackingNumber}
-                  </td>
-                  <td style={{ padding: "10px", borderBottom: `1px solid ${BORDER}` }}>
-                    {pkg.chargeableWeight} lb
-                  </td>
-                  <td
-                    style={{
-                      padding: "10px",
-                      borderBottom: `1px solid ${BORDER}`,
-                      textAlign: "right",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {formatCurrency(pkg.rate)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div
-          style={{
-            marginLeft: "auto",
-            maxWidth: "360px",
-            border: `1px solid ${BORDER}`,
-            borderRadius: "14px",
-            overflow: "hidden",
-          }}
-        >
-          <div style={receiptRowStyle}>
-            <span>Subtotal</span>
-            <strong>{formatCurrency(selectedReceipt.subtotal)}</strong>
-          </div>
-
-          <div style={receiptRowStyle}>
-            <span>EK Points Redeemed</span>
-            <strong>- {formatCurrency(selectedReceipt.pointsRedeemed)}</strong>
-          </div>
-
           <div
+            className="receipt-card"
             style={{
-              ...receiptRowStyle,
-              backgroundColor: "#f0fdf4",
-              color: "#166534",
-              fontSize: "18px",
+              maxWidth: "720px",
+              margin: "0 auto",
+              backgroundColor: WHITE,
+              borderRadius: "20px",
+              overflow: "hidden",
+              boxShadow: "0 25px 70px rgba(0,0,0,0.35)",
+              border: `1px solid ${BORDER}`,
             }}
           >
-            <span>Amount Paid</span>
-            <strong>{formatCurrency(selectedReceipt.finalTotal)}</strong>
+            <div
+              style={{
+                background: `linear-gradient(135deg, ${ROYAL_BLUE}, #102a63)`,
+                color: WHITE,
+                padding: "26px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: "16px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <h1 style={{ margin: 0, fontSize: "28px", letterSpacing: "0.6px" }}>
+                    ELTHAM KONNECT
+                  </h1>
+                  <div style={{ marginTop: "6px", color: GOLD, fontWeight: "bold" }}>
+                    Your Konnection, Our Priority
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.12)",
+                    border: "1px solid rgba(255,255,255,0.25)",
+                    borderRadius: "14px",
+                    padding: "12px 14px",
+                    textAlign: "right",
+                  }}
+                >
+                  <div style={{ fontSize: "12px", opacity: 0.85 }}>PAYMENT RECEIPT</div>
+                  <div style={{ fontWeight: "900", fontSize: "18px" }}>
+                    {selectedReceipt.invoiceNumber}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: "26px" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1.2fr 0.8fr",
+                  gap: "18px",
+                  marginBottom: "22px",
+                }}
+                className="receipt-top-grid"
+              >
+                <div
+                  style={{
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: "16px",
+                    padding: "16px",
+                    backgroundColor: "#f8fafc",
+                  }}
+                >
+                  <div style={{ color: MUTED, fontSize: "12px", fontWeight: "bold" }}>
+                    RECEIVED FROM
+                  </div>
+                  <h2 style={{ margin: "8px 0 4px", color: TEXT }}>
+                    {selectedReceipt.customerName}
+                  </h2>
+                  <div style={{ color: MUTED }}>
+                    EKON ID: <strong>{selectedReceipt.customerEkonId}</strong>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: "16px",
+                    padding: "16px",
+                    backgroundColor: "#f0fdf4",
+                  }}
+                >
+                  <div style={{ color: MUTED, fontSize: "12px", fontWeight: "bold" }}>
+                    RECEIPT STATUS
+                  </div>
+                  <div style={{ marginTop: "10px" }}>{getStatusBadge(selectedReceipt.status)}</div>
+                  <div style={{ marginTop: "10px", color: MUTED, fontSize: "13px" }}>
+                    Paid Date
+                  </div>
+                  <strong>{formatDate(selectedReceipt.paidDate || selectedReceipt.paidAt)}</strong>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  backgroundColor: ROYAL_BLUE,
+                  color: WHITE,
+                  borderRadius: "16px",
+                  padding: "18px",
+                  marginBottom: "22px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: "12px", opacity: 0.85 }}>
+                    AMOUNT PAID
+                  </div>
+                  <div style={{ fontSize: "30px", fontWeight: "900" }}>
+                    {formatCurrency(selectedReceipt.finalTotal)}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    backgroundColor: GOLD,
+                    color: "#1e293b",
+                    padding: "10px 14px",
+                    borderRadius: "999px",
+                    fontWeight: "900",
+                  }}
+                >
+                  PAID IN FULL
+                </div>
+              </div>
+
+              <h3 style={{ color: ROYAL_BLUE, marginBottom: "12px" }}>
+                Package Breakdown
+              </h3>
+
+              <div style={{ overflowX: "auto", marginBottom: "22px" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead style={{ backgroundColor: "#eef4ff" }}>
+                    <tr>
+                      <th style={{ padding: "11px", textAlign: "left" }}>Tracking</th>
+                      <th style={{ padding: "11px", textAlign: "left" }}>Weight</th>
+                      <th style={{ padding: "11px", textAlign: "right" }}>Amount</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {(selectedReceipt.packages || []).map((pkg, index) => (
+                      <tr key={index}>
+                        <td style={{ padding: "11px", borderBottom: `1px solid ${BORDER}` }}>
+                          {pkg.trackingNumber}
+                        </td>
+                        <td style={{ padding: "11px", borderBottom: `1px solid ${BORDER}` }}>
+                          {pkg.chargeableWeight} lb
+                        </td>
+                        <td
+                          style={{
+                            padding: "11px",
+                            borderBottom: `1px solid ${BORDER}`,
+                            textAlign: "right",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {formatCurrency(pkg.rate)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div
+                style={{
+                  marginLeft: "auto",
+                  maxWidth: "380px",
+                  borderTop: `3px solid ${GOLD}`,
+                  paddingTop: "8px",
+                }}
+              >
+                {receiptRow("Subtotal", formatCurrency(selectedReceipt.subtotal))}
+                {receiptRow(
+                  "EK Points Redeemed",
+                  `- ${formatCurrency(selectedReceipt.pointsRedeemed)}`,
+                  true,
+                  "#dc2626"
+                )}
+                {receiptRow(
+                  "Total Paid",
+                  formatCurrency(selectedReceipt.finalTotal),
+                  true,
+                  "#16a34a"
+                )}
+              </div>
+
+              <div
+                style={{
+                  marginTop: "24px",
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: "16px",
+                  padding: "16px",
+                  backgroundColor: "#fffbeb",
+                  color: "#92400e",
+                  lineHeight: 1.5,
+                }}
+              >
+                <strong>Thank you for shipping with Eltham Konnect.</strong>
+                <br />
+                This receipt confirms payment received for the invoice listed above.
+              </div>
+
+              <div
+                className="receipt-actions"
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  justifyContent: "flex-end",
+                  marginTop: "22px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  onClick={() => setSelectedReceipt(null)}
+                  style={{
+                    backgroundColor: "#64748b",
+                    color: WHITE,
+                    border: "none",
+                    padding: "10px 16px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Close
+                </button>
+
+                <button
+                  onClick={printReceipt}
+                  style={{
+                    backgroundColor: GOLD,
+                    color: "#1e293b",
+                    border: "none",
+                    padding: "10px 16px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Print / Save PDF
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div
-          style={{
-            marginTop: "22px",
-            backgroundColor: "#fffbeb",
-            border: "1px solid #fde68a",
-            borderRadius: "14px",
-            padding: "14px",
-            color: "#92400e",
-            fontWeight: "bold",
-          }}
-        >
-          Thank you for shipping with Eltham Konnect. Your konnection, our priority.
-        </div>
-
-        <div
-          className="receipt-actions"
-          style={{
-            display: "flex",
-            gap: "10px",
-            justifyContent: "flex-end",
-            marginTop: "22px",
-            flexWrap: "wrap",
-          }}
-        >
-          <button
-            onClick={() => setSelectedReceipt(null)}
-            style={{
-              backgroundColor: "#64748b",
-              color: WHITE,
-              border: "none",
-              padding: "10px 16px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Close
-          </button>
-
-          <button
-            onClick={printReceipt}
-            style={{
-              backgroundColor: GOLD,
-              color: "#1e293b",
-              border: "none",
-              padding: "10px 16px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Print / Save PDF
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       <style>{`
         .invoice-summary {
@@ -730,35 +783,6 @@ function MyInvoices() {
         .table-mobile {
           display: none;
         }
-
-        @media print {
-  body * {
-    visibility: hidden;
-  }
-
-  .receipt-card,
-  .receipt-card * {
-    visibility: visible;
-  }
-
-  .receipt-overlay {
-    position: absolute !important;
-    inset: 0 !important;
-    background: white !important;
-    padding: 0 !important;
-  }
-
-  .receipt-card {
-    box-shadow: none !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-  }
-
-  .receipt-actions {
-    display: none !important;
-  }
-}
 
         @media (max-width: 900px) {
           .invoice-summary {
@@ -781,6 +805,39 @@ function MyInvoices() {
 
           .table-mobile {
             display: block;
+          }
+
+          .receipt-top-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+
+          .receipt-card,
+          .receipt-card * {
+            visibility: visible;
+          }
+
+          .receipt-overlay {
+            position: absolute !important;
+            inset: 0 !important;
+            background: white !important;
+            padding: 0 !important;
+          }
+
+          .receipt-card {
+            box-shadow: none !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+          }
+
+          .receipt-actions {
+            display: none !important;
           }
         }
       `}</style>
