@@ -74,7 +74,7 @@ function AmazonAssociateLinks() {
   }}
 >
   <img
-    src={`${FILE_BASE}${item.imageUrl}`}
+    src={item.imageUrl}
     alt={item.title}
     style={{
       maxWidth: "100%",
