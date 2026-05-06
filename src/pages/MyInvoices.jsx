@@ -318,6 +318,8 @@ function MyInvoices() {
                   <tr>
                     <th>Invoice</th>
                     <th>Customer</th>
+                    <th>Subtotal</th>
+                    <th>Extra Charges</th>
                     <th>Total</th>
                     <th>Status</th>
                     <th>Created Date</th>
@@ -334,10 +336,19 @@ function MyInvoices() {
                           {inv.invoiceNumber}
                         </td>
                         <td>{inv.customerName}</td>
-                        <td style={{ fontWeight: "700" }}>
-                          {formatCurrency(inv.finalTotal)}
-                        </td>
-                        <td>{getStatusBadge(inv.status)}</td>
+                        <td>{formatCurrency(inv.subtotal)}</td>
+<td>
+  {formatCurrency(
+    Number(inv.customsDuty || 0) +
+      Number(inv.gct || 0) +
+      Number(inv.processingFee || 0) +
+      Number(inv.otherAdjustment || 0)
+  )}
+</td>
+<td style={{ fontWeight: "700" }}>
+  {formatCurrency(inv.finalTotal)}
+</td>
+<td>{getStatusBadge(inv.status)}</td>
                         <td>{formatDate(inv.createdAt)}</td>
                         <td>{inv.paidDate ? formatDate(inv.paidDate) : "-"}</td>
                         <td>
@@ -416,6 +427,22 @@ function MyInvoices() {
                     </div>
 
                     <div style={{ display: "grid", gap: "10px", marginBottom: "14px" }}>
+                      <div>
+  <div style={{ fontSize: "12px", color: MUTED }}>Subtotal</div>
+  <div style={{ fontWeight: "700" }}>{formatCurrency(inv.subtotal)}</div>
+</div>
+
+<div>
+  <div style={{ fontSize: "12px", color: MUTED }}>Extra Charges</div>
+  <div style={{ fontWeight: "700" }}>
+    {formatCurrency(
+      Number(inv.customsDuty || 0) +
+        Number(inv.gct || 0) +
+        Number(inv.processingFee || 0) +
+        Number(inv.otherAdjustment || 0)
+    )}
+  </div>
+</div>
                       <div>
                         <div style={{ fontSize: "12px", color: MUTED }}>Total</div>
                         <div style={{ fontWeight: "700" }}>
@@ -690,19 +717,38 @@ function MyInvoices() {
                   paddingTop: "8px",
                 }}
               >
-                {receiptRow("Subtotal", formatCurrency(selectedReceipt.subtotal))}
-                {receiptRow(
-                  "EK Points Redeemed",
-                  `- ${formatCurrency(selectedReceipt.pointsRedeemed)}`,
-                  true,
-                  "#dc2626"
-                )}
-                {receiptRow(
-                  "Total Paid",
-                  formatCurrency(selectedReceipt.finalTotal),
-                  true,
-                  "#16a34a"
-                )}
+                {receiptRow("Shipping / Freight Subtotal", formatCurrency(selectedReceipt.subtotal))}
+{receiptRow("Customs Duty", formatCurrency(selectedReceipt.customsDuty))}
+{receiptRow("GCT", formatCurrency(selectedReceipt.gct))}
+{receiptRow("Processing Fee", formatCurrency(selectedReceipt.processingFee))}
+{receiptRow("Other Adjustment", formatCurrency(selectedReceipt.otherAdjustment))}
+
+{selectedReceipt.adjustmentNote ? (
+  <div
+    style={{
+      padding: "12px 0",
+      borderBottom: `1px solid ${BORDER}`,
+      color: MUTED,
+      lineHeight: 1.5,
+    }}
+  >
+    <strong style={{ color: TEXT }}>Adjustment Note:</strong>{" "}
+    {selectedReceipt.adjustmentNote}
+  </div>
+) : null}
+
+{receiptRow(
+  "EK Points Redeemed",
+  `- ${formatCurrency(selectedReceipt.pointsRedeemed)}`,
+  true,
+  "#dc2626"
+)}
+{receiptRow(
+  "Total Paid",
+  formatCurrency(selectedReceipt.finalTotal),
+  true,
+  "#16a34a"
+)}
               </div>
 
               <div
