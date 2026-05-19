@@ -10,6 +10,7 @@ function UploadInvoice() {
   const [packages, setPackages] = useState([]);
   const [uploads, setUploads] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [formData, setFormData] = useState({
     trackingNumber: "",
@@ -56,7 +57,17 @@ function UploadInvoice() {
     body.append("notes", formData.notes);
     body.append("invoiceFile", selectedFile);
 
-    await api.post("/api/customer-invoices", body);
+        const res = await api.post("/api/customer-invoices", body);
+
+    setSuccessMessage(
+      res.data.message ||
+        "Invoice uploaded successfully. Your package record has been updated."
+    );
+
+    alert(
+      res.data.message ||
+        "Invoice uploaded successfully. Your package record has been updated."
+    );
 
     setFormData({ trackingNumber: "", invoiceNumber: "", notes: "" });
     setSelectedFile(null);
@@ -70,6 +81,22 @@ function UploadInvoice() {
   return (
     <div>
       <h1>Upload Invoice</h1>
+
+            {successMessage && (
+        <div
+          style={{
+            backgroundColor: "#dcfce7",
+            border: "1px solid #16a34a",
+            color: "#14532d",
+            padding: "12px",
+            borderRadius: "8px",
+            marginBottom: "16px",
+            fontWeight: "bold",
+          }}
+        >
+          {successMessage}
+        </div>
+      )}
 
       {/* FORM */}
       <div className="card">
