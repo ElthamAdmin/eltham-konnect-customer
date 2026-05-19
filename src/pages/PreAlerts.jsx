@@ -152,6 +152,32 @@ function PreAlerts() {
         </button>
       </div>
 
+      <div
+        style={{
+          backgroundColor: "#ecfeff",
+          border: "1px solid #67e8f9",
+          borderRadius: "10px",
+          padding: "16px",
+          marginBottom: "20px",
+        }}
+      >
+        <h3 style={{ marginTop: 0, color: "#0B3D91" }}>
+          Official EKON Warehouse Address
+        </h3>
+
+        <div style={{ lineHeight: 1.8 }}>
+          <div><strong>Address Line 1:</strong> 5289 NW 108th Avenue</div>
+          <div><strong>Address Line 2:</strong> EKON</div>
+          <div><strong>City:</strong> Sunrise</div>
+          <div><strong>State:</strong> Florida</div>
+          <div><strong>Zipcode:</strong> 33351</div>
+        </div>
+
+        <p style={{ marginBottom: 0, marginTop: "12px", color: "#475569" }}>
+          Use this address when placing online orders and submit your pre-alert as soon as tracking is available.
+        </p>
+      </div>
+
       <div className="prealerts-summary-grid">
         <div style={metricCardStyle}>
           <h2 style={{ marginTop: 0, fontSize: "30px", color: "#1f3552", marginBottom: "8px" }}>

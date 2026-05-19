@@ -82,6 +82,32 @@ function UploadInvoice() {
     <div>
       <h1>Upload Invoice</h1>
 
+      <div
+  style={{
+    backgroundColor: "#eff6ff",
+    border: "1px solid #bfdbfe",
+    borderRadius: "10px",
+    padding: "16px",
+    marginBottom: "20px",
+  }}
+>
+  <h3 style={{ marginTop: 0, color: "#0B3D91" }}>
+    Correct Warehouse Address
+  </h3>
+
+  <div style={{ lineHeight: 1.8 }}>
+    <div><strong>Address Line 1:</strong> 5289 NW 108th Avenue</div>
+    <div><strong>Address Line 2:</strong> EKON</div>
+    <div><strong>City:</strong> Sunrise</div>
+    <div><strong>State:</strong> Florida</div>
+    <div><strong>Zipcode:</strong> 33351</div>
+  </div>
+
+  <p style={{ marginBottom: 0, marginTop: "12px", color: "#475569" }}>
+    Ensure all uploaded invoices match this warehouse delivery address and your package tracking number.
+  </p>
+</div>
+
             {successMessage && (
         <div
           style={{
