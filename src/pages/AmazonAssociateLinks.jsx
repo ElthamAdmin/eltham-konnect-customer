@@ -32,10 +32,10 @@ function AmazonAssociateLinks() {
     <div style={{ backgroundColor: LIGHT_BG }}>
       <div style={{ marginBottom: "20px" }}>
         <h1 style={{ marginTop: 0, marginBottom: "6px", color: TEXT }}>
-          Amazon Associate Links
+          Eltham Konnect Storefront
         </h1>
         <p style={{ margin: 0, color: MUTED }}>
-          Shop selected Amazon products using our recommended links.
+          Shop recommended Amazon items and EK inventory products such as sale finds, hair, colognes, candles, and other customer favourites.
         </p>
       </div>
 
@@ -121,24 +121,53 @@ function AmazonAssociateLinks() {
                 {item.description || "Shop this recommended item on Amazon."}
               </div>
 
-              <a
-                href={item.affiliateLink}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  display: "inline-block",
-                  width: "100%",
-                  textAlign: "center",
-                  backgroundColor: GOLD,
-                  color: "#111827",
-                  textDecoration: "none",
-                  padding: "11px 14px",
-                  borderRadius: "10px",
-                  fontWeight: "bold",
-                }}
-              >
-                {item.buttonText || "Shop on Amazon"}
-              </a>
+              {item.productType === "Amazon Affiliate" ? (
+  <a
+    href={item.affiliateLink}
+    target="_blank"
+    rel="noreferrer"
+    style={{
+      display: "inline-block",
+      width: "100%",
+      textAlign: "center",
+      backgroundColor: GOLD,
+      color: "#111827",
+      textDecoration: "none",
+      padding: "11px 14px",
+      borderRadius: "10px",
+      fontWeight: "bold",
+    }}
+  >
+    {item.buttonText || "Shop on Amazon"}
+  </a>
+) : (
+  <div>
+    <div style={{ fontWeight: "bold", color: ROYAL_BLUE, marginBottom: "8px" }}>
+      JMD {Number(item.sellingPrice || 0).toLocaleString()}
+    </div>
+
+    <div style={{ color: item.quantityInStock > 0 ? "#16a34a" : "#dc2626", fontWeight: "bold", marginBottom: "10px" }}>
+      {item.quantityInStock > 0 ? `${item.quantityInStock} in stock` : "Out of stock"}
+    </div>
+
+    <button
+      disabled={Number(item.quantityInStock || 0) <= 0}
+      onClick={() => alert("Please message Eltham Konnect customer support to purchase this item. Full checkout tracking will be added in the next storefront phase.")}
+      style={{
+        width: "100%",
+        backgroundColor: Number(item.quantityInStock || 0) <= 0 ? "#94a3b8" : ROYAL_BLUE,
+        color: WHITE,
+        border: "none",
+        padding: "11px 14px",
+        borderRadius: "10px",
+        fontWeight: "bold",
+        cursor: Number(item.quantityInStock || 0) <= 0 ? "not-allowed" : "pointer",
+      }}
+    >
+      {item.buttonText || "Request Item"}
+    </button>
+  </div>
+)}
             </div>
           ))}
         </div>
