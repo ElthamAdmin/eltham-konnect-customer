@@ -157,10 +157,18 @@ if (!selectedFile) {
 
 <input
   type="file"
-  accept=".pdf,image/jpeg,image/jpg,image/png,image/webp"
+  accept=".pdf,image/*"
   onChange={(e) => {
     const file = e.target.files?.[0] || null;
     setSelectedFile(file);
+  }}
+  style={{
+    width: "100%",
+    padding: "12px",
+    border: "1px solid #dbe3ef",
+    borderRadius: "8px",
+    backgroundColor: "white",
+    boxSizing: "border-box",
   }}
 />
 
