@@ -45,11 +45,17 @@ function UploadInvoice() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleUpload = async () => {
-    if (!formData.trackingNumber || !selectedFile) {
-      alert("Fill all required fields");
-      return;
-    }
+  const handleUpload = async (e) => {
+  if (e) e.preventDefault();
+    if (!formData.trackingNumber) {
+  alert("Please select the package tracking number.");
+  return;
+}
+
+if (!selectedFile) {
+  alert("Please upload the invoice PDF or image.");
+  return;
+}
 
     const body = new FormData();
     body.append("trackingNumber", formData.trackingNumber);
@@ -136,25 +142,46 @@ function UploadInvoice() {
         </select>
 
         <input
-          name="invoiceNumber"
-          placeholder="Invoice Number"
-          value={formData.invoiceNumber}
-          onChange={handleChange}
-        />
+  name="invoiceNumber"
+  placeholder="Invoice Number (optional)"
+  value={formData.invoiceNumber}
+  onChange={handleChange}
+/>
 
-        <textarea
-          name="notes"
-          placeholder="Notes"
-          value={formData.notes}
-          onChange={handleChange}
-        />
+<textarea
+  name="notes"
+  placeholder="Notes (optional)"
+  value={formData.notes}
+  onChange={handleChange}
+/>
 
-        <input
-          type="file"
-          onChange={(e) => setSelectedFile(e.target.files[0])}
-        />
+<input
+  type="file"
+  accept=".pdf,image/jpeg,image/jpg,image/png,image/webp"
+  onChange={(e) => {
+    const file = e.target.files?.[0] || null;
+    setSelectedFile(file);
+  }}
+/>
 
-        <button onClick={handleUpload}>Upload</button>
+{selectedFile && (
+  <div
+    style={{
+      backgroundColor: "#f0fdf4",
+      border: "1px solid #bbf7d0",
+      color: "#166534",
+      padding: "10px",
+      borderRadius: "8px",
+      fontWeight: "bold",
+    }}
+  >
+    Selected file: {selectedFile.name}
+  </div>
+)}
+
+<button type="button" onClick={handleUpload}>
+  Upload Invoice
+</button>
       </div>
 
       {/* DESKTOP TABLE */}
