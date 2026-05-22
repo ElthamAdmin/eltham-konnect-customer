@@ -131,16 +131,16 @@ function ProfileSettings() {
       </div>
 
       <div className="card">
-        <h2>Your Mailbox Address</h2>
-        <div className="address">
-          <div><strong>1. Name:</strong> {customer?.name} EKON</div>
-          <div><strong>2. Address Line 1:</strong> 1447 Banks Road</div>
-          <div><strong>3. Address Line 2:</strong> {customer?.ekonId}</div>
-          <div><strong>4. City:</strong> Margate</div>
-          <div><strong>5. State:</strong> Florida</div>
-          <div><strong>6. ZIP:</strong> 33063</div>
-        </div>
-      </div>
+  <h2>Your Mailbox Address</h2>
+  <div className="address">
+    <div><strong>1. Name:</strong> {customer?.name} EKON</div>
+    <div><strong>2. Address Line 1:</strong> 5289 NW 108th Avenue</div>
+    <div><strong>3. Address Line 2:</strong> EKON</div>
+    <div><strong>4. City:</strong> Sunrise</div>
+    <div><strong>5. State:</strong> Florida</div>
+    <div><strong>6. ZIP:</strong> 33351</div>
+  </div>
+</div>
 
       <div className="card">
         <h2>Edit Profile</h2>
