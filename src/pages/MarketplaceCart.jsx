@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 
 function MarketplaceCart() {
+  const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const ROYAL_BLUE = "#0B3D91";
   const GOLD = "#D4AF37";
@@ -55,6 +58,41 @@ function MarketplaceCart() {
       alert(error?.response?.data?.message || "Could not clear cart.");
     }
   };
+
+  const submitMarketplaceOrder = async () => {
+  try {
+    const items = cart?.items || [];
+
+    if (items.length === 0) {
+      alert("Your cart is empty.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    const res = await api.post("/api/marketplace-orders/submit", {
+      customerNote: "",
+    });
+
+    alert(
+      res.data.message ||
+        "Marketplace order request submitted successfully."
+    );
+
+    setCart(res.data?.cart || { items: [], subtotal: 0 });
+
+    navigate("/amazon-associate-links");
+  } catch (error) {
+    console.error("Submit marketplace order error:", error);
+
+    alert(
+      error?.response?.data?.message ||
+        "Could not submit marketplace order."
+    );
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   useEffect(() => {
     fetchCart();
@@ -229,22 +267,21 @@ function MarketplaceCart() {
               </div>
 
               <button
-                onClick={() =>
-                  alert("Checkout order request will be added in the next upgrade.")
-                }
-                style={{
-                  marginTop: "12px",
-                  backgroundColor: GOLD,
-                  color: "#111827",
-                  border: "none",
-                  padding: "12px 18px",
-                  borderRadius: "12px",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                }}
-              >
-                Submit Order Request
-              </button>
+  onClick={submitMarketplaceOrder}
+  disabled={submitting || items.length === 0}
+  style={{
+    marginTop: "12px",
+    backgroundColor: submitting || items.length === 0 ? "#94a3b8" : GOLD,
+    color: "#111827",
+    border: "none",
+    padding: "12px 18px",
+    borderRadius: "12px",
+    fontWeight: "bold",
+    cursor: submitting || items.length === 0 ? "not-allowed" : "pointer",
+  }}
+>
+  {submitting ? "Submitting..." : "Submit Order Request"}
+</button>
             </div>
           </div>
         </>
