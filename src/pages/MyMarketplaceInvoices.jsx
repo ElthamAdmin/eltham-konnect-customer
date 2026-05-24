@@ -78,23 +78,54 @@ function MyMarketplaceInvoices() {
                 </div>
               ))}
 
-              {invoice.paymentLink ? (
-                <a
-                  href={invoice.paymentLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ display: "inline-block", marginTop: "16px", backgroundColor: GOLD, color: "#111827", textDecoration: "none", padding: "12px 18px", borderRadius: "12px", fontWeight: "bold" }}
-                >
-                  Pay Marketplace Invoice
-                </a>
-              ) : (
-                <button
-                  disabled
-                  style={{ marginTop: "16px", backgroundColor: "#cbd5e1", color: WHITE, border: "none", padding: "12px 18px", borderRadius: "12px", fontWeight: "bold" }}
-                >
-                  Payment Link Pending
-                </button>
-              )}
+              {invoice.status === "Paid" ? (
+  <div
+    style={{
+      display: "inline-block",
+      marginTop: "16px",
+      backgroundColor: "#dcfce7",
+      color: "#166534",
+      padding: "12px 18px",
+      borderRadius: "12px",
+      fontWeight: "bold",
+    }}
+  >
+    Paid Successfully
+  </div>
+) : invoice.paymentLink ? (
+  <a
+    href={invoice.paymentLink}
+    target="_blank"
+    rel="noreferrer"
+    style={{
+      display: "inline-block",
+      marginTop: "16px",
+      backgroundColor: GOLD,
+      color: "#111827",
+      textDecoration: "none",
+      padding: "12px 18px",
+      borderRadius: "12px",
+      fontWeight: "bold",
+    }}
+  >
+    Pay Now
+  </a>
+) : (
+  <button
+    disabled
+    style={{
+      marginTop: "16px",
+      backgroundColor: "#cbd5e1",
+      color: WHITE,
+      border: "none",
+      padding: "12px 18px",
+      borderRadius: "12px",
+      fontWeight: "bold",
+    }}
+  >
+    Payment Link Pending
+  </button>
+)}
             </div>
           ))}
         </div>
