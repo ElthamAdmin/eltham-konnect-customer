@@ -139,142 +139,174 @@ function CustomerPortalLayout() {
   );
 
   if (isMobile) {
-    return (
-      <div style={{ minHeight: "100vh", backgroundColor: BG, fontFamily: "Arial, sans-serif", paddingBottom: "78px" }}>
-        <div style={{ backgroundColor: ROYAL_BLUE, color: WHITE, padding: "16px", position: "sticky", top: 0, zIndex: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-            <button onClick={() => setMobileMenuOpen(true)} style={{ background: "transparent", border: "none", color: WHITE, fontSize: "28px" }}>
-              ☰
-            </button>
+  return (
+    <div style={{ minHeight: "100vh", backgroundColor: BG, fontFamily: "Arial, sans-serif", paddingBottom: "78px" }}>
+      <div style={{ backgroundColor: ROYAL_BLUE, color: WHITE, padding: "16px", position: "sticky", top: 0, zIndex: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
+          <button onClick={() => setMobileMenuOpen(true)} style={{ background: "transparent", border: "none", color: WHITE, fontSize: "28px" }}>
+            ☰
+          </button>
 
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "18px", fontWeight: "bold" }}>Eltham Konnect</div>
-              <div style={{ fontSize: "12px", opacity: 0.9 }}>{customer.name}</div>
-            </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: "18px", fontWeight: "bold" }}>Eltham Konnect</div>
+            <div style={{ fontSize: "12px", opacity: 0.9 }}>{customer.name}</div>
+          </div>
 
-            <div style={{ color: GOLD, fontWeight: "bold", fontSize: "14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ color: GOLD, fontWeight: "bold", fontSize: "14px", whiteSpace: "nowrap" }}>
               ✦ {Number(customer.pointsBalance || 0).toLocaleString()}
             </div>
 
-            <div style={{ width: "42px", height: "42px", borderRadius: "50%", backgroundColor: WHITE, color: ROYAL_BLUE, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
+            <Link
+              to="/marketplace-cart"
+              style={{
+                backgroundColor: "#082f78",
+                color: WHITE,
+                textDecoration: "none",
+                padding: "8px 10px",
+                borderRadius: "999px",
+                fontWeight: "bold",
+                fontSize: "13px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              🛒
+            </Link>
+
+            <div
+              style={{
+                width: "42px",
+                height: "42px",
+                borderRadius: "50%",
+                backgroundColor: WHITE,
+                color: ROYAL_BLUE,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: "bold",
+              }}
+            >
               {initials}
             </div>
           </div>
         </div>
-
-        <div style={{ margin: "14px", backgroundColor: WHITE, border: `1px solid ${BORDER}`, borderRadius: "14px", padding: "14px", color: MUTED, lineHeight: 1.5 }}>
-          Upload your package invoice as soon as your item reaches our warehouse to prevent customs delays.
-        </div>
-
-        {mobileMenuOpen && (
-          <div onClick={() => setMobileMenuOpen(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 50 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ width: "82%", maxWidth: "330px", height: "100%", backgroundColor: ROYAL_BLUE, overflowY: "auto" }}>
-              <div style={{ padding: "20px", color: WHITE, fontSize: "22px", fontWeight: "bold" }}>Eltham Konnect</div>
-              {navItems.map((item) => (
-                <Link key={item.path} to={item.path} style={navItemStyle(location.pathname === item.path)}>
-                  {item.label}
-                </Link>
-              ))}
-              <button onClick={logout} style={{ margin: "18px", width: "calc(100% - 36px)", backgroundColor: "#dc2626", color: WHITE, border: "none", padding: "12px", borderRadius: "10px", fontWeight: "bold" }}>
-                Logout
-              </button>
-            </div>
-          </div>
-        )}
-
-        <main style={{ padding: "14px", overflowX: "hidden" }}>{renderRoutes()}</main>
-
-        <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, height: "70px", backgroundColor: WHITE, borderTop: `1px solid ${BORDER}`, display: "grid", gridTemplateColumns: "repeat(5, 1fr)", zIndex: 30 }}>
-          {bottomItems.map((item) =>
-            item.path === "__more" ? (
-              <button key={item.label} onClick={() => setMobileMenuOpen(true)} style={bottomNavStyle(false, ROYAL_BLUE, MUTED)}>
-                ⋯<span>{item.label}</span>
-              </button>
-            ) : (
-              <Link key={item.path} to={item.path} style={bottomNavStyle(location.pathname === item.path, ROYAL_BLUE, MUTED)}>
-                ●<span>{item.label}</span>
-              </Link>
-            )
-          )}
-        </nav>
       </div>
-    );
-  }
 
-  return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: BG, fontFamily: "Arial, sans-serif" }}>
-      <aside style={{ width: "260px", backgroundColor: ROYAL_BLUE, color: WHITE }}>
-        <div style={{ padding: "22px 20px", fontSize: "20px", fontWeight: "bold" }}>Eltham Konnect</div>
-        {navItems.map((item) => (
-          <Link key={item.path} to={item.path} style={navItemStyle(location.pathname === item.path)}>
-            {item.label}
-          </Link>
-        ))}
-      </aside>
+      <div style={{ margin: "14px", backgroundColor: WHITE, border: `1px solid ${BORDER}`, borderRadius: "14px", padding: "14px", color: MUTED, lineHeight: 1.5 }}>
+        Upload your package invoice as soon as your item reaches our warehouse to prevent customs delays.
+      </div>
 
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <header style={{ minHeight: "82px", backgroundColor: WHITE, borderBottom: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 24px" }}>
-          <div>
-            <strong>{customer.name}</strong>
-            <div style={{ color: MUTED, fontSize: "12px" }}>{customer.ekonId}</div>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>
-              EK Points: {Number(customer.pointsBalance || 0).toLocaleString()}
-            </span>
-
-            <Link
-  to="/marketplace-cart"
-  style={{
-    backgroundColor: ROYAL_BLUE,
-    color: WHITE,
-    textDecoration: "none",
-    padding: "9px 13px",
-    borderRadius: "999px",
-    fontWeight: "bold",
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-  }}
->
-  🛒 Cart
-</Link>
-            <button onClick={logout} style={{ backgroundColor: "#dc2626", color: WHITE, border: "none", padding: "9px 13px", borderRadius: "8px", fontWeight: "bold" }}>
+      {mobileMenuOpen && (
+        <div onClick={() => setMobileMenuOpen(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 50 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: "82%", maxWidth: "330px", height: "100%", backgroundColor: ROYAL_BLUE, overflowY: "auto" }}>
+            <div style={{ padding: "20px", color: WHITE, fontSize: "22px", fontWeight: "bold" }}>Eltham Konnect</div>
+            {navItems.map((item) => (
+              <Link key={item.path} to={item.path} style={navItemStyle(location.pathname === item.path)}>
+                {item.label}
+              </Link>
+            ))}
+            <button onClick={logout} style={{ margin: "18px", width: "calc(100% - 36px)", backgroundColor: "#dc2626", color: WHITE, border: "none", padding: "12px", borderRadius: "10px", fontWeight: "bold" }}>
               Logout
             </button>
           </div>
-        </header>
+        </div>
+      )}
 
-        <main style={{ padding: "18px 16px 24px" }}>{renderRoutes()}</main>
-      </div>
+      <main style={{ padding: "14px", overflowX: "hidden" }}>{renderRoutes()}</main>
+
+      <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, height: "70px", backgroundColor: WHITE, borderTop: `1px solid ${BORDER}`, display: "grid", gridTemplateColumns: "repeat(5, 1fr)", zIndex: 30 }}>
+        {bottomItems.map((item) =>
+          item.path === "__more" ? (
+            <button key={item.label} onClick={() => setMobileMenuOpen(true)} style={bottomNavStyle(false, ROYAL_BLUE, MUTED)}>
+              ⋯<span>{item.label}</span>
+            </button>
+          ) : (
+            <Link key={item.path} to={item.path} style={bottomNavStyle(location.pathname === item.path, ROYAL_BLUE, MUTED)}>
+              ●<span>{item.label}</span>
+            </Link>
+          )
+        )}
+      </nav>
     </div>
   );
 }
 
+return (
+  <div style={{ display: "flex", minHeight: "100vh", backgroundColor: BG, fontFamily: "Arial, sans-serif" }}>
+    <aside style={{ width: "260px", backgroundColor: ROYAL_BLUE, color: WHITE }}>
+      <div style={{ padding: "22px 20px", fontSize: "20px", fontWeight: "bold" }}>Eltham Konnect</div>
+      {navItems.map((item) => (
+        <Link key={item.path} to={item.path} style={navItemStyle(location.pathname === item.path)}>
+          {item.label}
+        </Link>
+      ))}
+    </aside>
+
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <header style={{ minHeight: "82px", backgroundColor: WHITE, borderBottom: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 24px" }}>
+        <div>
+          <strong>{customer.name}</strong>
+          <div style={{ color: MUTED, fontSize: "12px" }}>{customer.ekonId}</div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+          <span style={{ color: GOLD, fontWeight: "bold" }}>
+            EK Points: {Number(customer.pointsBalance || 0).toLocaleString()}
+          </span>
+
+          <Link
+            to="/marketplace-cart"
+            style={{
+              backgroundColor: ROYAL_BLUE,
+              color: WHITE,
+              textDecoration: "none",
+              padding: "9px 13px",
+              borderRadius: "999px",
+              fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            🛒 Cart
+          </Link>
+
+          <button onClick={logout} style={{ backgroundColor: "#dc2626", color: WHITE, border: "none", padding: "9px 13px", borderRadius: "8px", fontWeight: "bold" }}>
+            Logout
+          </button>
+        </div>
+      </header>
+
+      <main style={{ padding: "18px 16px 24px" }}>{renderRoutes()}</main>
+    </div>
+  </div>
+);
+}
+
 function bottomNavStyle(active, activeColor, mutedColor) {
-  return {
-    border: "none",
-    backgroundColor: "white",
-    color: active ? activeColor : mutedColor,
-    textDecoration: "none",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "4px",
-    fontSize: "11px",
-    fontWeight: "bold",
-    cursor: "pointer",
-  };
+return {
+  border: "none",
+  backgroundColor: "white",
+  color: active ? activeColor : mutedColor,
+  textDecoration: "none",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "4px",
+  fontSize: "11px",
+  fontWeight: "bold",
+  cursor: "pointer",
+};
 }
 
 export default function App() {
-  return (
-    <Routes>
-      <Route path="/login" element={<CustomerLogin />} />
-      <Route path="/signup" element={<CustomerSignup />} />
-      <Route path="/*" element={<CustomerPortalLayout />} />
-    </Routes>
-  );
+return (
+  <Routes>
+    <Route path="/login" element={<CustomerLogin />} />
+    <Route path="/signup" element={<CustomerSignup />} />
+    <Route path="/*" element={<CustomerPortalLayout />} />
+  </Routes>
+);
 }
+  
