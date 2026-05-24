@@ -16,6 +16,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 import AmazonAssociateLinks from "./pages/AmazonAssociateLinks";
 import RatesCalculator from "./pages/RatesCalculator";
 import RewardsHub from "./pages/RewardsHub";
+import MarketplaceCart from "./pages/MarketplaceCart";
 
 function CustomerPortalLayout() {
   const location = useLocation();
@@ -120,6 +121,7 @@ function CustomerPortalLayout() {
       <Route path="/rewards-hub" element={<RewardsHub />} />
       <Route path="/my-rewards" element={<MyRewards />} />
       <Route path="/amazon-associate-links" element={<AmazonAssociateLinks />} />
+      <Route path="/marketplace-cart" element={<MarketplaceCart />} />
       <Route path="/support" element={<CustomerSupport />} />
       <Route path="/upload-invoice" element={<UploadInvoice />} />
       <Route path="/profile-settings" element={<ProfileSettings />} />
@@ -221,6 +223,23 @@ function CustomerPortalLayout() {
             <span style={{ color: GOLD, fontWeight: "bold" }}>
               EK Points: {Number(customer.pointsBalance || 0).toLocaleString()}
             </span>
+
+            <Link
+  to="/marketplace-cart"
+  style={{
+    backgroundColor: ROYAL_BLUE,
+    color: WHITE,
+    textDecoration: "none",
+    padding: "9px 13px",
+    borderRadius: "999px",
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+  }}
+>
+  🛒 Cart
+</Link>
             <button onClick={logout} style={{ backgroundColor: "#dc2626", color: WHITE, border: "none", padding: "9px 13px", borderRadius: "8px", fontWeight: "bold" }}>
               Logout
             </button>
