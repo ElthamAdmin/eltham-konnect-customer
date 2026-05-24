@@ -17,6 +17,7 @@ import AmazonAssociateLinks from "./pages/AmazonAssociateLinks";
 import RatesCalculator from "./pages/RatesCalculator";
 import RewardsHub from "./pages/RewardsHub";
 import MarketplaceCart from "./pages/MarketplaceCart";
+import MyMarketplaceOrders from "./pages/MyMarketplaceOrders";
 
 function CustomerPortalLayout() {
   const location = useLocation();
@@ -82,6 +83,7 @@ function CustomerPortalLayout() {
     { label: "Rewards Hub", path: "/rewards-hub" },
     { label: "My Rewards", path: "/my-rewards" },
     { label: "Marketplace", path: "/amazon-associate-links" },
+    { label: "My Market Orders", path: "/my-marketplace-orders" },
     { label: "Support", path: "/support" },
     { label: "Upload Invoice", path: "/upload-invoice" },
     { label: "Profile", path: "/profile-settings" },
@@ -122,6 +124,7 @@ function CustomerPortalLayout() {
       <Route path="/my-rewards" element={<MyRewards />} />
       <Route path="/amazon-associate-links" element={<AmazonAssociateLinks />} />
       <Route path="/marketplace-cart" element={<MarketplaceCart />} />
+      <Route path="/my-marketplace-orders" element={<MyMarketplaceOrders />} />
       <Route path="/support" element={<CustomerSupport />} />
       <Route path="/upload-invoice" element={<UploadInvoice />} />
       <Route path="/profile-settings" element={<ProfileSettings />} />
