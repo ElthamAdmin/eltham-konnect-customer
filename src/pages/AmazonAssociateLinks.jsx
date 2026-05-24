@@ -3,6 +3,8 @@ import api from "../api";
 
 function AmazonAssociateLinks() {
   const [items, setItems] = useState([]);
+  const [cart, setCart] = useState(null);
+  const [cartLoading, setCartLoading] = useState(false);
 
   const ROYAL_BLUE = "#0B3D91";
   const GOLD = "#D4AF37";
@@ -26,8 +28,34 @@ function AmazonAssociateLinks() {
     }
   };
 
+  const fetchCart = async () => {
+  try {
+    const res = await api.get("/api/marketplace-cart");
+    setCart(res.data.data || null);
+  } catch (error) {
+    console.error("Error loading cart:", error);
+  }
+};
+
+const addToCart = async (itemNumber) => {
+  try {
+    setCartLoading(true);
+    const res = await api.post("/api/marketplace-cart/add", {
+      itemNumber,
+      quantity: 1,
+    });
+    setCart(res.data.data || null);
+    alert("Item added to cart.");
+  } catch (error) {
+    alert(error?.response?.data?.message || "Could not add item to cart.");
+  } finally {
+    setCartLoading(false);
+  }
+};
+
   useEffect(() => {
     fetchItems();
+    fetchCart();
   }, []);
 
   return (
@@ -200,6 +228,40 @@ function AmazonAssociateLinks() {
   ))}
 </div>
 
+{cart?.items?.length > 0 && (
+  <div
+    style={{
+      backgroundColor: WHITE,
+      border: `1px solid ${BORDER}`,
+      borderRadius: "18px",
+      padding: "18px",
+      marginBottom: "24px",
+      boxShadow: "0 8px 20px rgba(15,23,42,0.06)",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: "14px",
+      flexWrap: "wrap",
+    }}
+  >
+    <div>
+      <div style={{ fontWeight: "bold", color: ROYAL_BLUE, fontSize: "18px" }}>
+        Shopping Cart
+      </div>
+      <div style={{ color: MUTED, marginTop: "4px" }}>
+        {cart.items.length} item(s) selected
+      </div>
+    </div>
+
+    <div style={{ textAlign: "right" }}>
+      <div style={{ color: MUTED, fontSize: "13px" }}>Subtotal</div>
+      <div style={{ fontWeight: "bold", color: TEXT, fontSize: "20px" }}>
+        JMD {Number(cart.subtotal || 0).toLocaleString()}
+      </div>
+    </div>
+  </div>
+)}
+
       {items.length > 0 ? (
         <div
           style={{
@@ -348,8 +410,8 @@ function AmazonAssociateLinks() {
     </div>
 
     <button
-      disabled={Number(item.quantityInStock || 0) <= 0}
-      onClick={() => alert("Please message Eltham Konnect customer support to purchase this item. Full checkout tracking will be added in the next storefront phase.")}
+  disabled={Number(item.quantityInStock || 0) <= 0 || cartLoading}
+  onClick={() => addToCart(item.itemNumber)}
       style={{
         width: "100%",
         backgroundColor: Number(item.quantityInStock || 0) <= 0 ? "#94a3b8" : ROYAL_BLUE,
@@ -361,7 +423,7 @@ function AmazonAssociateLinks() {
         cursor: Number(item.quantityInStock || 0) <= 0 ? "not-allowed" : "pointer",
       }}
     >
-      {item.buttonText || "Request Item"}
+      {cartLoading ? "Adding..." : "Add to Cart"}
     </button>
   </div>
 )}
