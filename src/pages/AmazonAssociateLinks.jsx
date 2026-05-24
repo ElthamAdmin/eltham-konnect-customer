@@ -141,6 +141,65 @@ function AmazonAssociateLinks() {
   </div>
 </div>
 
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "14px",
+    marginBottom: "26px",
+  }}
+>
+  {[
+    {
+      title: "Authentic Products",
+      desc: "Carefully sourced by Eltham Konnect",
+    },
+    {
+      title: "Fast Jamaica Pickup",
+      desc: "Quick collection from EK locations",
+    },
+    {
+      title: "Delivery Available",
+      desc: "Islandwide delivery options available",
+    },
+    {
+      title: "EK Rewards Eligible",
+      desc: "Earn EK points on qualifying items",
+    },
+  ].map((item) => (
+    <div
+      key={item.title}
+      style={{
+        backgroundColor: WHITE,
+        borderRadius: "16px",
+        padding: "18px",
+        border: `1px solid ${BORDER}`,
+        boxShadow: "0 6px 16px rgba(15,23,42,0.04)",
+      }}
+    >
+      <div
+        style={{
+          fontWeight: "bold",
+          color: ROYAL_BLUE,
+          marginBottom: "6px",
+        }}
+      >
+        {item.title}
+      </div>
+
+      <div
+        style={{
+          color: MUTED,
+          fontSize: "14px",
+          lineHeight: 1.5,
+        }}
+      >
+        {item.desc}
+      </div>
+    </div>
+  ))}
+</div>
+
       {items.length > 0 ? (
         <div
           style={{

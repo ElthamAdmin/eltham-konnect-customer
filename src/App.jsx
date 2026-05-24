@@ -80,7 +80,7 @@ function CustomerPortalLayout() {
     { label: "Calculator", path: "/rates-calculator" },
     { label: "Rewards Hub", path: "/rewards-hub" },
     { label: "My Rewards", path: "/my-rewards" },
-    { label: "Amazon Links", path: "/amazon-associate-links" },
+    { label: "Marketplace", path: "/amazon-associate-links" },
     { label: "Support", path: "/support" },
     { label: "Upload Invoice", path: "/upload-invoice" },
     { label: "Profile", path: "/profile-settings" },
