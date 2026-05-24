@@ -11,6 +11,8 @@ function AmazonAssociateLinks() {
   const BORDER = "#dbe3ef";
   const MUTED = "#64748b";
   const TEXT = "#0f172a";
+  const HERO_BG = "linear-gradient(135deg, #0B3D91 0%, #1e3a8a 60%, #D4AF37 100%)";
+  const CARD_SHADOW = "0 10px 24px rgba(15,23,42,0.08)";
 
   const FILE_BASE = "https://eltham-konnect-backend-c2sf.onrender.com";
 
@@ -30,14 +32,114 @@ function AmazonAssociateLinks() {
 
   return (
     <div style={{ backgroundColor: LIGHT_BG }}>
-      <div style={{ marginBottom: "20px" }}>
-        <h1 style={{ marginTop: 0, marginBottom: "6px", color: TEXT }}>
-          Eltham Konnect Storefront
-        </h1>
-        <p style={{ margin: 0, color: MUTED }}>
-          Shop recommended Amazon items and EK inventory products such as sale finds, hair, colognes, candles, and other customer favourites.
-        </p>
-      </div>
+      <div
+  style={{
+    background: HERO_BG,
+    borderRadius: "24px",
+    padding: "40px 30px",
+    marginBottom: "28px",
+    color: WHITE,
+    position: "relative",
+    overflow: "hidden",
+    boxShadow: "0 12px 30px rgba(15,23,42,0.18)",
+  }}
+>
+  <div
+    style={{
+      position: "absolute",
+      top: "-40px",
+      right: "-40px",
+      width: "180px",
+      height: "180px",
+      borderRadius: "50%",
+      backgroundColor: "rgba(255,255,255,0.08)",
+    }}
+  />
+
+  <div
+    style={{
+      position: "absolute",
+      bottom: "-60px",
+      left: "-40px",
+      width: "220px",
+      height: "220px",
+      borderRadius: "50%",
+      backgroundColor: "rgba(255,255,255,0.05)",
+    }}
+  />
+
+  <div style={{ position: "relative", zIndex: 2 }}>
+    <div
+      style={{
+        backgroundColor: "rgba(255,255,255,0.14)",
+        display: "inline-block",
+        padding: "8px 14px",
+        borderRadius: "999px",
+        fontWeight: "bold",
+        marginBottom: "18px",
+      }}
+    >
+      EK Marketplace
+    </div>
+
+    <h1
+      style={{
+        marginTop: 0,
+        marginBottom: "14px",
+        fontSize: "42px",
+        lineHeight: 1.1,
+      }}
+    >
+      Shop Trending Products <br />
+      & EK Exclusive Finds
+    </h1>
+
+    <p
+      style={{
+        margin: 0,
+        maxWidth: "700px",
+        lineHeight: 1.7,
+        fontSize: "16px",
+        color: "rgba(255,255,255,0.92)",
+      }}
+    >
+      Explore Bath & Body Works collections, fragrances, Amazon finds,
+      beauty products, colognes, and EK-exclusive inventory available
+      for pickup or delivery in Jamaica.
+    </p>
+
+    <div
+      style={{
+        display: "flex",
+        gap: "12px",
+        flexWrap: "wrap",
+        marginTop: "24px",
+      }}
+    >
+      {[
+        "Body Mists",
+        "Lotions",
+        "Colognes",
+        "Amazon Finds",
+        "Gift Ideas",
+      ].map((category) => (
+        <div
+          key={category}
+          style={{
+            backgroundColor: "rgba(255,255,255,0.14)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            padding: "10px 16px",
+            borderRadius: "999px",
+            fontWeight: "bold",
+            fontSize: "14px",
+          }}
+        >
+          {category}
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
 
       {items.length > 0 ? (
         <div
@@ -55,9 +157,36 @@ function AmazonAssociateLinks() {
                 border: `1px solid ${BORDER}`,
                 borderRadius: "16px",
                 padding: "16px",
-                boxShadow: "0 6px 18px rgba(15,23,42,0.05)",
+                boxShadow: CARD_SHADOW,
+                transition: "all 0.25s ease",
+                position: "relative",
+                overflow: "hidden",
               }}
             >
+              <div
+  style={{
+    position: "absolute",
+    top: "14px",
+    left: "14px",
+    backgroundColor:
+      item.productType === "EK Inventory"
+        ? "#16a34a"
+        : "#D4AF37",
+    color:
+      item.productType === "EK Inventory"
+        ? "white"
+        : "#111827",
+    padding: "6px 12px",
+    borderRadius: "999px",
+    fontSize: "12px",
+    fontWeight: "bold",
+    zIndex: 5,
+  }}
+>
+  {item.productType === "EK Inventory"
+    ? "EK PRODUCT"
+    : "AMAZON FIND"}
+</div>
               {item.imageUrl ? (
                 <div
   style={{
@@ -105,7 +234,16 @@ function AmazonAssociateLinks() {
 </div>
               )}
 
-              <div style={{ fontWeight: "800", color: TEXT, marginBottom: "8px" }}>
+              <div
+  style={{
+    fontWeight: "800",
+    color: TEXT,
+    marginBottom: "8px",
+    fontSize: "18px",
+    lineHeight: 1.3,
+    minHeight: "48px",
+  }}
+>
                 {item.title}
               </div>
 
