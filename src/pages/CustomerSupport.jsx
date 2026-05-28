@@ -28,7 +28,18 @@ function CustomerSupport() {
   const MUTED = "#64748b";
   const TEXT = "#0f172a";
 
-  const fetchTickets = async () => {
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  "https://eltham-konnect-backend-c2sf.onrender.com";
+
+const getAttachmentUrl = (path = "") => {
+  if (!path) return "";
+  if (String(path).startsWith("http")) return path;
+  return `${API_BASE}${path}`;
+};
+
+const fetchTickets = async () => {
     try {
       setLoading(true);
       const res = await api.get("/api/support-tickets");
@@ -264,8 +275,64 @@ function CustomerSupport() {
                   </div>
 
                   <div style={{ color: TEXT, lineHeight: 1.5 }}>
-                    {r.message}
-                  </div>
+  {r.message}
+</div>
+
+{r.attachmentFilePath && (
+  <div style={{ marginTop: "10px", width: "100%" }}>
+    {/\.(jpg|jpeg|png|webp)$/i.test(r.attachmentFilePath) ? (
+      <>
+        <a
+          href={getAttachmentUrl(r.attachmentFilePath)}
+          target="_blank"
+          rel="noreferrer"
+          style={{ display: "block", width: "100%" }}
+        >
+          <img
+            src={getAttachmentUrl(r.attachmentFilePath)}
+            alt={r.attachmentFileName || "Attachment"}
+            style={{
+              width: "100%",
+              maxWidth: "100%",
+              height: "auto",
+              display: "block",
+              borderRadius: "12px",
+              border: `1px solid ${BORDER}`,
+              backgroundColor: WHITE,
+            }}
+          />
+        </a>
+
+        <a
+          href={getAttachmentUrl(r.attachmentFilePath)}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            display: "inline-block",
+            marginTop: "10px",
+            backgroundColor: ROYAL_BLUE,
+            color: WHITE,
+            padding: "10px 14px",
+            borderRadius: "8px",
+            textDecoration: "none",
+            fontWeight: "bold",
+          }}
+        >
+          Open Image
+        </a>
+      </>
+    ) : (
+      <a
+        href={getAttachmentUrl(r.attachmentFilePath)}
+        target="_blank"
+        rel="noreferrer"
+        style={{ color: ROYAL_BLUE, fontWeight: "bold" }}
+      >
+        View Attachment
+      </a>
+    )}
+  </div>
+)}
                 </div>
               </div>
             );
