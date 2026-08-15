@@ -535,20 +535,49 @@ Welcome back, {customer.name}. Here is your latest account activity.
           backdropFilter: "blur(4px)",  
         }}  
       >  
-        <div style={{ fontSize: "13px", fontWeight: "700", opacity: 0.9, marginBottom: "10px" }}>  
-          MAILBOX ADDRESS  
-        </div>  
-        <div style={{ lineHeight: "1.8", wordBreak: "break-word" }}>  
-          <div><strong>1. Name:</strong> {customer.name} EKON</div>  
-          <div><strong>2. Address Line 1:</strong> 5289 NW 108th Avenue</div>
-          <div><strong>3. Address Line 2:</strong> EKON</div>
-          <div><strong>4. City:</strong> Sunrise</div>
-          <div><strong>5. State:</strong> Florida</div>
-          <div><strong>6. ZIP:</strong> 33351</div>  
+        <div
+  style={{
+    fontSize: "13px",
+    fontWeight: "700",
+    opacity: 0.9,
+    marginBottom: "10px",
+  }}
+>
+  MAILBOX ADDRESS
+</div>
+
+<div style={{ lineHeight: "1.8", wordBreak: "break-word" }}>
+  <div>
+    <strong>1. Name:</strong> {customer.name} EKON
+  </div>
+
+  <div>
+    <strong>2. Address Line 1:</strong> 2099 NW 141st St
+  </div>
+
+  <div>
+    <strong>3. Address Line 2:</strong> Unit 8 {customer.ekonId}
+  </div>
+
+  <div>
+    <strong>4. City:</strong> Opa-Locka
+  </div>
+
+  <div>
+    <strong>5. State:</strong> Florida
+  </div>
+
+  <div>
+    <strong>6. ZIP:</strong> 33054
+  </div>
+
+  <div>
+    <strong>7. Country:</strong> USA
+  </div>
+</div>
         </div>  
       </div>  
-    </div>  
-  </div>  
+    </div>   
 
   {loading ? (  
     <div style={cardStyle}>  
