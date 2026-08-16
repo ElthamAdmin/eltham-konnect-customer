@@ -100,20 +100,60 @@ if (formData.referralCode && res.data?.data?.ekonId) {
           }}
         >
           <h3 style={{ marginTop: 0, color: "#0B3D91" }}>
-            Official EKON Warehouse Address
-          </h3>
+  Your Future EKON Warehouse Address
+</h3>
 
-          <div style={{ lineHeight: 1.8 }}>
-            <div><strong>Address Line 1:</strong> 5289 NW 108th Avenue</div>
-            <div><strong>Address Line 2:</strong> EKON</div>
-            <div><strong>City:</strong> Sunrise</div>
-            <div><strong>State:</strong> Florida</div>
-            <div><strong>Zipcode:</strong> 33351</div>
-          </div>
+<div style={{ lineHeight: 1.8, wordBreak: "break-word" }}>
+  <div>
+    <strong>1. Name:</strong>{" "}
+    {formData.name.trim() || "First Last"} EKON
+  </div>
 
-          <p style={{ marginBottom: 0, marginTop: "12px", color: "#475569" }}>
-            After signup, use this address for all online orders and always include your EKON ID when shipping packages.
-          </p>
+  <div>
+    <strong>2. Address Line 1:</strong> 2099 NW 141st St
+  </div>
+
+  <div>
+    <strong>3. Address Line 2:</strong> Unit 8 [Your EKON ID]
+  </div>
+
+  <div>
+    <strong>4. City:</strong> Opa-Locka
+  </div>
+
+  <div>
+    <strong>5. State:</strong> Florida
+  </div>
+
+  <div>
+    <strong>6. ZIP:</strong> 33054
+  </div>
+
+  <div>
+    <strong>7. Country:</strong> USA
+  </div>
+</div>
+
+<div
+  style={{
+    marginTop: "14px",
+    padding: "12px",
+    borderRadius: "8px",
+    backgroundColor: "#fff7ed",
+    border: "1px solid #fdba74",
+    color: "#9a3412",
+    lineHeight: 1.6,
+  }}
+>
+  <strong>Important:</strong> Your unique EKON ID will be issued after
+  signup. Replace <strong>[Your EKON ID]</strong> with that number whenever
+  you enter this address on a shopping website.
+</div>
+
+<p style={{ marginBottom: 0, marginTop: "12px", color: "#475569" }}>
+  After signup, your personalized warehouse address will be available on
+  your customer dashboard and profile.
+</p>
         </div>
 
         <div
