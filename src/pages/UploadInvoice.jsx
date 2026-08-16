@@ -98,16 +98,38 @@ if (!selectedFile) {
   }}
 >
   <h3 style={{ marginTop: 0, color: "#0B3D91" }}>
-    Correct Warehouse Address
-  </h3>
+  Your Official EKON Warehouse Address
+</h3>
 
-  <div style={{ lineHeight: 1.8 }}>
-    <div><strong>Address Line 1:</strong> 5289 NW 108th Avenue</div>
-    <div><strong>Address Line 2:</strong> EKON</div>
-    <div><strong>City:</strong> Sunrise</div>
-    <div><strong>State:</strong> Florida</div>
-    <div><strong>Zipcode:</strong> 33351</div>
+<div style={{ lineHeight: 1.8, wordBreak: "break-word" }}>
+  <div>
+    <strong>1. Name:</strong> {customer?.name} EKON
   </div>
+
+  <div>
+    <strong>2. Address Line 1:</strong> 2099 NW 141st St
+  </div>
+
+  <div>
+    <strong>3. Address Line 2:</strong> Unit 8 {customer?.ekonId}
+  </div>
+
+  <div>
+    <strong>4. City:</strong> Opa-Locka
+  </div>
+
+  <div>
+    <strong>5. State:</strong> Florida
+  </div>
+
+  <div>
+    <strong>6. ZIP:</strong> 33054
+  </div>
+
+  <div>
+    <strong>7. Country:</strong> USA
+  </div>
+</div>
 
   <p style={{ marginBottom: 0, marginTop: "12px", color: "#475569" }}>
     Ensure all uploaded invoices match this warehouse delivery address and your package tracking number.
