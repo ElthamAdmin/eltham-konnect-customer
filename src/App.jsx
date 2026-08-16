@@ -119,7 +119,10 @@ function CustomerPortalLayout() {
     <Routes>
       <Route path="/" element={<CustomerDashboard customer={customer} />} />
       <Route path="/my-packages" element={<MyPackages />} />
-      <Route path="/pre-alerts" element={<PreAlerts />} />
+      <Route
+  path="/pre-alerts"
+  element={<PreAlerts customer={customer} />}
+/>
       <Route path="/my-invoices" element={<MyInvoices />} />
       <Route path="/rates-calculator" element={<RatesCalculator />} />
       <Route path="/rewards-hub" element={<RewardsHub />} />
