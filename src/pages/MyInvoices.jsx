@@ -22,32 +22,27 @@ function MyInvoices() {
   const TEXT = "#0f172a";
 
   const fetchInvoices = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const customerData =
-        customer || JSON.parse(localStorage.getItem("ek_customer_data") || "null");
+    const res = await api.get("/api/invoices/my");
+    const customerInvoices = Array.isArray(res.data?.data)
+      ? res.data.data
+      : [];
 
-      if (!customerData?.ekonId) {
-        setInvoices([]);
-        return;
-      }
+    setInvoices(customerInvoices);
+  } catch (error) {
+    console.error("Error loading customer invoices:", error);
+    setInvoices([]);
 
-      const res = await api.get("/api/invoices");
-      const allInvoices = res.data.data || [];
-
-      const customerInvoices = allInvoices.filter(
-        (inv) => inv.customerEkonId === customerData.ekonId
-      );
-
-      setInvoices(customerInvoices);
-    } catch (error) {
-      console.error("Error loading customer invoices:", error);
-      alert(error?.response?.data?.message || "Could not load your invoices.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    alert(
+      error?.response?.data?.message ||
+        "Could not load your invoices."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchInvoices();
