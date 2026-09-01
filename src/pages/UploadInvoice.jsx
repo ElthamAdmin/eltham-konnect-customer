@@ -19,23 +19,71 @@ function UploadInvoice() {
   });
 
   const fetchPageData = async () => {
-    try {
-      const [packagesRes, uploadsRes] = await Promise.all([
-        api.get("/api/packages"),
-        api.get("/api/customer-invoices"),
-      ]);
+  try {
+    const savedCustomer = JSON.parse(
+      localStorage.getItem("ek_customer_data") || "null"
+    );
 
-      const allPackages = packagesRes.data.data || [];
-      const customerPackages = allPackages.filter(
-        (pkg) => pkg.customerEkonId === customer?.ekonId
-      );
+    const customerEkonId = String(
+      customer?.ekonId || savedCustomer?.ekonId || ""
+    )
+      .trim()
+      .toUpperCase();
+
+    if (!customerEkonId) {
+      setPackages([]);
+      setUploads([]);
+      return;
+    }
+
+    const [packagesResult, uploadsResult] = await Promise.allSettled([
+      api.get("/api/packages"),
+      api.get("/api/customer-invoices"),
+    ]);
+
+    if (packagesResult.status === "fulfilled") {
+      const allPackages = Array.isArray(packagesResult.value?.data?.data)
+        ? packagesResult.value.data.data
+        : [];
+
+      const customerPackages = allPackages.filter((pkg) => {
+        const packageEkonId = String(pkg?.customerEkonId || "")
+          .trim()
+          .toUpperCase();
+
+        return packageEkonId === customerEkonId;
+      });
 
       setPackages(customerPackages);
-      setUploads(uploadsRes.data.data || []);
-    } catch (error) {
-      console.error(error);
+    } else {
+      console.error(
+        "Package loading failed:",
+        packagesResult.reason
+      );
+      setPackages([]);
     }
-  };
+
+    if (uploadsResult.status === "fulfilled") {
+      const invoiceUploads = Array.isArray(
+        uploadsResult.value?.data?.data
+      )
+        ? uploadsResult.value.data.data
+        : [];
+
+      setUploads(invoiceUploads);
+    } else {
+      console.error(
+        "Invoice-history loading failed:",
+        uploadsResult.reason
+      );
+      setUploads([]);
+    }
+  } catch (error) {
+    console.error("Upload Invoice page loading failed:", error);
+    setPackages([]);
+    setUploads([]);
+  }
+};
 
   useEffect(() => {
     if (customer?.ekonId) fetchPageData();
