@@ -42,7 +42,7 @@ const getAttachmentUrl = (path = "") => {
 const fetchTickets = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/support-tickets");
+      const res = await api.get("/api/support-tickets/my");
       setTickets(res.data.data || []);
     } catch (error) {
       console.error("Error loading support tickets:", error);
@@ -72,7 +72,7 @@ const fetchTickets = async () => {
       body.append("message", formData.message);
       if (selectedFile) body.append("attachmentFile", selectedFile);
 
-      await api.post("/api/support-tickets", body);
+      await api.post("/api/support-tickets/my", body);
 
       setFormData({ subject: "", message: "" });
       setSelectedFile(null);
@@ -96,7 +96,10 @@ const fetchTickets = async () => {
       body.append("message", message);
       if (replyFiles[ticketNumber]) body.append("attachmentFile", replyFiles[ticketNumber]);
 
-      await api.post(`/api/support-tickets/${ticketNumber}/reply`, body);
+      await api.post(
+  `/api/support-tickets/my/${ticketNumber}/reply`,
+  body
+);
 
       setReplyTexts((p) => ({ ...p, [ticketNumber]: "" }));
       setReplyFiles((p) => ({ ...p, [ticketNumber]: null }));
