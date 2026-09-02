@@ -28,11 +28,11 @@ try {
 setLoading(true);
 
 const results = await Promise.allSettled([  
-    api.get("/api/packages"),  
-    api.get("/api/invoices"),  
-    api.get("/api/customer-notifications/mine"),  
-    api.get("/api/support-tickets"),  
-    api.get("/api/communication"),  
+    api.get("/api/packages/my"),
+api.get("/api/invoices/my"),
+api.get("/api/customer-notifications/mine"),
+api.get("/api/support-tickets/my"),
+api.get("/api/communication/my"),
   ]);  
 
   const packagesRes =  
@@ -241,7 +241,7 @@ return String(value).slice(0, 10);
 const getAlertPreview = (message = "", expanded = false) => {
 if (expanded) return message;
 if (message.length <= 180) return message;
-return '${message.slice(0, 180)}...';
+return `${message.slice(0, 180)}...`;
 };
 
 const toggleExpandedAlert = (notificationNumber) => {
@@ -255,7 +255,7 @@ const cardStyle = {
 backgroundColor: WHITE,
 padding: "20px",
 borderRadius: "16px",
-border: '1px solid ${BORDER}',
+border: `1px solid ${BORDER}`,
 boxShadow: "0 6px 20px rgba(15,23,42,0.05)",
 };
 
@@ -269,7 +269,7 @@ const metricCardBase = {
 borderRadius: "16px",
 padding: "20px",
 minHeight: "126px",
-border: '1px solid ${BORDER}',
+border: `1px solid ${BORDER}`,
 boxShadow: "0 6px 20px rgba(15,23,42,0.05)",
 backgroundColor: WHITE,
 };
@@ -308,7 +308,7 @@ const quickCard = (value, label, valueColor, accentBg) => (
 <div
 style={{
 ...metricCardBase,
-background: 'linear-gradient(180deg, ${WHITE}, ${accentBg})',
+background: `linear-gradient(180deg, ${WHITE}, ${accentBg})`,
 }}
 >
 <h3

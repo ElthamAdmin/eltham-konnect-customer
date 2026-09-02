@@ -32,7 +32,7 @@ function MyPackages() {
         return;
       }
 
-      const res = await api.get("/api/packages");
+      const res = await api.get("/api/packages/my");
       const allPackages = res.data.data || [];
 
       const customerPackages = allPackages.filter(

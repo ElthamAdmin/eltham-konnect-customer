@@ -37,7 +37,7 @@ function UploadInvoice() {
     }
 
     const [packagesResult, uploadsResult] = await Promise.allSettled([
-      api.get("/api/packages"),
+      api.get("/api/packages/my"),
       api.get("/api/customer-invoices"),
     ]);
 
