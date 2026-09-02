@@ -19,7 +19,7 @@ function PreAlerts({ customer }) {
   const fetchPreAlerts = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/pre-alerts");
+      const res = await api.get("/api/pre-alerts/my");
       setPreAlerts(res.data.data || []);
     } catch (error) {
       console.error("Error loading pre-alerts:", error);
