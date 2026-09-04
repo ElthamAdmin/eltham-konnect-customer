@@ -285,7 +285,7 @@ if (type === "Email") backgroundColor = ROYAL_BLUE;
 if (type === "WhatsApp") backgroundColor = "#16a34a";  
 if (type === "SMS") backgroundColor = "#f97316";  
 if (type === "Communication") backgroundColor = "#334155";  
-if (type === "Rewards Hub") backgroundColor = GOLD;
+if (type === "Rewards Hub") backgroundColor = ORANGE;
 
 return (  
   <span  
@@ -374,7 +374,7 @@ className="dashboard-rewards-card"
       <div style={{ color: MUTED, fontSize: "13px", fontWeight: "700", marginBottom: "8px" }}>  
         Available Rewards  
       </div>  
-      <div style={{ color: GOLD, fontSize: "30px", fontWeight: "800" }}>  
+      <div style={{ color: ORANGE, fontSize: "30px", fontWeight: "800" }}>  
         {Number(customer.pointsBalance || 0).toLocaleString()} EK Points  
       </div>  
       <div style={{ color: "#8a6a00", fontSize: "13px", marginTop: "6px" }}>  
@@ -644,7 +644,7 @@ className="dashboard-rewards-card"
               style={{  
                 marginTop: 0,  
                 fontSize: "18px",  
-                color: GOLD,  
+                color: ORANGE,  
                 marginBottom: "10px",  
                 lineHeight: 1.4,  
                 fontWeight: "800",  
