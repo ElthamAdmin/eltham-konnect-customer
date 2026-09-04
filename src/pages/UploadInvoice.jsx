@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../api";
 
 function UploadInvoice() {
+  const [searchParams] = useSearchParams();
+
+  const requestedTrackingNumber = String(
+    searchParams.get("trackingNumber") || ""
+  ).trim();
+
   const [customer, setCustomer] = useState(() => {
     const saved = localStorage.getItem("ek_customer_data");
     return saved ? JSON.parse(saved) : null;
@@ -85,9 +92,41 @@ function UploadInvoice() {
   }
 };
 
-  useEffect(() => {
-    if (customer?.ekonId) fetchPageData();
+    useEffect(() => {
+    if (customer?.ekonId) {
+      fetchPageData();
+    }
   }, [customer?.ekonId]);
+
+  useEffect(() => {
+    if (!requestedTrackingNumber || packages.length === 0) {
+      return;
+    }
+
+    const matchingPackage = packages.find(
+      (pkg) =>
+        String(pkg.trackingNumber || "").trim().toUpperCase() ===
+        requestedTrackingNumber.toUpperCase()
+    );
+
+    if (!matchingPackage) {
+      return;
+    }
+
+    setFormData((currentFormData) => {
+      if (
+        currentFormData.trackingNumber ===
+        matchingPackage.trackingNumber
+      ) {
+        return currentFormData;
+      }
+
+      return {
+        ...currentFormData,
+        trackingNumber: matchingPackage.trackingNumber,
+      };
+    });
+  }, [requestedTrackingNumber, packages]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
