@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api";
+import CustomerPortalBanner from "../components/CustomerPortalBanner";
 
 function CustomerDashboard({ customer }) {
 const [packages, setPackages] = useState([]);
@@ -330,6 +331,8 @@ fontWeight: "800",
 
 return (
 <div style={{ backgroundColor: LIGHT_BG }}>
+  <CustomerPortalBanner />
+
 <div
 style={{
 marginBottom: "20px",
