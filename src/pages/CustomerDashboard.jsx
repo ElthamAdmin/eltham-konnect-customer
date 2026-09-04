@@ -15,7 +15,7 @@ const [alertsPage, setAlertsPage] = useState(1);
 const [expandedAlerts, setExpandedAlerts] = useState({});
 
 const ROYAL_BLUE = "#0B3D91";
-const GOLD = "#D4AF37";
+const ORANGE = "#F15A24";
 const WHITE = "#ffffff";
 const LIGHT_BG = "#f4f7fb";
 const BORDER = "#dbe3ef";
@@ -334,6 +334,7 @@ return (
   <CustomerPortalBanner />
 
 <div
+className="dashboard-heading-row"
 style={{
 marginBottom: "20px",
 display: "flex",
@@ -344,7 +345,16 @@ alignItems: "center",
 }}
 >
 <div>
-<h1 style={{ marginTop: 0, marginBottom: "6px", color: TEXT, fontSize: "42px" }}>
+<h1
+  className="dashboard-page-title"
+  style={{
+    marginTop: 0,
+    marginBottom: "6px",
+    color: TEXT,
+    fontSize: "42px",
+    lineHeight: 1.1,
+  }}
+>
 Customer Dashboard
 </h1>
 <p style={{ margin: 0, color: MUTED, fontSize: "15px" }}>
@@ -352,7 +362,8 @@ Welcome back, {customer.name}. Here is your latest account activity.
 </p>
 </div>
 
-<div  
+<div
+className="dashboard-rewards-card"  
       style={{  
         ...cardStyle,  
         minWidth: "240px",  
@@ -519,9 +530,17 @@ Welcome back, {customer.name}. Here is your latest account activity.
         <div style={{ fontSize: "13px", opacity: 0.85, marginBottom: "10px", fontWeight: "700" }}>  
           ACCOUNT OVERVIEW  
         </div>  
-        <h2 style={{ marginTop: 0, marginBottom: "12px", fontSize: "30px" }}>  
-          Welcome, {customer.name}  
-        </h2>  
+        <h2
+  style={{
+    marginTop: 0,
+    marginBottom: "12px",
+    fontSize: "30px",
+    lineHeight: 1.2,
+    color: WHITE,
+  }}
+>
+  Welcome, {customer.name}
+</h2> 
         <div style={{ display: "grid", gap: "8px", lineHeight: 1.6 }}>  
           <div><strong>EKON ID:</strong> {customer.ekonId}</div>  
           <div><strong>Email:</strong> {customer.email}</div>  
@@ -900,13 +919,43 @@ Welcome back, {customer.name}. Here is your latest account activity.
         }  
       }  
 
-      @media (max-width: 700px) {  
-        .dashboard-grid-4,  
-        .dashboard-grid-3,  
-        .dashboard-grid-2 {  
-          grid-template-columns: 1fr;  
-        }  
-      }  
+      @media (max-width: 700px) {
+  .dashboard-grid-4,
+  .dashboard-grid-3,
+  .dashboard-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-heading-row {
+    align-items: stretch !important;
+    margin-bottom: 18px !important;
+  }
+
+  .dashboard-page-title {
+    font-size: 34px !important;
+    line-height: 1.08 !important;
+  }
+
+  .dashboard-rewards-card {
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .dashboard-hero-grid h2 {
+    font-size: 26px !important;
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 420px) {
+  .dashboard-page-title {
+    font-size: 30px !important;
+  }
+
+  .dashboard-hero-grid h2 {
+    font-size: 24px !important;
+  }
+}
     `}  
   </style>  
 </div>
