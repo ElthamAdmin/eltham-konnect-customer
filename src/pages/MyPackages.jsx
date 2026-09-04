@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 
 function MyPackages() {
+  const navigate = useNavigate();
   const [customer, setCustomer] = useState(() => {
     const saved = localStorage.getItem("ek_customer_data");
     return saved ? JSON.parse(saved) : null;
@@ -11,9 +13,10 @@ function MyPackages() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const ROYAL_BLUE = "#0B3D91";
-  const GOLD = "#D4AF37";
   const WHITE = "#ffffff";
   const LIGHT_BG = "#f4f7fb";
   const BORDER = "#dbe3ef";
@@ -65,6 +68,40 @@ function MyPackages() {
       return matchesSearch && matchesStatus;
     });
   }, [packages, searchTerm, statusFilter]);
+
+  const totalPages = Math.max(
+  1,
+  Math.ceil(filteredPackages.length / rowsPerPage)
+);
+
+const paginatedPackages = useMemo(() => {
+  const startIndex = (currentPage - 1) * rowsPerPage;
+
+  return filteredPackages.slice(
+    startIndex,
+    startIndex + rowsPerPage
+  );
+}, [filteredPackages, currentPage, rowsPerPage]);
+
+const firstVisiblePackage =
+  filteredPackages.length === 0
+    ? 0
+    : (currentPage - 1) * rowsPerPage + 1;
+
+const lastVisiblePackage = Math.min(
+  currentPage * rowsPerPage,
+  filteredPackages.length
+);
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [searchTerm, statusFilter, rowsPerPage]);
+
+useEffect(() => {
+  if (currentPage > totalPages) {
+    setCurrentPage(totalPages);
+  }
+}, [currentPage, totalPages]);
 
   const summary = useMemo(() => {
     return {
@@ -142,8 +179,12 @@ function MyPackages() {
   };
 
   const handleUploadInvoice = (trackingNumber) => {
-    alert(`Invoice upload for package ${trackingNumber} will be connected next.`);
-  };
+  navigate(
+    `/upload-invoice?trackingNumber=${encodeURIComponent(
+      trackingNumber || ""
+    )}`
+  );
+};
 
   const cardStyle = {
     backgroundColor: WHITE,
@@ -290,9 +331,10 @@ function MyPackages() {
               Package Records
             </h2>
             <p style={{ margin: 0, color: MUTED, fontSize: "14px" }}>
-              {filteredPackages.length} package{filteredPackages.length === 1 ? "" : "s"} matched
-              your current search.
-            </p>
+  Showing {firstVisiblePackage} to {lastVisiblePackage} of{" "}
+  {filteredPackages.length} matched package
+  {filteredPackages.length === 1 ? "" : "s"}.
+</p>
           </div>
         </div>
 
@@ -327,7 +369,7 @@ function MyPackages() {
 
                 <tbody>
                   {filteredPackages.length > 0 ? (
-                    filteredPackages.map((pkg, index) => (
+                    paginatedPackages.map((pkg, index) => (
                       <tr key={pkg._id || index} style={{ backgroundColor: WHITE }}>
                         <td style={{ fontWeight: "700", color: TEXT, wordBreak: "break-word" }}>
                           {pkg.trackingNumber}
@@ -372,7 +414,7 @@ function MyPackages() {
 
             <div className="mypackages-mobile-list">
               {filteredPackages.length > 0 ? (
-                filteredPackages.map((pkg, index) => (
+                paginatedPackages.map((pkg, index) => (
                   <div
                     key={pkg._id || index}
                     style={{
@@ -465,11 +507,60 @@ function MyPackages() {
                     color: MUTED,
                   }}
                 >
-                  No packages found.
+                                        No packages found.
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </>
+
+                {filteredPackages.length > 0 && (
+                  <div className="mypackages-pagination">
+                    <label className="mypackages-page-size">
+                      <span>Rows:</span>
+
+                      <select
+                        value={rowsPerPage}
+                        onChange={(event) =>
+                          setRowsPerPage(Number(event.target.value))
+                        }
+                      >
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                        <option value={50}>50</option>
+                      </select>
+                    </label>
+
+                    <div className="mypackages-page-status">
+                      Page {currentPage} of {totalPages}
+                    </div>
+
+                    <div className="mypackages-page-buttons">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentPage((page) =>
+                            Math.max(page - 1, 1)
+                          )
+                        }
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentPage((page) =>
+                            Math.min(page + 1, totalPages)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
         )}
       </div>
 
@@ -492,8 +583,64 @@ function MyPackages() {
             display: none;
           }
 
-          .mypackages-table-wrap {
+                    .mypackages-table-wrap {
             overflow-x: auto;
+          }
+
+          .mypackages-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid #dbe3ef;
+          }
+
+          .mypackages-page-size {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 700;
+          }
+
+          .mypackages-page-size select {
+            min-width: 76px;
+            min-height: 42px;
+            border: 1px solid #dbe3ef;
+            border-radius: 9px;
+            background: #ffffff;
+          }
+
+          .mypackages-page-status {
+            color: #475569;
+            font-size: 14px;
+            font-weight: 700;
+          }
+
+          .mypackages-page-buttons {
+            display: flex;
+            gap: 10px;
+          }
+
+          .mypackages-page-buttons button {
+            min-height: 42px;
+            padding: 9px 15px;
+            border: 0;
+            border-radius: 9px;
+            color: #ffffff;
+            background: #0b3d91;
+            font-weight: 800;
+            cursor: pointer;
+          }
+
+          .mypackages-page-buttons button:disabled {
+            color: #64748b;
+            background: #e2e8f0;
+            cursor: not-allowed;
           }
 
           @media (max-width: 1100px) {
@@ -502,7 +649,7 @@ function MyPackages() {
             }
           }
 
-          @media (max-width: 700px) {
+                    @media (max-width: 700px) {
             .mypackages-summary-grid,
             .mypackages-filter-grid {
               grid-template-columns: 1fr;
@@ -514,6 +661,23 @@ function MyPackages() {
 
             .mypackages-mobile-list {
               display: block;
+            }
+
+            .mypackages-pagination {
+              align-items: stretch;
+            }
+
+            .mypackages-page-size,
+            .mypackages-page-status {
+              justify-content: center;
+            }
+
+            .mypackages-page-buttons {
+              width: 100%;
+            }
+
+            .mypackages-page-buttons button {
+              flex: 1;
             }
           }
         `}
