@@ -16,7 +16,7 @@ function MyInvoices() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const ROYAL_BLUE = "#0B3D91";
-  const GOLD = "#D4AF37";
+    const GOLD = "#F15A24";
   const WHITE = "#ffffff";
   const LIGHT_BG = "#f4f7fb";
   const BORDER = "#dbe3ef";
@@ -636,11 +636,41 @@ function MyInvoices() {
                   flexWrap: "wrap",
                 }}
               >
-                <div>
-                  <h1 style={{ margin: 0, fontSize: "28px", letterSpacing: "0.6px" }}>
-                    ELTHAM KONNECT
-                  </h1>
-                  <div style={{ marginTop: "6px", color: GOLD, fontWeight: "bold" }}>
+                                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "14px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: WHITE,
+                      borderRadius: "12px",
+                      padding: "7px 10px",
+                    }}
+                  >
+                    <img
+                      src="/ek-logo.png"
+                      alt="Eltham Konnect"
+                      style={{
+                        display: "block",
+                        width: "230px",
+                        maxWidth: "100%",
+                        height: "62px",
+                        objectFit: "contain",
+                      }}
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      color: GOLD,
+                      fontWeight: "800",
+                      fontSize: "14px",
+                    }}
+                  >
                     Your Konnection, Our Priority
                   </div>
                 </div>
