@@ -14,9 +14,9 @@ function RewardsHub() {
   const [activeType, setActiveType] = useState("All");
   const [loading, setLoading] = useState(true);
 
-  const API = "https://eltham-konnect-backend-c2sf.onrender.com";
+    const API = "https://eltham-konnect-backend-c2sf.onrender.com";
   const ROYAL_BLUE = "#0B3D91";
-  const GOLD = "#D4AF37";
+  const GOLD = "#F15A24";
   const WHITE = "#ffffff";
   const LIGHT_BG = "#f4f7fb";
   const BORDER = "#dbe3ef";
@@ -210,35 +210,58 @@ const playGame = async (game) => {
         </p>
       </div>
 
-      <div
+            <div
+        className="rewards-filter-card"
         style={{
           ...cardStyle,
           marginBottom: "20px",
-          display: "flex",
-          gap: "10px",
-          flexWrap: "wrap",
         }}
       >
-        {typeOptions.map((type) => (
-          <button
-            key={type}
-            onClick={() => setActiveType(type)}
-            style={{
-              backgroundColor: activeType === type ? ROYAL_BLUE : WHITE,
-              color: activeType === type ? WHITE : ROYAL_BLUE,
-              border: `1px solid ${ROYAL_BLUE}`,
-              padding: "9px 13px",
-              borderRadius: "999px",
-              fontWeight: "bold",
-              cursor: "pointer",
-            }}
-          >
-            {type}
-          </button>
-        ))}
+        <div className="rewards-filter-heading">
+          <strong style={{ color: TEXT }}>
+            Browse Rewards
+          </strong>
+
+          <span style={{ color: MUTED, fontSize: "13px" }}>
+            {filteredPosts.length}{" "}
+            {filteredPosts.length === 1
+              ? "activity"
+              : "activities"}
+          </span>
+        </div>
+
+        <div className="rewards-filter-buttons">
+          {typeOptions.map((type) => (
+            <button
+              type="button"
+              key={type}
+              onClick={() => setActiveType(type)}
+              aria-pressed={activeType === type}
+              style={{
+                backgroundColor:
+                  activeType === type
+                    ? ROYAL_BLUE
+                    : WHITE,
+                color:
+                  activeType === type
+                    ? WHITE
+                    : ROYAL_BLUE,
+                border: `1px solid ${ROYAL_BLUE}`,
+                padding: "9px 13px",
+                borderRadius: "999px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (
+
   <div style={cardStyle}>Loading Rewards Hub...</div>
 ) : (
   <>
@@ -644,32 +667,189 @@ const playGame = async (game) => {
       </>
 )}
 
-      <style>
-  {`
-    .hub-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
-    }
+            <style>
+        {`
+          .rewards-filter-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 13px;
+          }
 
-    .leaderboard-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
-      overflow-x: auto;
-    }
+          .rewards-filter-buttons {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+          }
 
-    @media (max-width: 800px) {
-      .hub-grid {
-        grid-template-columns: 1fr;
-      }
+          .rewards-filter-buttons button {
+            transition:
+              background-color 0.2s ease,
+              color 0.2s ease,
+              transform 0.2s ease;
+          }
 
-      .leaderboard-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  `}
-</style>
+          .rewards-filter-buttons button:hover {
+            transform: translateY(-1px);
+          }
+
+          .rewards-filter-buttons button:focus-visible {
+            outline: 3px solid rgba(241, 90, 36, 0.3);
+            outline-offset: 2px;
+          }
+
+          .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+          }
+
+          .hub-grid > div {
+            min-width: 0;
+          }
+
+          .leaderboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+          }
+
+          .leaderboard-grid > div {
+            min-width: 0;
+            overflow-x: auto;
+            border: 1px solid #dbe3ef;
+            border-radius: 12px;
+            background: #ffffff;
+          }
+
+          .leaderboard-grid h3 {
+            margin: 0;
+            padding: 15px 15px 12px;
+          }
+
+          .leaderboard-grid table {
+            min-width: 520px;
+            border: 0 !important;
+          }
+
+          .leaderboard-grid th,
+          .leaderboard-grid td {
+            padding: 11px 10px;
+            border-color: #dbe3ef;
+            text-align: left;
+          }
+
+          .leaderboard-grid th {
+            color: #0B3D91;
+            font-size: 13px;
+            white-space: nowrap;
+          }
+
+          .leaderboard-grid td {
+            color: #0f172a;
+            font-size: 14px;
+          }
+
+          .hub-grid img {
+            display: block;
+          }
+
+          .hub-grid button,
+          .hub-grid a {
+            transition:
+              opacity 0.2s ease,
+              transform 0.2s ease;
+          }
+
+          .hub-grid button:not(:disabled):hover,
+          .hub-grid a:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+          }
+
+          .hub-grid button:focus-visible,
+          .hub-grid a:focus-visible {
+            outline: 3px solid rgba(241, 90, 36, 0.3);
+            outline-offset: 2px;
+          }
+
+          @media (max-width: 1000px) {
+            .leaderboard-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+
+          @media (max-width: 800px) {
+            .hub-grid {
+              grid-template-columns: 1fr;
+            }
+
+            .leaderboard-grid {
+              grid-template-columns: 1fr;
+            }
+
+            .rewards-filter-card {
+              padding: 15px !important;
+            }
+
+            .rewards-filter-buttons {
+              flex-wrap: nowrap;
+              overflow-x: auto;
+              padding-bottom: 5px;
+              scrollbar-width: thin;
+            }
+
+            .rewards-filter-buttons button {
+              flex: 0 0 auto;
+            }
+          }
+
+          @media (max-width: 700px) {
+            .rewards-filter-heading {
+              align-items: flex-start;
+              flex-direction: column;
+              gap: 4px;
+            }
+
+            .leaderboard-grid > div {
+              border-radius: 10px;
+            }
+
+            .hub-grid > div {
+              padding: 16px !important;
+            }
+
+            .hub-grid h2 {
+              font-size: 20px;
+              line-height: 1.25;
+              overflow-wrap: anywhere;
+            }
+
+            .hub-grid button,
+            .hub-grid a {
+              min-height: 42px;
+            }
+          }
+
+          @media (max-width: 420px) {
+            .leaderboard-grid table {
+              min-width: 480px;
+            }
+
+            .leaderboard-grid th,
+            .leaderboard-grid td {
+              padding: 9px 8px;
+              font-size: 12px;
+            }
+
+            .hub-grid h2 {
+              font-size: 18px;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
