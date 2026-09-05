@@ -11,7 +11,9 @@ function MyInvoices() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [loading, setLoading] = useState(true);
-  const [selectedReceipt, setSelectedReceipt] = useState(null);
+    const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const ROYAL_BLUE = "#0B3D91";
   const GOLD = "#D4AF37";
@@ -48,18 +50,57 @@ function MyInvoices() {
     fetchInvoices();
   }, []);
 
-  const filteredInvoices = useMemo(() => {
+    const filteredInvoices = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
     return invoices.filter((inv) => {
       const matchesSearch =
-        `${inv.invoiceNumber} ${inv.customerName} ${inv.customerEkonId} ${inv.status}`
+        `${inv.invoiceNumber || ""} ${inv.customerName || ""} ${
+          inv.customerEkonId || ""
+        } ${inv.status || ""}`
           .toLowerCase()
-          .includes(searchTerm.toLowerCase());
+          .includes(normalizedSearch);
 
-      const matchesStatus = statusFilter === "All" || inv.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "All" || inv.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
   }, [invoices, searchTerm, statusFilter]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredInvoices.length / rowsPerPage)
+  );
+
+  const paginatedInvoices = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+
+    return filteredInvoices.slice(
+      startIndex,
+      startIndex + rowsPerPage
+    );
+  }, [filteredInvoices, currentPage, rowsPerPage]);
+
+  const firstVisibleInvoice =
+    filteredInvoices.length === 0
+      ? 0
+      : (currentPage - 1) * rowsPerPage + 1;
+
+  const lastVisibleInvoice = Math.min(
+    currentPage * rowsPerPage,
+    filteredInvoices.length
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, rowsPerPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const summary = useMemo(() => {
     const unpaid = invoices.filter((inv) => inv.status === "Unpaid");
@@ -272,26 +313,66 @@ function MyInvoices() {
         </div>
       </div>
 
-      <div style={cardStyle}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "12px",
-            flexWrap: "wrap",
-            marginBottom: "16px",
-          }}
-        >
+            <div style={cardStyle}>
+        <div className="invoice-records-header">
           <div>
             <h2 style={{ marginTop: 0, marginBottom: "6px", color: TEXT }}>
               Invoice Records
             </h2>
+
             <p style={{ margin: 0, color: MUTED, fontSize: "14px" }}>
-              {filteredInvoices.length} invoice
-              {filteredInvoices.length === 1 ? "" : "s"} matched your current search.
+              Showing {firstVisibleInvoice} to {lastVisibleInvoice} of{" "}
+              {filteredInvoices.length} matched invoice
+              {filteredInvoices.length === 1 ? "" : "s"}.
             </p>
           </div>
+
+          {filteredInvoices.length > 0 && (
+            <div className="invoice-pagination">
+              <label className="invoice-page-size">
+                <span>Rows:</span>
+
+                <select
+                  value={rowsPerPage}
+                  onChange={(event) =>
+                    setRowsPerPage(Number(event.target.value))
+                  }
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </label>
+
+              <div className="invoice-page-status">
+                Page {currentPage} of {totalPages}
+              </div>
+
+              <div className="invoice-page-buttons">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((page) => Math.max(page - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((page) =>
+                      Math.min(page + 1, totalPages)
+                    )
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {loading ? (
@@ -325,7 +406,7 @@ function MyInvoices() {
 
                 <tbody>
                   {filteredInvoices.length > 0 ? (
-                    filteredInvoices.map((inv) => (
+                                        paginatedInvoices.map((inv) => (
                       <tr key={inv._id} style={{ backgroundColor: WHITE }}>
                         <td style={{ fontWeight: "800", color: TEXT }}>
                           {inv.invoiceNumber}
@@ -387,7 +468,7 @@ function MyInvoices() {
                   ) : (
                     <tr>
                       <td
-                        colSpan="7"
+                        colSpan="9"
                         style={{ textAlign: "center", color: MUTED, padding: "20px" }}
                       >
                         No invoices found.
@@ -400,7 +481,7 @@ function MyInvoices() {
 
             <div className="table-mobile">
               {filteredInvoices.length > 0 ? (
-                filteredInvoices.map((inv) => (
+                paginatedInvoices.map((inv) => (
                   <div
                     key={inv._id}
                     style={{
@@ -821,8 +902,69 @@ function MyInvoices() {
           gap: 12px;
         }
 
-        .table-mobile {
+                .table-mobile {
           display: none;
+        }
+
+        .invoice-records-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          flex-wrap: wrap;
+          margin-bottom: 18px;
+        }
+
+        .invoice-pagination {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .invoice-page-size {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #64748b;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .invoice-page-size select {
+          min-width: 76px;
+          min-height: 42px;
+          border: 1px solid #dbe3ef;
+          border-radius: 9px;
+          background: #ffffff;
+        }
+
+        .invoice-page-status {
+          color: #475569;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .invoice-page-buttons {
+          display: flex;
+          gap: 8px;
+        }
+
+        .invoice-page-buttons button {
+          min-height: 42px;
+          padding: 9px 14px;
+          border: 0;
+          border-radius: 9px;
+          color: #ffffff;
+          background: #0b3d91;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .invoice-page-buttons button:disabled {
+          color: #64748b;
+          background: #e2e8f0;
+          cursor: not-allowed;
         }
 
         @media (max-width: 900px) {
@@ -848,8 +990,30 @@ function MyInvoices() {
             display: block;
           }
 
-          .receipt-top-grid {
+                    .receipt-top-grid {
             grid-template-columns: 1fr !important;
+          }
+
+          .invoice-records-header {
+            align-items: stretch;
+          }
+
+          .invoice-pagination {
+            width: 100%;
+            align-items: stretch;
+          }
+
+          .invoice-page-size,
+          .invoice-page-status {
+            justify-content: center;
+          }
+
+          .invoice-page-buttons {
+            width: 100%;
+          }
+
+          .invoice-page-buttons button {
+            flex: 1;
           }
         }
 
