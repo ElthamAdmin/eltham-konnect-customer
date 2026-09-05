@@ -7,13 +7,15 @@ function MyRewards() {
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [pointsHistory, setPointsHistory] = useState([]);
+    const [pointsHistory, setPointsHistory] = useState([]);
   const [referrals, setReferrals] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const ROYAL_BLUE = "#0B3D91";
-  const GOLD = "#D4AF37";
+    const GOLD = "#F15A24";
   const WHITE = "#ffffff";
   const LIGHT_BG = "#f4f7fb";
   const BORDER = "#dbe3ef";
@@ -67,13 +69,57 @@ function MyRewards() {
     fetchRewardsData();
   }, []);
 
-  const filteredHistory = useMemo(() => {
-    return pointsHistory.filter((record) =>
-      `${record.action} ${record.customerName} ${record.customerEkonId} ${record.date}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
+    const filteredHistory = useMemo(() => {
+    const normalizedSearch = searchTerm
+      .trim()
+      .toLowerCase();
+
+    return pointsHistory.filter((record) => {
+      const searchableText = [
+        record?.action,
+        record?.customerName,
+        record?.customerEkonId,
+        record?.date,
+        record?.createdAt,
+        record?.points,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(normalizedSearch);
+    });
   }, [pointsHistory, searchTerm]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, pageSize]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredHistory.length / pageSize)
+  );
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const pageStart = (page - 1) * pageSize;
+
+  const paginatedHistory = filteredHistory.slice(
+    pageStart,
+    pageStart + pageSize
+  );
+
+  const firstVisibleRecord =
+    filteredHistory.length === 0 ? 0 : pageStart + 1;
+
+  const lastVisibleRecord = Math.min(
+    pageStart + pageSize,
+    filteredHistory.length
+  );
 
   const summary = useMemo(() => {
     const earned = pointsHistory
@@ -349,11 +395,11 @@ function MyRewards() {
 </div>
 
       <div className="rewards-summary-grid">
-        {summaryCard(
+                {summaryCard(
           summary.currentBalance.toLocaleString(),
           "Current EK Points",
-          "#7c3aed",
-          "#f7f2ff"
+          GOLD,
+          "#fff7ed"
         )}
         {summaryCard(
           summary.totalEarned.toLocaleString(),
@@ -415,9 +461,19 @@ function MyRewards() {
             <h2 style={{ marginTop: 0, marginBottom: "6px", color: TEXT }}>
               Rewards History
             </h2>
-            <p style={{ margin: 0, color: MUTED, fontSize: "14px" }}>
-              {filteredHistory.length} reward activit{filteredHistory.length === 1 ? "y" : "ies"} matched
-              your current search.
+                        <p
+              style={{
+                margin: 0,
+                color: MUTED,
+                fontSize: "14px",
+              }}
+            >
+              Showing {firstVisibleRecord} to{" "}
+              {lastVisibleRecord} of{" "}
+              {filteredHistory.length} matched reward{" "}
+              {filteredHistory.length === 1
+                ? "activity"
+                : "activities"}.
             </p>
           </div>
         </div>
@@ -449,7 +505,7 @@ function MyRewards() {
 
                 <tbody>
                   {filteredHistory.length > 0 ? (
-                    filteredHistory.map((record) => (
+                    paginatedHistory.map((record) => (
                       <tr key={record._id} style={{ backgroundColor: WHITE }}>
                         <td>{formatDate(record.date || record.createdAt)}</td>
                         <td>{record.customerName}</td>
@@ -480,7 +536,7 @@ function MyRewards() {
 
             <div className="rewards-mobile">
               {filteredHistory.length > 0 ? (
-                filteredHistory.map((record) => (
+                paginatedHistory.map((record) => (
                   <div
                     key={record._id}
                     style={{
@@ -529,18 +585,77 @@ function MyRewards() {
                   No rewards activity found.
                 </div>
               )}
-            </div>
+                        </div>
+
+            {filteredHistory.length > 0 && (
+              <div className="rewards-pagination">
+                <div className="rewards-page-size">
+                  <label htmlFor="rewards-page-size">
+                    Rows:
+                  </label>
+
+                  <select
+                    id="rewards-page-size"
+                    value={pageSize}
+                    onChange={(event) =>
+                      setPageSize(Number(event.target.value))
+                    }
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+
+                <div className="rewards-page-status">
+                  Page {page} of {totalPages}
+                </div>
+
+                <div className="rewards-page-buttons">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPage((currentPage) =>
+                        Math.max(1, currentPage - 1)
+                      )
+                    }
+                    disabled={page === 1}
+                  >
+                    Previous
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPage((currentPage) =>
+                        Math.min(
+                          totalPages,
+                          currentPage + 1
+                        )
+                      )
+                    }
+                    disabled={page === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
 
-      <style>
+            <style>
         {`
           .rewards-summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 20px;
             margin-bottom: 24px;
+          }
+
+          .rewards-summary-grid > div {
+            min-width: 0;
           }
 
           .rewards-hero-grid {
@@ -550,13 +665,107 @@ function MyRewards() {
             align-items: stretch;
           }
 
+          .rewards-table {
+            overflow-x: auto;
+            border: 1px solid #dbe3ef;
+            border-radius: 12px;
+          }
+
+          .rewards-table table {
+            border: 0 !important;
+          }
+
+          .rewards-table th,
+          .rewards-table td {
+            border-color: #dbe3ef;
+            text-align: left;
+          }
+
+          .rewards-table th {
+            color: #0B3D91;
+            font-size: 13px;
+            white-space: nowrap;
+          }
+
           .rewards-mobile {
             display: none;
           }
 
+          .rewards-pagination {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 16px;
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid #dbe3ef;
+          }
+
+          .rewards-page-size {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-self: start;
+          }
+
+          .rewards-page-size label {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+          }
+
+          .rewards-page-size select {
+            padding: 9px 28px 9px 10px;
+            border: 1px solid #dbe3ef;
+            border-radius: 9px;
+            background: #ffffff;
+            color: #0f172a;
+          }
+
+          .rewards-page-status {
+            color: #334155;
+            font-size: 13px;
+            font-weight: 800;
+            text-align: center;
+          }
+
+          .rewards-page-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            justify-self: end;
+          }
+
+          .rewards-page-buttons button {
+            min-width: 82px;
+            padding: 9px 13px;
+            border: 0;
+            border-radius: 9px;
+            background: #0B3D91;
+            color: #ffffff;
+            font-weight: 800;
+            cursor: pointer;
+          }
+
+          .rewards-page-buttons button:disabled {
+            background: #e2e8f0;
+            color: #64748b;
+            cursor: not-allowed;
+          }
+
+          .rewards-page-buttons button:not(:disabled):hover {
+            background: #082f70;
+          }
+
+          .rewards-page-buttons button:focus-visible,
+          .rewards-page-size select:focus-visible {
+            outline: 3px solid rgba(241, 90, 36, 0.3);
+            outline-offset: 2px;
+          }
+
           @media (max-width: 900px) {
             .rewards-summary-grid {
-              grid-template-columns: repeat(2, 1fr);
+              grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .rewards-hero-grid {
@@ -564,9 +773,31 @@ function MyRewards() {
             }
           }
 
+          @media (max-width: 700px) {
+            .rewards-pagination {
+              grid-template-columns: 1fr;
+            }
+
+            .rewards-page-size,
+            .rewards-page-status,
+            .rewards-page-buttons {
+              width: 100%;
+              justify-self: stretch;
+            }
+
+            .rewards-page-size {
+              justify-content: center;
+            }
+
+            .rewards-page-buttons button {
+              flex: 1;
+            }
+          }
+
           @media (max-width: 600px) {
             .rewards-summary-grid {
               grid-template-columns: 1fr;
+              gap: 14px;
             }
 
             .rewards-table {
@@ -575,6 +806,16 @@ function MyRewards() {
 
             .rewards-mobile {
               display: block;
+            }
+          }
+
+          @media (max-width: 420px) {
+            .rewards-page-buttons {
+              flex-direction: column;
+            }
+
+            .rewards-page-buttons button {
+              width: 100%;
             }
           }
         `}
