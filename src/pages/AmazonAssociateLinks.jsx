@@ -60,7 +60,7 @@ function AmazonAssociateLinks() {
     }
   };
 
-    const fetchCart = async () => {
+      const fetchCart = async () => {
     try {
       const res = await api.get(
         "/api/marketplace-cart"
@@ -68,15 +68,13 @@ function AmazonAssociateLinks() {
 
       setCart(res.data?.data || null);
     } catch (error) {
-      const status = error?.response?.status;
+      console.warn(
+        "No existing Marketplace cart was loaded:",
+        error?.response?.data?.message ||
+          error?.message
+      );
 
-      if (status === 404) {
-        setCart(null);
-        return;
-      }
-
-      console.error("Error loading cart:", error);
-      throw error;
+      setCart(null);
     }
   };
 
