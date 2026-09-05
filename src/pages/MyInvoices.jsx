@@ -151,8 +151,161 @@ function MyInvoices() {
     );
   };
 
-  const printReceipt = () => {
-    window.print();
+    const printReceipt = () => {
+    const receiptElement = document.querySelector(".receipt-card");
+
+    if (!receiptElement || !selectedReceipt) {
+      alert("The receipt could not be prepared for printing.");
+      return;
+    }
+
+    const printWindow = window.open(
+      "",
+      "_blank",
+      "width=900,height=1000"
+    );
+
+    if (!printWindow) {
+      alert(
+        "The print window was blocked. Please allow pop-ups and try again."
+      );
+      return;
+    }
+
+    const receiptHtml = receiptElement.outerHTML;
+    const receiptTitle = `Eltham Konnect Receipt ${
+      selectedReceipt.invoiceNumber || ""
+    }`;
+
+    printWindow.document.write(`
+      <!doctype html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+          <title>${receiptTitle}</title>
+
+          <style>
+            * {
+              box-sizing: border-box;
+            }
+
+            @page {
+              size: A4 portrait;
+              margin: 8mm;
+            }
+
+            html,
+            body {
+              margin: 0;
+              padding: 0;
+              background: #ffffff;
+              color: #0f172a;
+              font-family: Arial, Helvetica, sans-serif;
+            }
+
+            body {
+              padding: 0;
+            }
+
+            .receipt-card {
+              width: 100% !important;
+              max-width: 100% !important;
+              margin: 0 !important;
+              border: 1px solid #dbe3ef !important;
+              border-radius: 0 !important;
+              box-shadow: none !important;
+              overflow: visible !important;
+              font-size: 10pt !important;
+            }
+
+            .receipt-card > div:first-child {
+              padding: 12px 16px !important;
+            }
+
+            .receipt-card > div:last-child {
+              padding: 14px 16px !important;
+            }
+
+            .receipt-card img {
+              width: 170px !important;
+              height: 46px !important;
+              object-fit: contain !important;
+            }
+
+            .receipt-top-grid {
+              display: grid !important;
+              grid-template-columns: 1.2fr 0.8fr !important;
+              gap: 10px !important;
+              margin-bottom: 12px !important;
+            }
+
+            .receipt-card table {
+              width: 100% !important;
+              border-collapse: collapse !important;
+              font-size: 9pt !important;
+            }
+
+            .receipt-card th,
+            .receipt-card td {
+              padding: 6px 8px !important;
+            }
+
+            .receipt-actions {
+              display: none !important;
+            }
+
+            .receipt-card,
+            .receipt-card * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+
+            @media print {
+              html,
+              body {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
+
+              .receipt-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+              }
+
+              .receipt-top-grid,
+              .receipt-card table {
+                break-inside: avoid;
+                page-break-inside: avoid;
+              }
+            }
+          </style>
+        </head>
+
+        <body>
+          ${receiptHtml}
+
+          <script>
+            window.addEventListener("load", function () {
+              window.setTimeout(function () {
+                window.focus();
+                window.print();
+              }, 300);
+            });
+
+            window.addEventListener("afterprint", function () {
+              window.close();
+            });
+          </script>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
   };
 
   const handlePayNow = (invoice) => {
