@@ -60,7 +60,7 @@ function AmazonAssociateLinks() {
     }
   };
 
-  const fetchCart = async () => {
+    const fetchCart = async () => {
     try {
       const res = await api.get(
         "/api/marketplace-cart"
@@ -68,8 +68,14 @@ function AmazonAssociateLinks() {
 
       setCart(res.data?.data || null);
     } catch (error) {
-      console.error("Error loading cart:", error);
+      const status = error?.response?.status;
 
+      if (status === 404) {
+        setCart(null);
+        return;
+      }
+
+      console.error("Error loading cart:", error);
       throw error;
     }
   };
@@ -698,9 +704,10 @@ function AmazonAssociateLinks() {
             font-weight: 800;
           }
 
-          .marketplace-hero h1 {
+                    .marketplace-hero h1 {
             margin: 0 0 14px;
             max-width: 760px;
+            color: #ffffff !important;
             font-size: 41px;
             line-height: 1.12;
           }
