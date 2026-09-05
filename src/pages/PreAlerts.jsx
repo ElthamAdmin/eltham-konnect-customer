@@ -5,7 +5,9 @@ function PreAlerts({ customer }) {
   const [preAlerts, setPreAlerts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  const [selectedInvoiceFile, setSelectedInvoiceFile] = useState(null);
+    const [selectedInvoiceFile, setSelectedInvoiceFile] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [formData, setFormData] = useState({
     trackingNumber: "",
@@ -80,13 +82,53 @@ function PreAlerts({ customer }) {
     }
   };
 
-  const filteredPreAlerts = useMemo(() => {
+    const filteredPreAlerts = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
     return preAlerts.filter((alert) =>
-      `${alert.preAlertNumber} ${alert.trackingNumber} ${alert.courier} ${alert.storeName} ${alert.status}`
+      `${alert.preAlertNumber || ""} ${alert.trackingNumber || ""} ${
+        alert.courier || ""
+      } ${alert.storeName || ""} ${alert.itemDescription || ""} ${
+        alert.notes || ""
+      } ${alert.status || ""}`
         .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+        .includes(normalizedSearch)
     );
   }, [preAlerts, searchTerm]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredPreAlerts.length / rowsPerPage)
+  );
+
+  const paginatedPreAlerts = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+
+    return filteredPreAlerts.slice(
+      startIndex,
+      startIndex + rowsPerPage
+    );
+  }, [filteredPreAlerts, currentPage, rowsPerPage]);
+
+  const firstVisiblePreAlert =
+    filteredPreAlerts.length === 0
+      ? 0
+      : (currentPage - 1) * rowsPerPage + 1;
+
+  const lastVisiblePreAlert = Math.min(
+    currentPage * rowsPerPage,
+    filteredPreAlerts.length
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, rowsPerPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const summary = useMemo(() => {
     return {
@@ -350,8 +392,73 @@ function PreAlerts({ customer }) {
         />
       </div>
 
-      <div style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>My Pre-Alerts</h2>
+            <div style={cardStyle}>
+        <div className="prealerts-records-header">
+          <div>
+            <h2 style={{ marginTop: 0, marginBottom: "6px" }}>
+              My Pre-Alerts
+            </h2>
+
+            <p
+              style={{
+                margin: 0,
+                color: "#64748b",
+                fontSize: "14px",
+              }}
+            >
+              Showing {firstVisiblePreAlert} to {lastVisiblePreAlert} of{" "}
+              {filteredPreAlerts.length} matched pre-alert
+              {filteredPreAlerts.length === 1 ? "" : "s"}.
+            </p>
+          </div>
+
+          {filteredPreAlerts.length > 0 && (
+            <div className="prealerts-pagination">
+              <label className="prealerts-page-size">
+                <span>Rows:</span>
+
+                <select
+                  value={rowsPerPage}
+                  onChange={(event) =>
+                    setRowsPerPage(Number(event.target.value))
+                  }
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </label>
+
+              <div className="prealerts-page-status">
+                Page {currentPage} of {totalPages}
+              </div>
+
+              <div className="prealerts-page-buttons">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((page) => Math.max(page - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((page) =>
+                      Math.min(page + 1, totalPages)
+                    )
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {loading ? (
           <p>Loading your pre-alerts...</p>
@@ -376,7 +483,7 @@ function PreAlerts({ customer }) {
 
                 <tbody>
                   {filteredPreAlerts.length > 0 ? (
-                    filteredPreAlerts.map((alert) => (
+                                        paginatedPreAlerts.map((alert) => (
                       <tr key={alert._id}>
                         <td>{alert.preAlertNumber}</td>
                         <td>{alert.trackingNumber}</td>
@@ -544,8 +651,69 @@ function PreAlerts({ customer }) {
             display: none;
           }
 
-          .prealerts-table-wrap {
+                    .prealerts-table-wrap {
             overflow-x: auto;
+          }
+
+          .prealerts-records-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+          }
+
+          .prealerts-pagination {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+          }
+
+          .prealerts-page-size {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 700;
+          }
+
+          .prealerts-page-size select {
+            min-width: 76px;
+            min-height: 42px;
+            border: 1px solid #dbe3ef;
+            border-radius: 9px;
+            background: #ffffff;
+          }
+
+          .prealerts-page-status {
+            color: #475569;
+            font-size: 14px;
+            font-weight: 700;
+          }
+
+          .prealerts-page-buttons {
+            display: flex;
+            gap: 8px;
+          }
+
+          .prealerts-page-buttons button {
+            min-height: 42px;
+            padding: 9px 14px;
+            border: 0;
+            border-radius: 9px;
+            color: #ffffff;
+            background: #0b3d91;
+            font-weight: 800;
+            cursor: pointer;
+          }
+
+          .prealerts-page-buttons button:disabled {
+            color: #64748b;
+            background: #e2e8f0;
+            cursor: not-allowed;
           }
 
           @media (max-width: 700px) {
@@ -562,8 +730,30 @@ function PreAlerts({ customer }) {
               display: none;
             }
 
-            .prealerts-mobile-list {
+                        .prealerts-mobile-list {
               display: block;
+            }
+
+            .prealerts-records-header {
+              align-items: stretch;
+            }
+
+            .prealerts-pagination {
+              width: 100%;
+              align-items: stretch;
+            }
+
+            .prealerts-page-size,
+            .prealerts-page-status {
+              justify-content: center;
+            }
+
+            .prealerts-page-buttons {
+              width: 100%;
+            }
+
+            .prealerts-page-buttons button {
+              flex: 1;
             }
           }
         `}
