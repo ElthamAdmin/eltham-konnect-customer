@@ -1047,31 +1047,124 @@ function MyInvoices() {
           }
         }
 
+                @page {
+          size: A4 portrait;
+          margin: 8mm;
+        }
+
         @media print {
+          html,
+          body,
+          #root {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+          }
+
           body * {
-            visibility: hidden;
+            display: none !important;
+          }
+
+          .receipt-overlay,
+          .receipt-overlay * {
+            display: revert !important;
+            visibility: visible !important;
+          }
+
+          .receipt-overlay {
+            position: static !important;
+            inset: auto !important;
+            width: 100% !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+          }
+
+          .receipt-card {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            border: 1px solid #dbe3ef !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+            font-size: 10pt !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          .receipt-card > div:first-child {
+            padding: 12px 16px !important;
+          }
+
+          .receipt-card > div:last-child {
+            padding: 14px 16px !important;
+          }
+
+          .receipt-card img {
+            width: 170px !important;
+            height: 46px !important;
+            object-fit: contain !important;
+          }
+
+          .receipt-top-grid {
+            display: grid !important;
+            grid-template-columns: 1.2fr 0.8fr !important;
+            gap: 10px !important;
+            margin-bottom: 12px !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          .receipt-card h1,
+          .receipt-card h2,
+          .receipt-card h3,
+          .receipt-card p {
+            break-after: avoid;
+            page-break-after: avoid;
+          }
+
+          .receipt-card table {
+            display: table !important;
+            width: 100% !important;
+            font-size: 9pt !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          .receipt-card thead {
+            display: table-header-group !important;
+          }
+
+          .receipt-card tbody {
+            display: table-row-group !important;
+          }
+
+          .receipt-card tr {
+            display: table-row !important;
+          }
+
+          .receipt-card th,
+          .receipt-card td {
+            display: table-cell !important;
+            padding: 6px 8px !important;
           }
 
           .receipt-card,
           .receipt-card * {
-            visibility: visible;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
 
-          .receipt-overlay {
-            position: absolute !important;
-            inset: 0 !important;
-            background: white !important;
-            padding: 0 !important;
-          }
-
-          .receipt-card {
-            box-shadow: none !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            border-radius: 0 !important;
-          }
-
-          .receipt-actions {
+          .receipt-actions,
+          .receipt-actions * {
             display: none !important;
           }
         }
