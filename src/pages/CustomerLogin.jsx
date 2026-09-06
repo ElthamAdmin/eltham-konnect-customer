@@ -1,25 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  AlertCircle,
-  BellRing,
-  Box,
-  CheckCircle2,
-  Eye,
-  EyeOff,
-  FileText,
-  Gift,
-  LoaderCircle,
-  LockKeyhole,
-  LogIn,
-  Mail,
-  PackageCheck,
-  Plane,
-  ShieldCheck,
-  ShoppingCart,
-  UserPlus,
-  Waves,
-} from "lucide-react";
 import api from "../api";
 
 function CustomerLogin() {
@@ -39,138 +19,78 @@ function CustomerLogin() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSettingPassword, setIsSettingPassword] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
   const [showSetupPassword, setShowSetupPassword] = useState(false);
-  const [showSetupConfirmPassword, setShowSetupConfirmPassword] =
-    useState(false);
-
+  const [showSetupConfirmPassword, setShowSetupConfirmPassword] = useState(false);
   const [showSetupSection, setShowSetupSection] = useState(false);
 
-  const [loginMessage, setLoginMessage] = useState({
-    type: "",
-    text: "",
-  });
-
-  const [setupMessage, setSetupMessage] = useState({
-    type: "",
-    text: "",
-  });
-
-  const handleLoginChange = (event) => {
-    const { name, value } = event.target;
-
-    setLoginForm((currentForm) => ({
-      ...currentForm,
-      [name]: value,
+  const handleLoginChange = (e) => {
+    setLoginForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
     }));
-
-    if (loginMessage.text) {
-      setLoginMessage({ type: "", text: "" });
-    }
   };
 
-  const handleSetupChange = (event) => {
-    const { name, value } = event.target;
-
-    setSetupForm((currentForm) => ({
-      ...currentForm,
-      [name]: value,
+  const handleSetupChange = (e) => {
+    setSetupForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
     }));
-
-    if (setupMessage.text) {
-      setSetupMessage({ type: "", text: "" });
-    }
   };
 
-  const handleLogin = async (event) => {
-    event?.preventDefault();
-
-    const ekonId = loginForm.ekonId.trim().toUpperCase();
-
-    if (!ekonId || !loginForm.password) {
-      setLoginMessage({
-        type: "error",
-        text: "Please enter your EKON ID and password.",
-      });
-      return;
-    }
-
+  const handleLogin = async () => {
     try {
+      if (!loginForm.ekonId || !loginForm.password) {
+        alert("Please enter EKON ID and password.");
+        return;
+      }
+
       setIsSubmitting(true);
-      setLoginMessage({ type: "", text: "" });
 
       const res = await api.post("/api/customer-auth/login", {
-        ekonId,
+        ekonId: loginForm.ekonId.trim().toUpperCase(),
         password: loginForm.password,
       });
 
-      if (!res.data?.token || !res.data?.data) {
-        throw new Error("The login response was incomplete.");
-      }
-
       localStorage.setItem("ek_customer_token", res.data.token);
-      localStorage.setItem(
-        "ek_customer_data",
-        JSON.stringify(res.data.data)
-      );
+      localStorage.setItem("ek_customer_data", JSON.stringify(res.data.data));
 
       navigate("/");
     } catch (error) {
       console.error("Customer login error:", error);
-
-      setLoginMessage({
-        type: "error",
-        text:
-          error?.response?.data?.message ||
-          "Customer login failed. Please check your details and try again.",
-      });
+      alert(error?.response?.data?.message || "Customer login failed.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleFirstTimeSetup = async (event) => {
-    event?.preventDefault();
-
-    const ekonId = setupForm.ekonId.trim().toUpperCase();
-    const emailOrPhone = setupForm.emailOrPhone.trim();
-
-    if (
-      !ekonId ||
-      !emailOrPhone ||
-      !setupForm.password ||
-      !setupForm.confirmPassword
-    ) {
-      setSetupMessage({
-        type: "error",
-        text: "Please complete all first-time setup fields.",
-      });
-      return;
-    }
-
-    if (setupForm.password.length < 6) {
-      setSetupMessage({
-        type: "error",
-        text: "Your password must contain at least 6 characters.",
-      });
-      return;
-    }
-
-    if (setupForm.password !== setupForm.confirmPassword) {
-      setSetupMessage({
-        type: "error",
-        text: "The password and confirmation do not match.",
-      });
-      return;
-    }
-
+  const handleFirstTimeSetup = async () => {
     try {
-      setIsSettingPassword(true);
-      setSetupMessage({ type: "", text: "" });
+      if (
+        !setupForm.ekonId ||
+        !setupForm.emailOrPhone ||
+        !setupForm.password ||
+        !setupForm.confirmPassword
+      ) {
+        alert("Please complete all first-time setup fields.");
+        return;
+      }
 
+      if (setupForm.password.length < 6) {
+        alert("Password must be at least 6 characters.");
+        return;
+      }
+
+      if (setupForm.password !== setupForm.confirmPassword) {
+        alert("Passwords do not match.");
+        return;
+      }
+
+      setIsSettingPassword(true);
+
+      const emailOrPhone = setupForm.emailOrPhone.trim();
       const payload = {
-        ekonId,
+        ekonId: setupForm.ekonId.trim().toUpperCase(),
         password: setupForm.password,
       };
 
@@ -180,15 +100,18 @@ function CustomerLogin() {
         payload.phone = emailOrPhone;
       }
 
-      const res = await api.post(
-        "/api/customer-auth/setup-password",
-        payload
+      const res = await api.post("/api/customer-auth/setup-password", payload);
+
+      alert(
+        res?.data?.message ||
+          "Password set successfully. You can now log in."
       );
 
-      setLoginForm({
-        ekonId,
+      setLoginForm((prev) => ({
+        ...prev,
+        ekonId: setupForm.ekonId.trim().toUpperCase(),
         password: "",
-      });
+      }));
 
       setSetupForm({
         ekonId: "",
@@ -197,532 +120,378 @@ function CustomerLogin() {
         confirmPassword: "",
       });
 
+      setShowSetupSection(false);
       setShowSetupPassword(false);
       setShowSetupConfirmPassword(false);
-
-      setSetupMessage({
-        type: "success",
-        text:
-          res.data?.message ||
-          "Your password was created successfully. You can now log in.",
-      });
     } catch (error) {
       console.error("First-time password setup error:", error);
-
-      setSetupMessage({
-        type: "error",
-        text:
-          error?.response?.data?.message ||
-          "Your password could not be created. Please check your details.",
-      });
+      alert(
+        error?.response?.data?.message ||
+          "Could not set password. Please check your details and try again."
+      );
     } finally {
       setIsSettingPassword(false);
     }
   };
 
-  const toggleSetupSection = () => {
-    setShowSetupSection((currentValue) => !currentValue);
-    setSetupMessage({ type: "", text: "" });
-  };
-
-  const renderMessage = (message) => {
-    if (!message?.text) {
-      return null;
-    }
-
-    const isSuccess = message.type === "success";
-
-    return (
-      <div
-        className={`ek-login-message ${
-          isSuccess
-            ? "ek-login-message-success"
-            : "ek-login-message-error"
-        }`}
-        role={isSuccess ? "status" : "alert"}
-      >
-        {isSuccess ? (
-          <CheckCircle2 size={19} aria-hidden="true" />
-        ) : (
-          <AlertCircle size={19} aria-hidden="true" />
-        )}
-
-        <span>{message.text}</span>
-      </div>
-    );
-  };
-
   return (
-    <main className="ek-login-page">
-      <header className="ek-login-mobile-header">
-        <Link to="/login" className="ek-login-mobile-brand-wrap">
-          <img
-            src="/ek-logo.png"
-            alt="Eltham Konnect"
-            className="ek-login-mobile-logo"
-          />
+    <div className="ek-login-page">
+      <div className="ek-login-mobile-header">
+  <button type="button" className="ek-login-mobile-menu">☰</button>
 
-          <span className="ek-login-mobile-brand">
-            <strong>Eltham Konnect</strong>
-            <small>Your Konnection, Our Priority</small>
-          </span>
-        </Link>
+  <div className="ek-login-mobile-brand-wrap">
+    <img
+      src="/ek-logo.png"
+      alt="Eltham Konnect"
+      className="ek-login-mobile-logo"
+    />
+    <div className="ek-login-mobile-brand">
+      <div className="ek-login-mobile-name">Eltham Konnect</div>
+      <div className="ek-login-mobile-tag">Your Konnection, Our Priority</div>
+    </div>
+  </div>
 
-        <Link
-          to="/amazon-associate-links"
-          className="ek-login-mobile-marketplace"
-        >
-          <ShoppingCart size={17} aria-hidden="true" />
-          Marketplace
-        </Link>
-      </header>
+  <Link to="/amazon-associate-links" className="ek-login-mobile-signup">
+  Shop Amazon
+</Link>
+</div>
 
       <div className="ek-login-shell">
-        <section className="ek-login-brand-panel">
-          <div className="ek-login-brand-content">
-            <Link to="/login" className="ek-login-brand-top">
+        <div className="ek-login-brand-panel">
+          <div className="ek-login-brand-top">
+            <img
+              src="/ek-logo.png"
+              alt="Eltham Konnect"
+              className="ek-login-logo"
+            />
+            <div className="ek-login-brand-text">
+              <span className="ek-login-brand-name">Eltham Konnect</span>
+              <span className="ek-login-brand-tag">
+                Your Konnection, Our Priority
+              </span>
+            </div>
+          </div>
+
+          <div className="ek-login-hero-card">
+  <div className="ek-login-hero-badge">Customer Portal</div>
+
+  <h1 className="ek-login-hero-title">
+    Ship with confidence through Eltham Konnect.
+  </h1>
+
+  <p className="ek-login-hero-copy">
+    Manage your packages, track air and sea shipments, view invoices, upload
+    documents, and stay updated every step of the way.
+  </p>
+
+  <div className="ek-login-banner-image-wrap">
+  <img
+    src="/login-shipping-banner.png"
+    alt="Eltham Konnect shipping services"
+    className="ek-login-banner-image"
+  />
+</div>
+  <div className="ek-login-feature-grid">
+  <div className="ek-login-feature-item">
+    <div className="ek-login-feature-icon">🧾</div>
+    <div>
+      <strong>View Invoices</strong>
+      <p>Check balances, payments, and package-related charges anytime.</p>
+    </div>
+  </div>
+
+  <div className="ek-login-feature-item">
+    <div className="ek-login-feature-icon">🔔</div>
+    <div>
+      <strong>Live Shipment Alerts</strong>
+      <p>Receive updates when your package arrives, moves, or is ready for pickup.</p>
+    </div>
+  </div>
+
+  <div className="ek-login-feature-item">
+    <div className="ek-login-feature-icon">🎁</div>
+    <div>
+      <strong>EK Rewards</strong>
+      <p>Track your rewards balance and points earned from qualifying activity.</p>
+    </div>
+  </div>
+
+  <div className="ek-login-feature-item">
+    <div className="ek-login-feature-icon">🛒</div>
+    <div>
+      <strong>Amazon Associate Picks</strong>
+      <p>Eltham Konnect is now an Amazon Associate with selected items available to browse.</p>
+    </div>
+  </div>
+</div>
+
+            <div className="ek-login-trust-row">
+  <span>Florida Warehouse</span>
+  <span>Air & Sea Shipping</span>
+  <span>Jamaica Delivery</span>
+  <span>Live Updates</span>
+</div>
+
+<div className="ek-login-amazon-banner">
+  <div className="ek-login-amazon-badge">NEW</div>
+  <div>
+    <strong>Eltham Konnect is now an Amazon Associate.</strong>
+    <p>
+      Customers can now browse selected Amazon items through Eltham Konnect and
+      ship them using their EKON mailbox address.
+    </p>
+  </div>
+</div>
+          </div>
+        </div>
+
+       <div className="ek-login-form-panel">
+  <div className="ek-login-mobile-hero">
+    <img
+      src="/login-shipping-banner.png"
+      alt="Eltham Konnect logistics services"
+      className="ek-login-mobile-hero-image"
+    />
+
+    <div className="ek-login-mobile-hero-overlay">
+      <div className="ek-login-mobile-hero-badge">Customer Portal</div>
+      <h1 className="ek-login-mobile-hero-title">
+        Shipping made simple with Eltham Konnect.
+      </h1>
+      <p className="ek-login-mobile-hero-copy">
+        Air freight, sea shipping, package tracking, and Amazon Associate shopping support in one place.
+      </p>
+
+      <div className="ek-login-mobile-hero-tags">
+        <span>Air Freight</span>
+        <span>Sea Shipping</span>
+        <span>Amazon Associate</span>
+      </div>
+    </div>
+  </div>
+  
+
+  <div className="ek-login-form-card">
+            <div className="ek-login-form-header">
               <img
                 src="/ek-logo.png"
                 alt="Eltham Konnect"
-                className="ek-login-logo"
+                className="ek-login-form-logo"
               />
-
-              <span className="ek-login-brand-text">
-                <strong className="ek-login-brand-name">
-                  Eltham Konnect
-                </strong>
-
-                <small className="ek-login-brand-tag">
-                  Your Konnection, Our Priority
-                </small>
-              </span>
-            </Link>
-
-            <div className="ek-login-hero-copy-wrap">
-              <span className="ek-login-hero-badge">
-                <ShieldCheck size={16} aria-hidden="true" />
-                Secure Customer Portal
-              </span>
-
-              <h1 className="ek-login-hero-title">
-                Your shipments, invoices, and rewards in one place.
-              </h1>
-
-              <p className="ek-login-hero-copy">
-                Track packages, receive pickup updates, upload invoices, and
-                manage your Eltham Konnect account wherever you are.
-              </p>
-            </div>
-
-            <div className="ek-login-banner-image-wrap">
-              <img
-                src="/login-shipping-banner.png"
-                alt="Air and sea shipping services from Eltham Konnect"
-                className="ek-login-banner-image"
-              />
-
-              <div className="ek-login-image-labels">
-                <span>
-                  <Plane size={16} aria-hidden="true" />
-                  Air Freight
-                </span>
-
-                <span>
-                  <Waves size={16} aria-hidden="true" />
-                  Sea Shipping
-                </span>
-
-                <span>
-                  <PackageCheck size={16} aria-hidden="true" />
-                  Jamaica Pickup
-                </span>
-              </div>
-            </div>
-
-            <div className="ek-login-feature-grid">
-              <article className="ek-login-feature-item">
-                <div className="ek-login-feature-icon">
-                  <Box size={20} aria-hidden="true" />
-                </div>
-
-                <div>
-                  <strong>Track Packages</strong>
-                  <p>Follow your shipments and pickup readiness.</p>
-                </div>
-              </article>
-
-              <article className="ek-login-feature-item">
-                <div className="ek-login-feature-icon">
-                  <FileText size={20} aria-hidden="true" />
-                </div>
-
-                <div>
-                  <strong>View Invoices</strong>
-                  <p>Review balances, charges, and payments.</p>
-                </div>
-              </article>
-
-              <article className="ek-login-feature-item">
-  <div className="ek-login-feature-icon">
-    <BellRing size={20} aria-hidden="true" />
-  </div>
-
-  <div>
-    <strong>Pickup Alerts</strong>
-    <p>Stay informed as your packages move.</p>
-  </div>
-</article>
-
-              <article className="ek-login-feature-item">
-                <div className="ek-login-feature-icon">
-                  <Gift size={20} aria-hidden="true" />
-                </div>
-
-                <div>
-                  <strong>EK Rewards</strong>
-                  <p>Monitor points earned from qualifying activity.</p>
-                </div>
-              </article>
-            </div>
-
-            <Link
-              to="/amazon-associate-links"
-              className="ek-login-amazon-banner"
-            >
-              <span className="ek-login-amazon-icon">
-                <ShoppingCart size={21} aria-hidden="true" />
-              </span>
-
-              <span>
-                <strong>Explore the EK Marketplace</strong>
-                <small>
-                  Browse selected products and Amazon Associate finds.
-                </small>
-              </span>
-
-              <span className="ek-login-amazon-action">Browse</span>
-            </Link>
-          </div>
-        </section>
-
-        <section className="ek-login-form-panel">
-          <div className="ek-login-form-container">
-            <div className="ek-login-mobile-intro">
-              <span className="ek-login-mobile-intro-icon">
-                <Plane size={22} aria-hidden="true" />
-              </span>
-
               <div>
-                <strong>Shipping made simple</strong>
-                <p>Track packages and manage your EKON account anywhere.</p>
+                <h2 className="ek-login-form-title">Customer Login</h2>
+                <p className="ek-login-form-subtitle">
+                  Login with your EKON ID and password.
+                </p>
               </div>
             </div>
 
-            <div className="ek-login-form-card">
-              <div className="ek-login-form-header">
-                <img
-                  src="/ek-logo.png"
-                  alt="Eltham Konnect"
-                  className="ek-login-form-logo"
+            <div className="ek-login-quick-points">
+              <div className="ek-login-quick-point">Fast package tracking</div>
+              <div className="ek-login-quick-point">Invoice visibility</div>
+              <div className="ek-login-quick-point">Pickup alerts</div>
+            </div>
+
+            <div className="ek-login-form-group">
+              <label className="ek-login-label">EKON ID</label>
+              <input
+                type="text"
+                name="ekonId"
+                placeholder="Enter your EKON ID"
+                value={loginForm.ekonId}
+                onChange={handleLoginChange}
+                className="ek-login-input"
+                autoFocus
+                autoComplete="username"
+              />
+            </div>
+
+            <div className="ek-login-form-group">
+              <label className="ek-login-label">Password</label>
+              <div className="ek-login-password-wrap">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter your password"
+                  value={loginForm.password}
+                  onChange={handleLoginChange}
+                  className="ek-login-input ek-login-password-input"
+                  autoComplete="current-password"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleLogin();
+                    }
+                  }}
                 />
-
-                <div>
-                  <span className="ek-login-form-eyebrow">
-                    CUSTOMER PORTAL
-                  </span>
-
-                  <h2 className="ek-login-form-title">Welcome back</h2>
-
-                  <p className="ek-login-form-subtitle">
-                    Sign in with your EKON ID and password.
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  className="ek-login-password-toggle"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
               </div>
+            </div>
 
-              {renderMessage(loginMessage)}
+            <button
+              onClick={handleLogin}
+              disabled={isSubmitting}
+              className="ek-login-button"
+            >
+              {isSubmitting ? "Signing In..." : "Login"}
+            </button>
 
-              <form className="ek-login-main-form" onSubmit={handleLogin}>
-                <label className="ek-login-form-group">
-                  <span className="ek-login-label">EKON ID</span>
+            <button
+              type="button"
+              onClick={() => setShowSetupSection((prev) => !prev)}
+              className="ek-login-secondary-button"
+              style={{
+                marginTop: "12px",
+                width: "100%",
+                padding: "12px 14px",
+                borderRadius: "10px",
+                border: "1px solid #d4af37",
+                backgroundColor: showSetupSection ? "#fef7e0" : "white",
+                color: "#8a6d1d",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+            >
+              {showSetupSection
+                ? "Hide First-Time Setup"
+                : "First time here? Set your password"}
+            </button>
 
-                  <div className="ek-login-input-wrap">
-                    <Box size={19} aria-hidden="true" />
+            {showSetupSection && (
+              <div
+                style={{
+                  marginTop: "18px",
+                  padding: "16px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "12px",
+                  backgroundColor: "#f8fafc",
+                }}
+              >
+                <h3
+                  style={{
+                    marginTop: 0,
+                    marginBottom: "8px",
+                    color: "#0B3D91",
+                    fontSize: "18px",
+                  }}
+                >
+                  Existing Customer First-Time Setup
+                </h3>
 
+                <p
+                  style={{
+                    marginTop: 0,
+                    marginBottom: "14px",
+                    color: "#475569",
+                    fontSize: "14px",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  If you already have an Eltham Konnect account but have never
+                  logged into the portal before, use your EKON ID and the email
+                  address or phone number on your account to create your portal
+                  password.
+                </p>
+
+                <div className="ek-login-form-group">
+                  <label className="ek-login-label">EKON ID</label>
+                  <input
+                    type="text"
+                    name="ekonId"
+                    placeholder="Enter your EKON ID"
+                    value={setupForm.ekonId}
+                    onChange={handleSetupChange}
+                    className="ek-login-input"
+                  />
+                </div>
+
+                <div className="ek-login-form-group">
+                  <label className="ek-login-label">Email Address or Phone Number</label>
+                  <input
+                    type="text"
+                    name="emailOrPhone"
+                    placeholder="Enter your email or phone number"
+                    value={setupForm.emailOrPhone}
+                    onChange={handleSetupChange}
+                    className="ek-login-input"
+                  />
+                </div>
+
+                <div className="ek-login-form-group">
+                  <label className="ek-login-label">Create Password</label>
+                  <div className="ek-login-password-wrap">
                     <input
-                      type="text"
-                      name="ekonId"
-                      placeholder="Example: EKON00000"
-                      value={loginForm.ekonId}
-                      onChange={handleLoginChange}
-                      className="ek-login-input"
-                      autoFocus
-                      autoComplete="username"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </label>
-
-                <label className="ek-login-form-group">
-                  <span className="ek-login-label">Password</span>
-
-                  <div className="ek-login-input-wrap">
-                    <LockKeyhole size={19} aria-hidden="true" />
-
-                    <input
-                      type={showPassword ? "text" : "password"}
+                      type={showSetupPassword ? "text" : "password"}
                       name="password"
-                      placeholder="Enter your password"
-                      value={loginForm.password}
-                      onChange={handleLoginChange}
-                      className="ek-login-input"
-                      autoComplete="current-password"
-                      disabled={isSubmitting}
+                      placeholder="Create a password"
+                      value={setupForm.password}
+                      onChange={handleSetupChange}
+                      className="ek-login-input ek-login-password-input"
                     />
-
                     <button
                       type="button"
                       className="ek-login-password-toggle"
-                      onClick={() =>
-                        setShowPassword((currentValue) => !currentValue)
-                      }
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
+                      onClick={() => setShowSetupPassword((prev) => !prev)}
                     >
-                      {showPassword ? (
-                        <EyeOff size={19} aria-hidden="true" />
-                      ) : (
-                        <Eye size={19} aria-hidden="true" />
-                      )}
+                      {showSetupPassword ? "Hide" : "Show"}
                     </button>
                   </div>
-                </label>
+                </div>
+
+                <div className="ek-login-form-group">
+                  <label className="ek-login-label">Confirm Password</label>
+                  <div className="ek-login-password-wrap">
+                    <input
+                      type={showSetupConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      placeholder="Confirm your password"
+                      value={setupForm.confirmPassword}
+                      onChange={handleSetupChange}
+                      className="ek-login-input ek-login-password-input"
+                    />
+                    <button
+                      type="button"
+                      className="ek-login-password-toggle"
+                      onClick={() => setShowSetupConfirmPassword((prev) => !prev)}
+                    >
+                      {showSetupConfirmPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </div>
 
                 <button
-                  type="submit"
-                  disabled={isSubmitting}
+                  onClick={handleFirstTimeSetup}
+                  disabled={isSettingPassword}
                   className="ek-login-button"
+                  style={{ marginTop: "4px" }}
                 >
-                  {isSubmitting ? (
-                    <LoaderCircle
-                      className="ek-login-spinner"
-                      size={19}
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <LogIn size={19} aria-hidden="true" />
-                  )}
-
-                  {isSubmitting ? "Signing In..." : "Sign In"}
+                  {isSettingPassword ? "Setting Password..." : "Set Password"}
                 </button>
-              </form>
-
-              <div className="ek-login-divider">
-                <span>New to the portal?</span>
               </div>
+            )}
 
-              <button
-                type="button"
-                onClick={toggleSetupSection}
-                className="ek-login-secondary-button"
-                aria-expanded={showSetupSection}
-              >
-                <LockKeyhole size={18} aria-hidden="true" />
-
-                {showSetupSection
-                  ? "Close First-Time Setup"
-                  : "Set Up My First Password"}
-              </button>
-
-              {showSetupSection && (
-                <form
-                  className="ek-login-setup-card"
-                  onSubmit={handleFirstTimeSetup}
-                >
-                  <div className="ek-login-setup-heading">
-                    <span className="ek-login-setup-icon">
-                      <UserPlus size={21} aria-hidden="true" />
-                    </span>
-
-                    <div>
-                      <h3>Existing Customer Setup</h3>
-                      <p>
-                        Use the contact information already registered on your
-                        Eltham Konnect account.
-                      </p>
-                    </div>
-                  </div>
-
-                  {renderMessage(setupMessage)}
-
-                  <label className="ek-login-form-group">
-                    <span className="ek-login-label">EKON ID</span>
-
-                    <div className="ek-login-input-wrap">
-                      <Box size={19} aria-hidden="true" />
-
-                      <input
-                        type="text"
-                        name="ekonId"
-                        placeholder="Enter your EKON ID"
-                        value={setupForm.ekonId}
-                        onChange={handleSetupChange}
-                        className="ek-login-input"
-                        autoComplete="username"
-                        disabled={isSettingPassword}
-                      />
-                    </div>
-                  </label>
-
-                  <label className="ek-login-form-group">
-                    <span className="ek-login-label">
-                      Email Address or Phone Number
-                    </span>
-
-                    <div className="ek-login-input-wrap">
-                      <Mail size={19} aria-hidden="true" />
-
-                      <input
-                        type="text"
-                        name="emailOrPhone"
-                        placeholder="Enter your registered email or phone"
-                        value={setupForm.emailOrPhone}
-                        onChange={handleSetupChange}
-                        className="ek-login-input"
-                        autoComplete="email"
-                        disabled={isSettingPassword}
-                      />
-                    </div>
-                  </label>
-
-                  <label className="ek-login-form-group">
-                    <span className="ek-login-label">Create Password</span>
-
-                    <div className="ek-login-input-wrap">
-                      <LockKeyhole size={19} aria-hidden="true" />
-
-                      <input
-                        type={showSetupPassword ? "text" : "password"}
-                        name="password"
-                        placeholder="At least 6 characters"
-                        value={setupForm.password}
-                        onChange={handleSetupChange}
-                        className="ek-login-input"
-                        autoComplete="new-password"
-                        disabled={isSettingPassword}
-                      />
-
-                      <button
-                        type="button"
-                        className="ek-login-password-toggle"
-                        onClick={() =>
-                          setShowSetupPassword(
-                            (currentValue) => !currentValue
-                          )
-                        }
-                        aria-label={
-                          showSetupPassword
-                            ? "Hide new password"
-                            : "Show new password"
-                        }
-                      >
-                        {showSetupPassword ? (
-                          <EyeOff size={19} aria-hidden="true" />
-                        ) : (
-                          <Eye size={19} aria-hidden="true" />
-                        )}
-                      </button>
-                    </div>
-                  </label>
-
-                  <label className="ek-login-form-group">
-                    <span className="ek-login-label">Confirm Password</span>
-
-                    <div className="ek-login-input-wrap">
-                      <LockKeyhole size={19} aria-hidden="true" />
-
-                      <input
-                        type={
-                          showSetupConfirmPassword ? "text" : "password"
-                        }
-                        name="confirmPassword"
-                        placeholder="Enter the password again"
-                        value={setupForm.confirmPassword}
-                        onChange={handleSetupChange}
-                        className="ek-login-input"
-                        autoComplete="new-password"
-                        disabled={isSettingPassword}
-                      />
-
-                      <button
-                        type="button"
-                        className="ek-login-password-toggle"
-                        onClick={() =>
-                          setShowSetupConfirmPassword(
-                            (currentValue) => !currentValue
-                          )
-                        }
-                        aria-label={
-                          showSetupConfirmPassword
-                            ? "Hide confirmed password"
-                            : "Show confirmed password"
-                        }
-                      >
-                        {showSetupConfirmPassword ? (
-                          <EyeOff size={19} aria-hidden="true" />
-                        ) : (
-                          <Eye size={19} aria-hidden="true" />
-                        )}
-                      </button>
-                    </div>
-                  </label>
-
-                  <button
-                    type="submit"
-                    disabled={isSettingPassword}
-                    className="ek-login-setup-button"
-                  >
-                    {isSettingPassword ? (
-                      <LoaderCircle
-                        className="ek-login-spinner"
-                        size={19}
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <ShieldCheck size={19} aria-hidden="true" />
-                    )}
-
-                    {isSettingPassword
-                      ? "Creating Password..."
-                      : "Create Portal Password"}
-                  </button>
-                </form>
-              )}
-
-              {!showSetupSection && (
-                <div className="ek-login-security-note">
-                  <ShieldCheck size={19} aria-hidden="true" />
-
-                  <span>
-                    Secure access to packages, invoices, rewards, and support.
-                  </span>
-                </div>
-              )}
-
-              <p className="ek-login-footer-text">
-                Don’t have an Eltham Konnect account?
-                <Link to="/signup">Create an account</Link>
-              </p>
+            <div className="ek-login-helper-box">
+              <strong>Portal Access Includes:</strong>
+              <ul className="ek-login-helper-list">
+                <li>Package updates</li>
+                <li>Invoices and balances</li>
+                <li>Rewards and alerts</li>
+                <li>Invoice upload and support</li>
+              </ul>
             </div>
 
-            <p className="ek-login-form-footer">
-              © {new Date().getFullYear()} Eltham Konnect. Your Konnection, Our
-              Priority.
+            <p className="ek-login-footer-text">
+              Don’t have an account? <Link to="/signup">Create one</Link>
             </p>
           </div>
-        </section>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
 

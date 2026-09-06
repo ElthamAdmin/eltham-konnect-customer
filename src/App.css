@@ -62,88 +62,36 @@ button {
 /* CUSTOMER LOGIN */
 .ek-login-page {
   min-height: 100vh;
-  color: #0f172a;
-  background: #f3f6fb;
+  background: #f4f7fb;
 }
 
 .ek-login-shell {
   display: grid;
-  grid-template-columns: minmax(500px, 1.03fr) minmax(460px, 0.97fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(420px, 0.92fr);
   min-height: 100vh;
 }
 
 .ek-login-brand-panel {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
-  padding: 28px 38px;
+  background: linear-gradient(135deg, #0b3d91, #1f4fb0);
   color: #ffffff;
-  background:
-    radial-gradient(
-      circle at 18% 12%,
-      rgba(255, 255, 255, 0.14),
-      transparent 27%
-    ),
-    radial-gradient(
-      circle at 88% 85%,
-      rgba(241, 90, 36, 0.2),
-      transparent 30%
-    ),
-    linear-gradient(145deg, #082f76 0%, #0b3d91 52%, #164eaa 100%);
-}
-
-.ek-login-brand-panel::before,
-.ek-login-brand-panel::after {
-  position: absolute;
-  content: "";
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.ek-login-brand-panel::before {
-  top: -130px;
-  right: -110px;
-  width: 330px;
-  height: 330px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.ek-login-brand-panel::after {
-  bottom: -170px;
-  left: -110px;
-  width: 390px;
-  height: 390px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.ek-login-brand-content {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 690px;
+  padding: 40px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 
 .ek-login-brand-top {
-  align-self: flex-start;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
-  color: #ffffff;
-  text-decoration: none;
+  margin-bottom: 28px;
 }
 
 .ek-login-logo {
-  width: 62px;
-  height: 62px;
-  flex: 0 0 62px;
-  padding: 5px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
-  border-radius: 14px;
-  background: #ffffff;
+  flex-shrink: 0;
 }
 
 .ek-login-brand-text {
@@ -152,633 +100,329 @@ button {
 }
 
 .ek-login-brand-name {
-  color: #ffffff;
-  font-size: 23px;
-  font-weight: 900;
+  font-size: 22px;
+  font-weight: 800;
   line-height: 1.1;
 }
 
 .ek-login-brand-tag {
+  font-size: 13px;
+  opacity: 0.85;
   margin-top: 4px;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 12px;
-  font-weight: 700;
 }
 
-.ek-login-hero-copy-wrap {
-  max-width: 620px;
+.ek-login-hero-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  padding: 28px;
+  backdrop-filter: blur(6px);
+  overflow: hidden;
 }
 
 .ek-login-hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 12px;
-  padding: 7px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 7px 12px;
   border-radius: 999px;
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.12);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #ffffff;
 }
 
 .ek-login-hero-title {
-  max-width: 650px;
-  margin: 0;
   color: #ffffff;
-  font-size: clamp(30px, 3.1vw, 45px);
-  line-height: 1.08;
-  letter-spacing: -0.025em;
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 12px 0;
 }
 
 .ek-login-hero-copy {
-  max-width: 610px;
-  margin: 13px 0 18px;
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.7;
+  margin: 0 0 18px 0;
 }
 
 .ek-login-banner-image-wrap {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  margin-bottom: 17px;
-  border: 1px solid rgba(255, 255, 255, 0.17);
+  margin-bottom: 20px;
   border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 17px 36px rgba(3, 20, 55, 0.22);
+  width: 100%;
 }
 
 .ek-login-banner-image {
   display: block;
   width: 100%;
-  height: clamp(185px, 23vh, 255px);
+  height: 260px;
   object-fit: cover;
-  object-position: center;
-}
-
-.ek-login-image-labels {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  left: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.ek-login-image-labels span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  border-radius: 999px;
-  color: #ffffff;
-  background: rgba(3, 27, 72, 0.78);
-  backdrop-filter: blur(7px);
-  font-size: 11px;
-  font-weight: 800;
+  object-position: center center;
 }
 
 .ek-login-feature-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .ek-login-feature-item {
-  min-width: 0;
   display: flex;
-  align-items: flex-start;
   gap: 10px;
-  padding: 11px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.ek-login-feature-icon {
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.13);
+  align-items: flex-start;
 }
 
 .ek-login-feature-item strong {
-  display: block;
   color: #ffffff;
-  font-size: 13px;
 }
 
 .ek-login-feature-item p {
-  margin: 3px 0 0;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 11px;
-  line-height: 1.4;
+  margin: 4px 0 0 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ek-login-feature-icon {
+  font-size: 18px;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.ek-login-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ek-login-trust-row span {
+  background: rgba(255, 255, 255, 0.14);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .ek-login-amazon-banner {
+  margin-top: 16px;
   display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 12px 13px;
-  border: 1px solid rgba(255, 210, 92, 0.38);
-  border-radius: 14px;
-  color: #ffffff;
-  background: rgba(241, 90, 36, 0.16);
-  text-decoration: none;
-  transition:
-    transform 0.18s ease,
-    background 0.18s ease;
-}
-
-.ek-login-amazon-banner:hover {
-  transform: translateY(-1px);
-  background: rgba(241, 90, 36, 0.25);
-}
-
-.ek-login-amazon-icon {
-  width: 39px;
-  height: 39px;
-  flex: 0 0 39px;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  color: #0b3d91;
-  background: #ffffff;
-}
-
-.ek-login-amazon-banner > span:nth-child(2) {
-  min-width: 0;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  background: rgba(255, 241, 184, 0.16);
+  border: 1px solid rgba(255, 223, 107, 0.35);
+  border-radius: 16px;
+  padding: 14px;
 }
 
 .ek-login-amazon-banner strong {
-  color: #ffffff;
+  color: #fff7d0;
+}
+
+.ek-login-amazon-banner p {
+  margin: 6px 0 0 0;
+  color: rgba(255, 248, 215, 0.92);
   font-size: 13px;
+  line-height: 1.6;
 }
 
-.ek-login-amazon-banner small {
-  margin-top: 3px;
-  color: rgba(255, 255, 255, 0.78);
+.ek-login-amazon-badge {
+  background: #d4af37;
+  color: #1e293b;
   font-size: 11px;
-  line-height: 1.35;
-}
-
-.ek-login-amazon-action {
-  flex: 0 0 auto;
-  padding: 7px 10px;
+  font-weight: 800;
   border-radius: 999px;
-  color: #7c2d12;
-  background: #ffedd5;
-  font-size: 11px;
-  font-weight: 900;
+  padding: 6px 9px;
+  flex-shrink: 0;
 }
 
 .ek-login-form-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 0;
-  padding: 28px;
-  background:
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(11, 61, 145, 0.07),
-      transparent 28%
-    ),
-    #f3f6fb;
-}
-
-.ek-login-form-container {
-  width: 100%;
-  max-width: 480px;
+  padding: 32px;
+  background: #f8fafc;
 }
 
 .ek-login-form-card {
   width: 100%;
-  padding: 27px;
-  border: 1px solid #e2e8f0;
-  border-radius: 22px;
+  max-width: 460px;
   background: #ffffff;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.09);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
 }
 
 .ek-login-form-header {
   display: flex;
   align-items: center;
-  gap: 13px;
-  margin-bottom: 19px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .ek-login-form-logo {
-  width: 57px;
-  height: 57px;
-  flex: 0 0 57px;
-  padding: 4px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
-  border: 1px solid #dbeafe;
-  border-radius: 14px;
-  background: #f8fbff;
-}
-
-.ek-login-form-eyebrow {
-  display: block;
-  margin-bottom: 3px;
-  color: #0b3d91;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.09em;
+  flex-shrink: 0;
 }
 
 .ek-login-form-title {
   margin: 0;
-  color: #0f172a;
-  font-size: 26px;
-  line-height: 1.1;
+  font-size: 24px;
 }
 
 .ek-login-form-subtitle {
-  margin: 5px 0 0;
-  color: #64748b;
+  margin: 4px 0 0 0;
   font-size: 13px;
+  color: #64748b;
 }
 
-.ek-login-main-form {
-  display: grid;
-  gap: 15px;
+.ek-login-quick-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.ek-login-quick-point {
+  background: #eff6ff;
+  color: #0b3d91;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  padding: 8px 11px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .ek-login-form-group {
-  min-width: 0;
-  display: grid;
-  gap: 7px;
-  margin: 0;
+  margin-bottom: 14px;
 }
 
 .ek-login-label {
-  color: #1e293b;
+  display: block;
+  margin-bottom: 6px;
   font-size: 13px;
-  font-weight: 800;
-}
-
-.ek-login-input-wrap {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 13px;
-  border: 1px solid #cbd5e1;
-  border-radius: 11px;
-  color: #64748b;
-  background: #ffffff;
-  transition:
-    border-color 0.18s ease,
-    box-shadow 0.18s ease,
-    color 0.18s ease;
-}
-
-.ek-login-input-wrap:focus-within {
-  border-color: #0b3d91;
-  color: #0b3d91;
-  box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.1);
+  font-weight: 700;
+  color: #334155;
 }
 
 .ek-login-input {
-  min-width: 0;
   width: 100%;
-  padding: 13px 0;
-  border: 0;
-  outline: 0;
-  color: #0f172a;
-  background: transparent;
-  font: inherit;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
 }
 
-.ek-login-input::placeholder {
-  color: #94a3b8;
+.ek-login-password-wrap {
+  display: flex;
+  gap: 8px;
 }
 
-.ek-login-input:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
+.ek-login-password-input {
+  flex: 1;
 }
 
 .ek-login-password-toggle {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  padding: 7px;
-  border: 0;
-  border-radius: 8px;
-  color: #64748b;
-  background: transparent;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 0 14px;
   cursor: pointer;
-}
-
-.ek-login-password-toggle:hover {
-  color: #0b3d91;
-  background: #eff6ff;
-}
-
-.ek-login-button,
-.ek-login-setup-button,
-.ek-login-secondary-button {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  border-radius: 11px;
-  padding: 13px 16px;
-  font: inherit;
-  font-weight: 900;
-  cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    opacity 0.18s ease;
+  font-weight: 700;
 }
 
 .ek-login-button {
-  border: 1px solid #0b3d91;
-  color: #ffffff;
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 10px;
   background: #0b3d91;
-}
-
-.ek-login-setup-button {
-  margin-top: 2px;
-  border: 1px solid #16a34a;
   color: #ffffff;
-  background: #16a34a;
-}
-
-.ek-login-secondary-button {
-  border: 1px solid #f15a24;
-  color: #c2410c;
-  background: #fff7ed;
-}
-
-.ek-login-button:hover:not(:disabled),
-.ek-login-setup-button:hover:not(:disabled),
-.ek-login-secondary-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
-}
-
-.ek-login-button:disabled,
-.ek-login-setup-button:disabled,
-.ek-login-secondary-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.68;
-}
-
-.ek-login-divider {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  margin: 17px 0 13px;
-  color: #94a3b8;
-  font-size: 11px;
   font-weight: 800;
-  text-transform: uppercase;
+  cursor: pointer;
 }
 
-.ek-login-divider::before,
-.ek-login-divider::after {
-  height: 1px;
-  flex: 1;
-  content: "";
-  background: #e2e8f0;
+.ek-login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
-.ek-login-setup-card {
-  display: grid;
-  gap: 14px;
-  margin-top: 15px;
-  padding: 16px;
-  border: 1px solid #dbe3ef;
+.ek-login-helper-box {
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
-  background: #f8fafc;
-}
-
-.ek-login-setup-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.ek-login-setup-icon {
-  width: 39px;
-  height: 39px;
-  flex: 0 0 39px;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  color: #0b3d91;
-  background: #eaf2ff;
-}
-
-.ek-login-setup-heading h3 {
-  margin: 0;
-  color: #0f172a;
-  font-size: 17px;
-}
-
-.ek-login-setup-heading p {
-  margin: 4px 0 0;
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.ek-login-security-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-top: 15px;
-  padding: 11px 12px;
-  border-radius: 10px;
-  color: #475569;
-  background: #f8fafc;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.ek-login-security-note svg {
-  flex: 0 0 auto;
-  color: #16a34a;
-}
-
-.ek-login-message {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 15px;
-  padding: 11px 12px;
-  border: 1px solid;
-  border-radius: 10px;
   font-size: 13px;
-  font-weight: 700;
-  line-height: 1.45;
 }
 
-.ek-login-message svg {
-  flex: 0 0 auto;
-}
-
-.ek-login-message-error {
-  color: #b91c1c;
-  border-color: #fca5a5;
-  background: #fef2f2;
-}
-
-.ek-login-message-success {
-  color: #166534;
-  border-color: #86efac;
-  background: #f0fdf4;
+.ek-login-helper-list {
+  margin: 8px 0 0 0;
+  padding-left: 18px;
 }
 
 .ek-login-footer-text {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin: 16px 0 0;
-  color: #64748b;
+  margin-top: 16px;
   font-size: 13px;
-  text-align: center;
+  color: #64748b;
 }
 
-.ek-login-footer-text a {
-  color: #0b3d91;
-  font-weight: 900;
-}
-
-.ek-login-form-footer {
-  margin: 14px 0 0;
-  color: #94a3b8;
-  font-size: 11px;
-  text-align: center;
-}
-
-.ek-login-mobile-header,
-.ek-login-mobile-intro {
+.ek-login-mobile-header {
   display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #0b3d91;
+  color: #ffffff;
 }
 
-.ek-login-spinner {
-  animation: ek-login-spin 0.8s linear infinite;
+.ek-login-mobile-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
-@keyframes ek-login-spin {
-  to {
-    transform: rotate(360deg);
-  }
+.ek-login-mobile-brand {
+  display: flex;
+  flex-direction: column;
 }
 
-@media (max-width: 1100px) {
+.ek-login-mobile-name {
+  font-weight: 800;
+}
+
+.ek-login-mobile-tag {
+  font-size: 12px;
+  opacity: 0.82;
+}
+
+@media (max-width: 1200px) {
   .ek-login-shell {
-    grid-template-columns: minmax(450px, 1fr) minmax(420px, 0.9fr);
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 0.95fr);
   }
 
   .ek-login-brand-panel {
-    padding: 25px;
+    padding: 32px;
   }
 
-  .ek-login-feature-item {
-    padding: 9px;
+  .ek-login-hero-title {
+    font-size: 30px;
   }
 
-  .ek-login-form-panel {
-    padding: 23px;
+  .ek-login-banner-image {
+    height: 220px;
   }
 }
 
-@media (max-width: 900px) {
-  .ek-login-page {
-    background: #f3f6fb;
-  }
-
-  .ek-login-mobile-header {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 11px 15px;
-    color: #ffffff;
-    background: #0b3d91;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
-  }
-
-  .ek-login-mobile-brand-wrap {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    color: #ffffff;
-  }
-
-  .ek-login-mobile-logo {
-    width: 43px;
-    height: 43px;
-    flex: 0 0 43px;
-    padding: 3px;
-    object-fit: contain;
-    border-radius: 10px;
-    background: #ffffff;
-  }
-
-  .ek-login-mobile-brand {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .ek-login-mobile-brand strong {
-    overflow: hidden;
-    color: #ffffff;
-    font-size: 14px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .ek-login-mobile-brand small {
-    overflow: hidden;
-    color: rgba(255, 255, 255, 0.76);
-    font-size: 9px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .ek-login-mobile-marketplace {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 11px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 999px;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 900;
-  }
-
+@media (max-width: 980px) {
   .ek-login-shell {
-    display: block;
+    grid-template-columns: 1fr;
     min-height: auto;
   }
 
@@ -786,100 +430,44 @@ button {
     display: none;
   }
 
-  .ek-login-form-panel {
-    display: block;
-    padding: 18px 14px 28px;
-  }
-
-  .ek-login-form-container {
-    max-width: 570px;
-    margin: 0 auto;
-  }
-
-  .ek-login-mobile-intro {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    margin-bottom: 13px;
-    padding: 13px;
-    border: 1px solid #bfdbfe;
-    border-radius: 13px;
-    background: linear-gradient(135deg, #eff6ff, #ffffff);
-  }
-
-  .ek-login-mobile-intro-icon {
-    width: 42px;
-    height: 42px;
-    flex: 0 0 42px;
-    display: grid;
-    place-items: center;
-    border-radius: 11px;
-    color: #ffffff;
-    background: #0b3d91;
-  }
-
-  .ek-login-mobile-intro strong {
-    color: #0f172a;
-  }
-
-  .ek-login-mobile-intro p {
-    margin: 3px 0 0;
-    color: #64748b;
-    font-size: 12px;
-    line-height: 1.4;
-  }
-}
-
-@media (max-width: 520px) {
   .ek-login-mobile-header {
-    padding: 9px 11px;
-  }
-
-  .ek-login-mobile-logo {
-    width: 39px;
-    height: 39px;
-    flex-basis: 39px;
-  }
-
-  .ek-login-mobile-marketplace {
-    padding: 8px 9px;
+    display: flex;
   }
 
   .ek-login-form-panel {
-    padding: 13px 10px 24px;
-  }
-
-  .ek-login-form-card {
-    padding: 19px 15px;
-    border-radius: 17px;
-  }
-
-  .ek-login-form-logo {
-    width: 49px;
-    height: 49px;
-    flex-basis: 49px;
-  }
-
-  .ek-login-form-title {
-    font-size: 23px;
-  }
-
-  .ek-login-setup-card {
-    padding: 13px;
+    padding: 20px 16px 30px 16px;
   }
 }
 
-@media (max-width: 390px) {
-  .ek-login-mobile-brand small {
-    display: none;
+@media (max-width: 640px) {
+  .ek-login-form-card {
+    padding: 22px 18px;
   }
 
-  .ek-login-mobile-marketplace {
-    gap: 4px;
-    font-size: 10px;
+  .ek-login-hero-title {
+    font-size: 28px;
   }
 
-  .ek-login-form-header {
-    align-items: flex-start;
+  .ek-login-hero-copy {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .ek-login-banner-image {
+    height: 130px;
+    object-position: center center;
+  }
+
+  .ek-login-trust-row {
+    gap: 8px;
+  }
+
+  .ek-login-trust-row span {
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+
+  .ek-login-amazon-banner {
+    padding: 12px;
   }
 }
