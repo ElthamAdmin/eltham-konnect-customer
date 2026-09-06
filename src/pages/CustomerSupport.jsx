@@ -7,13 +7,20 @@ function CustomerSupport() {
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [tickets, setTickets] = useState([]);
+    const [tickets, setTickets] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [replyFiles, setReplyFiles] = useState({});
   const [replyTexts, setReplyTexts] = useState({});
   const [expandedTicket, setExpandedTicket] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [creatingTicket, setCreatingTicket] =
+    useState(false);
+  const [replyingTicket, setReplyingTicket] =
+    useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [formData, setFormData] = useState({
     subject: "",
@@ -21,7 +28,7 @@ function CustomerSupport() {
   });
 
   const ROYAL_BLUE = "#0B3D91";
-  const GOLD = "#D4AF37";
+    const GOLD = "#F15A24";
   const WHITE = "#ffffff";
   const LIGHT_BG = "#f4f7fb";
   const BORDER = "#dbe3ef";
@@ -60,64 +67,219 @@ const fetchTickets = async () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleCreateTicket = async () => {
+    const handleCreateTicket = async () => {
+    const subject = formData.subject.trim();
+    const message = formData.message.trim();
+
+    if (!subject || !message) {
+      alert(
+        "Please complete the subject and message."
+      );
+      return;
+    }
+
+    if (creatingTicket) {
+      return;
+    }
+
     try {
-      if (!formData.subject || !formData.message) {
-        alert("Please complete the subject and message.");
-        return;
-      }
+      setCreatingTicket(true);
 
       const body = new FormData();
-      body.append("subject", formData.subject);
-      body.append("message", formData.message);
-      if (selectedFile) body.append("attachmentFile", selectedFile);
+      body.append("subject", subject);
+      body.append("message", message);
 
-      await api.post("/api/support-tickets/my", body);
+      if (selectedFile) {
+        body.append(
+          "attachmentFile",
+          selectedFile
+        );
+      }
 
-      setFormData({ subject: "", message: "" });
+      await api.post(
+        "/api/support-tickets/my",
+        body
+      );
+
+      setFormData({
+        subject: "",
+        message: "",
+      });
+
       setSelectedFile(null);
+
       await fetchTickets();
-      alert("Support ticket submitted successfully.");
+
+      alert(
+        "Support ticket submitted successfully."
+      );
     } catch (error) {
-      console.error("Error creating support ticket:", error);
-      alert(error?.response?.data?.message || "Could not submit support ticket.");
+      console.error(
+        "Error creating support ticket:",
+        error
+      );
+
+      alert(
+        error?.response?.data?.message ||
+          "Could not submit support ticket."
+      );
+    } finally {
+      setCreatingTicket(false);
     }
   };
 
-  const submitReply = async (ticketNumber) => {
+    const submitReply = async (ticketNumber) => {
+    const message = String(
+      replyTexts[ticketNumber] || ""
+    ).trim();
+
+    if (!message) {
+      alert(
+        "Please enter a reply before sending."
+      );
+      return;
+    }
+
+    if (replyingTicket) {
+      return;
+    }
+
     try {
-      const message = replyTexts[ticketNumber];
-      if (!message) {
-        alert("Please enter a reply before sending.");
-        return;
-      }
+      setReplyingTicket(ticketNumber);
 
       const body = new FormData();
       body.append("message", message);
-      if (replyFiles[ticketNumber]) body.append("attachmentFile", replyFiles[ticketNumber]);
+
+      if (replyFiles[ticketNumber]) {
+        body.append(
+          "attachmentFile",
+          replyFiles[ticketNumber]
+        );
+      }
 
       await api.post(
-  `/api/support-tickets/my/${ticketNumber}/reply`,
-  body
-);
+        `/api/support-tickets/my/${ticketNumber}/reply`,
+        body
+      );
 
-      setReplyTexts((p) => ({ ...p, [ticketNumber]: "" }));
-      setReplyFiles((p) => ({ ...p, [ticketNumber]: null }));
+      setReplyTexts((currentTexts) => ({
+        ...currentTexts,
+        [ticketNumber]: "",
+      }));
+
+      setReplyFiles((currentFiles) => ({
+        ...currentFiles,
+        [ticketNumber]: null,
+      }));
 
       await fetchTickets();
     } catch (error) {
-      console.error("Error sending reply:", error);
-      alert(error?.response?.data?.message || "Could not send reply.");
+      console.error(
+        "Error sending reply:",
+        error
+      );
+
+      alert(
+        error?.response?.data?.message ||
+          "Could not send reply."
+      );
+    } finally {
+      setReplyingTicket("");
     }
   };
 
-  const filteredTickets = useMemo(() => {
-    return tickets.filter((t) =>
-      `${t.ticketNumber} ${t.subject} ${t.status} ${t.message || ""}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
-  }, [tickets, searchTerm]);
+    const filteredTickets = useMemo(() => {
+    const normalizedSearch = searchTerm
+      .trim()
+      .toLowerCase();
+
+    return tickets.filter((ticket) => {
+      const matchesStatus =
+        statusFilter === "All" ||
+        ticket?.status === statusFilter;
+
+      const replyText = Array.isArray(
+        ticket?.replies
+      )
+        ? ticket.replies
+            .map((reply) =>
+              [
+                reply?.message,
+                reply?.senderName,
+              ]
+                .filter(Boolean)
+                .join(" ")
+            )
+            .join(" ")
+        : "";
+
+      const searchableText = [
+        ticket?.ticketNumber,
+        ticket?.subject,
+        ticket?.status,
+        ticket?.message,
+        ticket?.date,
+        ticket?.createdAt,
+        replyText,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return (
+        matchesStatus &&
+        searchableText.includes(normalizedSearch)
+      );
+    });
+  }, [
+    tickets,
+    searchTerm,
+    statusFilter,
+  ]);
+
+  const statusOptions = useMemo(() => {
+    const availableStatuses = tickets
+      .map((ticket) => ticket?.status)
+      .filter(Boolean);
+
+    return [
+      "All",
+      ...new Set(availableStatuses),
+    ];
+  }, [tickets]);
+
+  useEffect(() => {
+    setPage(1);
+    setExpandedTicket("");
+  }, [searchTerm, statusFilter, pageSize]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTickets.length / pageSize)
+  );
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const pageStart = (page - 1) * pageSize;
+
+  const paginatedTickets = filteredTickets.slice(
+    pageStart,
+    pageStart + pageSize
+  );
+
+  const firstVisibleTicket =
+    filteredTickets.length === 0
+      ? 0
+      : pageStart + 1;
+
+  const lastVisibleTicket = Math.min(
+    pageStart + pageSize,
+    filteredTickets.length
+  );
 
   const summary = useMemo(() => {
     return {
@@ -385,21 +547,35 @@ const fetchTickets = async () => {
           </div>
         )}
 
-        <button
-          onClick={() => submitReply(t.ticketNumber)}
+                <button
+          type="button"
+          onClick={() =>
+            submitReply(t.ticketNumber)
+          }
+          disabled={
+            replyingTicket === t.ticketNumber
+          }
           style={{
-            backgroundColor: ROYAL_BLUE,
+            backgroundColor:
+              replyingTicket === t.ticketNumber
+                ? "#94a3b8"
+                : ROYAL_BLUE,
             color: "white",
             border: "none",
             padding: "11px 14px",
             borderRadius: "8px",
-            cursor: "pointer",
+            cursor:
+              replyingTicket === t.ticketNumber
+                ? "wait"
+                : "pointer",
             width: "100%",
             maxWidth: "180px",
             fontWeight: "800",
           }}
         >
-          Send Reply
+          {replyingTicket === t.ticketNumber
+            ? "Sending..."
+            : "Send Reply"}
         </button>
       </div>
     </div>
@@ -509,22 +685,30 @@ const fetchTickets = async () => {
           </div>
         </div>
 
-        <button
+                <button
+          type="button"
           onClick={handleCreateTicket}
+          disabled={creatingTicket}
           style={{
             marginTop: "16px",
-            backgroundColor: ROYAL_BLUE,
+            backgroundColor: creatingTicket
+              ? "#94a3b8"
+              : ROYAL_BLUE,
             color: "white",
             border: "none",
             padding: "11px 16px",
             borderRadius: "8px",
-            cursor: "pointer",
+            cursor: creatingTicket
+              ? "wait"
+              : "pointer",
             fontWeight: "800",
             width: "100%",
             maxWidth: "220px",
           }}
         >
-          Submit Ticket
+          {creatingTicket
+            ? "Submitting..."
+            : "Submit Ticket"}
         </button>
       </div>
 
@@ -538,18 +722,32 @@ const fetchTickets = async () => {
           </p>
         </div>
 
-        <input
-          placeholder="Search tickets"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "10px",
-            border: `1px solid ${BORDER}`,
-            backgroundColor: WHITE,
-          }}
-        />
+                <div className="support-search-grid">
+          <input
+            type="search"
+            placeholder="Search tickets"
+            value={searchTerm}
+            onChange={(event) =>
+              setSearchTerm(event.target.value)
+            }
+          />
+
+          <select
+            value={statusFilter}
+            onChange={(event) =>
+              setStatusFilter(event.target.value)
+            }
+            aria-label="Filter support tickets by status"
+          >
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>
+                {status === "All"
+                  ? "All Statuses"
+                  : status}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div style={cardStyle}>
@@ -567,9 +765,19 @@ const fetchTickets = async () => {
             <h2 style={{ marginTop: 0, marginBottom: "6px", color: TEXT }}>
               My Ticket Threads
             </h2>
-            <p style={{ margin: 0, color: MUTED, fontSize: "14px" }}>
-              {filteredTickets.length} ticket{filteredTickets.length === 1 ? "" : "s"} matched
-              your current search.
+                        <p
+              style={{
+                margin: 0,
+                color: MUTED,
+                fontSize: "14px",
+              }}
+            >
+              Showing {firstVisibleTicket} to{" "}
+              {lastVisibleTicket} of{" "}
+              {filteredTickets.length} matched{" "}
+              {filteredTickets.length === 1
+                ? "ticket"
+                : "tickets"}.
             </p>
           </div>
         </div>
@@ -601,7 +809,7 @@ const fetchTickets = async () => {
 
                 <tbody>
                   {filteredTickets.length > 0 ? (
-                    filteredTickets.map((t) => (
+                    paginatedTickets.map((t) => (
                       <Fragment key={t._id}>
                         <tr style={{ backgroundColor: WHITE }}>
                           <td style={{ fontWeight: "800", color: TEXT, wordBreak: "break-word" }}>
@@ -654,7 +862,7 @@ const fetchTickets = async () => {
 
             <div className="mobile">
               {filteredTickets.length > 0 ? (
-                filteredTickets.map((t) => (
+                paginatedTickets.map((t) => (
                   <div
                     key={t._id}
                     className="mobile-card"
@@ -728,22 +936,88 @@ const fetchTickets = async () => {
                   No support tickets found.
                 </div>
               )}
-            </div>
+                        </div>
+
+            {filteredTickets.length > 0 && (
+              <div className="support-pagination">
+                <div className="support-page-size">
+                  <label htmlFor="support-page-size">
+                    Tickets:
+                  </label>
+
+                  <select
+                    id="support-page-size"
+                    value={pageSize}
+                    onChange={(event) =>
+                      setPageSize(
+                        Number(event.target.value)
+                      )
+                    }
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+
+                <div className="support-page-status">
+                  Page {page} of {totalPages}
+                </div>
+
+                <div className="support-page-buttons">
+                  <button
+                    type="button"
+                    disabled={page === 1}
+                    onClick={() =>
+                      setPage((currentPage) =>
+                        Math.max(
+                          1,
+                          currentPage - 1
+                        )
+                      )
+                    }
+                  >
+                    Previous
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={page === totalPages}
+                    onClick={() =>
+                      setPage((currentPage) =>
+                        Math.min(
+                          totalPages,
+                          currentPage + 1
+                        )
+                      )
+                    }
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
 
-      <style>{`
+            <style>{`
         .support-summary-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns:
+            repeat(4, minmax(0, 1fr));
           gap: 20px;
           margin-bottom: 24px;
         }
 
+        .support-summary-grid > div {
+          min-width: 0;
+        }
+
         .support-form-grid {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
           gap: 12px;
         }
 
@@ -751,24 +1025,124 @@ const fetchTickets = async () => {
           grid-column: span 2;
         }
 
+        .support-search-grid {
+          display: grid;
+          grid-template-columns: 1fr 260px;
+          gap: 12px;
+        }
+
+        .support-search-grid input,
+        .support-search-grid select {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #dbe3ef;
+          border-radius: 10px;
+          background: #ffffff;
+          box-sizing: border-box;
+        }
+
+        .support-search-grid input:focus,
+        .support-search-grid select:focus {
+          border-color: #0B3D91;
+          outline: 3px solid
+            rgba(11, 61, 145, 0.1);
+        }
+
         .desktop {
           display: block;
           overflow-x: auto;
+          border: 1px solid #dbe3ef;
+          border-radius: 12px;
+        }
+
+        .desktop table {
+          border: 0 !important;
+        }
+
+        .desktop th,
+        .desktop td {
+          border-color: #dbe3ef;
+          text-align: left;
         }
 
         .mobile {
           display: none;
         }
 
+        .support-pagination {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          align-items: center;
+          gap: 16px;
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid #dbe3ef;
+        }
+
+        .support-page-size {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .support-page-size label {
+          color: #64748b;
+          font-size: 13px;
+          font-weight: 800;
+        }
+
+        .support-page-size select {
+          padding: 9px 28px 9px 10px;
+          border: 1px solid #dbe3ef;
+          border-radius: 9px;
+          background: #ffffff;
+        }
+
+        .support-page-status {
+          color: #334155;
+          font-size: 13px;
+          font-weight: 800;
+          text-align: center;
+        }
+
+        .support-page-buttons {
+          display: flex;
+          justify-content: flex-end;
+          gap: 8px;
+        }
+
+        .support-page-buttons button {
+          min-width: 82px;
+          padding: 9px 13px;
+          border: 0;
+          border-radius: 9px;
+          background: #0B3D91;
+          color: #ffffff;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .support-page-buttons button:disabled {
+          background: #e2e8f0;
+          color: #64748b;
+          cursor: not-allowed;
+        }
+
+        .thread-box {
+          overflow-wrap: anywhere;
+        }
+
         @media (max-width: 900px) {
           .support-summary-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns:
+              repeat(2, minmax(0, 1fr));
           }
         }
 
         @media (max-width: 768px) {
           .support-summary-grid,
-          .support-form-grid {
+          .support-form-grid,
+          .support-search-grid {
             grid-template-columns: 1fr;
           }
 
@@ -782,6 +1156,38 @@ const fetchTickets = async () => {
 
           .mobile {
             display: block;
+          }
+
+          .support-pagination {
+            grid-template-columns: 1fr;
+          }
+
+          .support-page-size,
+          .support-page-buttons {
+            justify-content: center;
+          }
+
+          .support-page-buttons button {
+            flex: 1;
+          }
+
+          .thread-box {
+            padding: 12px !important;
+          }
+        }
+
+        @media (max-width: 500px) {
+          .support-summary-grid {
+            grid-template-columns: 1fr;
+            gap: 14px;
+          }
+
+          .support-page-buttons {
+            flex-direction: column;
+          }
+
+          .support-page-buttons button {
+            width: 100%;
           }
         }
       `}</style>
