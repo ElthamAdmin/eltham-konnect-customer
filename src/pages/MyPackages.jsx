@@ -129,8 +129,26 @@ useEffect(() => {
     }
   };
 
-  const formatCurrency = (value) =>
-    `JMD ${Number(value || 0).toLocaleString()}`;
+    const formatCurrency = (value) => {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ""
+    ) {
+      return "Rate unavailable";
+    }
+
+    const amount = Number(value);
+
+    if (!Number.isFinite(amount)) {
+      return "Rate unavailable";
+    }
+
+    return `JMD ${amount.toLocaleString("en-JM", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
 
   const getStatusBadge = (status) => {
     let backgroundColor = "#64748b";
