@@ -6,7 +6,6 @@ import {
 import { useSearchParams } from "react-router-dom";
 import {
   CheckCircle2,
-  ExternalLink,
   FileCheck2,
   FileText,
   MapPin,
@@ -16,6 +15,8 @@ import {
   Upload,
 } from "lucide-react";
 import api from "../api";
+
+import InvoiceFileButton from "../components/InvoiceFileButton";
 
 function UploadInvoice() {
   const [searchParams] = useSearchParams();
@@ -70,23 +71,6 @@ function UploadInvoice() {
   const ROYAL_BLUE = "#0B3D91";
   const ORANGE = "#F15A24";
   const MUTED = "#64748b";
-
-  const API_BASE =
-    import.meta.env.VITE_API_BASE_URL ||
-    import.meta.env.VITE_API_URL ||
-    "https://eltham-konnect-backend-c2sf.onrender.com";
-
-  const getFileUrl = (path = "") => {
-    if (!path) {
-      return "";
-    }
-
-    if (String(path).startsWith("http")) {
-      return path;
-    }
-
-    return `${API_BASE}${path}`;
-  };
 
   const fetchPageData = async () => {
     setLoading(true);
@@ -1025,23 +1009,14 @@ function UploadInvoice() {
                         </td>
 
                         <td>
-                          {filePath ? (
-                            <a
-                              href={getFileUrl(
-                                filePath
-                              )}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              View
-                              <ExternalLink
-                                size={14}
-                              />
-                            </a>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
+  {filePath ? (
+    <InvoiceFileButton
+      uploadNumber={pkg.customerInvoiceUploadNumber}
+    />
+  ) : (
+    "—"
+  )}
+</td>
                       </tr>
                     );
                   })}
@@ -1106,15 +1081,10 @@ function UploadInvoice() {
                     </dl>
 
                     {filePath && (
-                      <a
-                        href={getFileUrl(filePath)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View Invoice
-                        <ExternalLink size={15} />
-                      </a>
-                    )}
+  <InvoiceFileButton
+    uploadNumber={pkg.customerInvoiceUploadNumber}
+  />
+)}
                   </article>
                 );
               })}
@@ -1295,20 +1265,11 @@ function UploadInvoice() {
                             )}
                           </td>
 
-                          <td>
+                                                    <td>
                             {filePath ? (
-                              <a
-                                href={getFileUrl(
-                                  filePath
-                                )}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                View
-                                <ExternalLink
-                                  size={14}
-                                />
-                              </a>
+                              <InvoiceFileButton
+                                uploadNumber={upload.uploadNumber}
+                              />
                             ) : (
                               "—"
                             )}
@@ -1373,17 +1334,12 @@ function UploadInvoice() {
                           )}
                         </dd>
                       </div>
-                    </dl>
+                                        </dl>
 
                     {filePath && (
-                      <a
-                        href={getFileUrl(filePath)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View File
-                        <ExternalLink size={15} />
-                      </a>
+                      <InvoiceFileButton
+                        uploadNumber={upload.uploadNumber}
+                      />
                     )}
                   </article>
                 );
