@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api";
 
 function PolicyAcceptance({ customer, onAccept }) {
@@ -73,7 +74,15 @@ function PolicyAcceptance({ customer, onAccept }) {
       >
         <div style={{ border: "1px solid #e5e7eb", borderRadius: "8px", padding: "16px" }}>
           <h3 style={{ marginTop: 0 }}>Terms and Conditions</h3>
-          <p>Placeholder for active Terms and Conditions PDF/document.</p>
+                    <p>
+            <Link
+              to="/policies?type=terms"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View or download the Terms and Conditions
+            </Link>
+          </p>
           <label>
             <input
               type="checkbox"
@@ -86,7 +95,15 @@ function PolicyAcceptance({ customer, onAccept }) {
 
         <div style={{ border: "1px solid #e5e7eb", borderRadius: "8px", padding: "16px" }}>
           <h3 style={{ marginTop: 0 }}>Privacy Policy</h3>
-          <p>Placeholder for active Privacy Policy PDF/document.</p>
+                    <p>
+            <Link
+              to="/policies?type=privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View or download the Privacy Policy
+            </Link>
+          </p>
           <label>
             <input
               type="checkbox"

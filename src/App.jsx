@@ -26,6 +26,7 @@ import api from "./api";
 import CustomerLogin from "./pages/CustomerLogin";
 import CustomerSignup from "./pages/CustomerSignup";
 import PolicyAcceptance from "./pages/PolicyAcceptance";
+import CustomerPolicies from "./pages/CustomerPolicies";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import MyPackages from "./pages/MyPackages";
 import PreAlerts from "./pages/PreAlerts";
@@ -186,6 +187,11 @@ const hasAcceptedPolicies =
     label: "Profile",
     path: "/profile-settings",
     icon: UserRound,
+  },
+    {
+    label: "Terms and Privacy",
+    path: "/policies",
+    icon: FileText,
   },
 ];
 
@@ -578,6 +584,7 @@ return (
   <Routes>
     <Route path="/login" element={<CustomerLogin />} />
     <Route path="/signup" element={<CustomerSignup />} />
+        <Route path="/policies" element={<CustomerPolicies />} />
     <Route path="/*" element={<CustomerPortalLayout />} />
   </Routes>
 );
