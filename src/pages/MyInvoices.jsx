@@ -102,16 +102,31 @@ function MyInvoices() {
     }
   }, [currentPage, totalPages]);
 
-  const summary = useMemo(() => {
-    const unpaid = invoices.filter((inv) => inv.status === "Unpaid");
-    const paid = invoices.filter((inv) => inv.status === "Paid");
+    const summary = useMemo(() => {
+    const unpaid = invoices.filter(
+      (inv) =>
+        inv.status === "Unpaid" ||
+        inv.status === "Partially Paid"
+    );
+
+    const paid = invoices.filter(
+      (inv) => inv.status === "Paid"
+    );
 
     return {
       totalInvoices: invoices.length,
       unpaidInvoices: unpaid.length,
       paidInvoices: paid.length,
       outstandingBalance: unpaid.reduce(
-        (sum, inv) => sum + Number(inv.finalTotal || 0),
+        (sum, inv) => {
+          const balance = Math.max(
+            0,
+            Number(inv.finalTotal || 0) -
+              Number(inv.amountPaid || 0)
+          );
+
+          return sum + balance;
+        },
         0
       ),
     };
@@ -461,6 +476,7 @@ function MyInvoices() {
           >
             <option value="All">All</option>
             <option value="Unpaid">Unpaid</option>
+                        <option value="Partially Paid">Partially Paid</option>
             <option value="Paid">Paid</option>
           </select>
         </div>
@@ -581,7 +597,7 @@ function MyInvoices() {
                         <td>{formatDate(inv.createdAt)}</td>
                         <td>{inv.paidDate ? formatDate(inv.paidDate) : "-"}</td>
                         <td>
-                          {inv.status === "Unpaid" ? (
+                          {["Unpaid", "Partially Paid"].includes(inv.status) ? (
                             <button
                               onClick={() => handlePayNow(inv)}
                               disabled={!inv.paymentLink}
@@ -695,7 +711,7 @@ function MyInvoices() {
                       </div>
                     </div>
 
-                    {inv.status === "Unpaid" ? (
+                    {["Unpaid", "Partially Paid"].includes(inv.status) ? (
                       <button
                         onClick={() => handlePayNow(inv)}
                         disabled={!inv.paymentLink}
