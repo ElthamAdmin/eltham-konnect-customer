@@ -565,6 +565,7 @@ function MyInvoices() {
                     <th>Customer</th>
                     <th>Subtotal</th>
                     <th>Extra Charges</th>
+                    <th>Storage Fee</th>
                     <th>Total</th>
                     <th>Status</th>
                     <th>Created Date</th>
@@ -590,6 +591,9 @@ function MyInvoices() {
       Number(inv.otherAdjustment || 0)
   )}
 </td>
+
+<td>{formatCurrency(inv.storageFeeTotal)}</td>
+
 <td style={{ fontWeight: "700" }}>
   {formatCurrency(inv.finalTotal)}
 </td>
@@ -637,7 +641,7 @@ function MyInvoices() {
                   ) : (
                     <tr>
                       <td
-                        colSpan="9"
+                        colSpan="10"
                         style={{ textAlign: "center", color: MUTED, padding: "20px" }}
                       >
                         No invoices found.
@@ -689,6 +693,14 @@ function MyInvoices() {
   </div>
 </div>
                       <div>
+                                              <div>
+                        <div style={{ fontSize: "12px", color: MUTED }}>
+                          Storage Fee
+                        </div>
+                        <div style={{ fontWeight: "700" }}>
+                          {formatCurrency(inv.storageFeeTotal)}
+                        </div>
+                      </div>
                         <div style={{ fontSize: "12px", color: MUTED }}>Total</div>
                         <div style={{ fontWeight: "700" }}>
                           {formatCurrency(inv.finalTotal)}
@@ -997,6 +1009,7 @@ function MyInvoices() {
 {receiptRow("GCT", formatCurrency(selectedReceipt.gct))}
 {receiptRow("Processing Fee", formatCurrency(selectedReceipt.processingFee))}
 {receiptRow("Other Adjustment", formatCurrency(selectedReceipt.otherAdjustment))}
+{receiptRow("Storage Fee", formatCurrency(selectedReceipt.storageFeeTotal))}
 
 {selectedReceipt.adjustmentNote ? (
   <div
