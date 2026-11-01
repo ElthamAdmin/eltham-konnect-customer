@@ -12,6 +12,7 @@ import {
   Calculator,
   Headphones,
 } from "lucide-react";
+import CustomerHolidayCalendar from "../components/CustomerHolidayCalendar";
 
 function CustomerDashboard({ customer }) {
 const [packages, setPackages] = useState([]);
@@ -463,6 +464,7 @@ return (
 
     <section className="ek-dashboard-section">
       <h2>Your Information</h2>
+            <CustomerHolidayCalendar />
 
       <details className="ek-dashboard-details">
         <summary>Mailbox Address</summary>
