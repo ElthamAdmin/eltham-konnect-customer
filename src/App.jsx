@@ -22,6 +22,7 @@ Sparkles,
 X,
 } from "lucide-react";
 import api from "./api";
+import CustomerNotificationBell from "./components/CustomerNotificationBell";
 
 import CustomerLogin from "./pages/CustomerLogin";
 import CustomerSignup from "./pages/CustomerSignup";
@@ -328,8 +329,14 @@ const bottomItems = [
     alignItems: "center",
     gap: "4px",
   }}
+  
 >
   <Sparkles size={15} aria-hidden="true" />
+              <CustomerNotificationBell
+              key={customer.ekonId}
+              customer={customer}
+              light
+            />
   {Number(customer.pointsBalance || 0).toLocaleString()}
 </span>
             </div>
@@ -529,6 +536,10 @@ return (
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                    <CustomerNotificationBell
+            key={customer.ekonId}
+            customer={customer}
+          />
           <span style={{ color: GOLD, fontWeight: "bold" }}>
             EK Points: {Number(customer.pointsBalance || 0).toLocaleString()}
           </span>
