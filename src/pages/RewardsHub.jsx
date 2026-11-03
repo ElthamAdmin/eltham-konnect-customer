@@ -5,6 +5,7 @@ import RewardsWordSearch from "../components/RewardsWordSearch";
 import RewardsSnake from "../components/RewardsSnake";
 import RewardsChess from "../components/RewardsChess";
 import RewardsCrossword from "../components/RewardsCrossword";
+import RewardsTrivia from "../components/RewardsTrivia";
 
 function RewardsHub() {
   const [posts, setPosts] = useState([]);
@@ -378,7 +379,7 @@ const playGame = async (game) => {
 
               <p style={{ color: TEXT, lineHeight: 1.7 }}>{game.instructions}</p>
 
-              {game.question ? (
+              {game.gameType !== "Trivia" && game.question ? (
                 <div
                   style={{
                     backgroundColor: "#f8fafc",
@@ -394,9 +395,9 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-                            {["Trivia", "Scavenger Hunt", "Match Image"]
-                .includes(game.gameType) &&
-              game.options?.length > 0 ? (
+                            {["Scavenger Hunt", "Match Image"]
+  .includes(game.gameType) &&
+game.options?.length > 0 ? (
                 <select
                   value={answers[game._id] || ""}
                   onChange={(e) =>
@@ -420,7 +421,7 @@ const playGame = async (game) => {
                     </option>
                   ))}
                 </select>
-              ) : ["Trivia", "Scavenger Hunt", "Match Image"].includes(game.gameType) ? (
+              ) : ["Scavenger Hunt", "Match Image"].includes(game.gameType) ? (
                 <input
                   type="text"
                   placeholder="Enter your answer"
@@ -511,7 +512,26 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-                               {game.gameType === "Crossword" ? (
+                                             {game.gameType === "Trivia" ? (
+                <RewardsTrivia
+                  key={game._id}
+                  game={game}
+                  recordedPlay={gamePlays.find(
+                    (play) =>
+                      String(play.gameId) === String(game._id)
+                  )}
+                  onRecorded={(play) => {
+                    setGamePlays((previous) =>
+                      previous.some(
+                        (existing) =>
+                          String(existing._id) === String(play._id)
+                      )
+                        ? previous
+                        : [...previous, play]
+                    );
+                  }}
+                />
+              ) : game.gameType === "Crossword" ? (
                 <RewardsCrossword
                   key={game._id}
                   game={game}
