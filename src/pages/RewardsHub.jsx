@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import RewardsSudoku from "../components/RewardsSudoku";
+import RewardsWordSearch from "../components/RewardsWordSearch";
 
 function RewardsHub() {
   const [posts, setPosts] = useState([]);
@@ -505,7 +506,23 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-                            {game.gameType === "Sudoku" ? (
+                              {game.gameType === "Find-a-Word" ? (
+                <RewardsWordSearch
+                  key={game._id}
+                  game={game}
+                  alreadyPlayed={hasPlayedGame(game._id)}
+                  onRecorded={(play) => {
+                    setGamePlays((previous) =>
+                      previous.some(
+                        (existing) =>
+                          String(existing._id) === String(play._id)
+                      )
+                        ? previous
+                        : [...previous, play]
+                    );
+                  }}
+                />
+              ) : game.gameType === "Sudoku" ? (
                 <RewardsSudoku
                   key={game._id}
                   game={game}
