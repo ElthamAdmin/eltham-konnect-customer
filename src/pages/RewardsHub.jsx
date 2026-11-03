@@ -3,6 +3,7 @@ import api from "../api";
 import RewardsSudoku from "../components/RewardsSudoku";
 import RewardsWordSearch from "../components/RewardsWordSearch";
 import RewardsSnake from "../components/RewardsSnake";
+import RewardsChess from "../components/RewardsChess";
 
 function RewardsHub() {
   const [posts, setPosts] = useState([]);
@@ -392,7 +393,9 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-              {game.options?.length > 0 ? (
+                            {["Trivia", "Scavenger Hunt", "Match Image"]
+                .includes(game.gameType) &&
+              game.options?.length > 0 ? (
                 <select
                   value={answers[game._id] || ""}
                   onChange={(e) =>
@@ -507,7 +510,23 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-                                            {game.gameType === "Snake" ? (
+                                {game.gameType === "Chess" ? (
+                <RewardsChess
+                  key={game._id}
+                  game={game}
+                  alreadyPlayed={hasPlayedGame(game._id)}
+                  onRecorded={(play) => {
+                    setGamePlays((previous) =>
+                      previous.some(
+                        (existing) =>
+                          String(existing._id) === String(play._id)
+                      )
+                        ? previous
+                        : [...previous, play]
+                    );
+                  }}
+                />
+              ) : game.gameType === "Snake" ? (
                 <RewardsSnake
                   key={game._id}
                   game={game}
