@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api";
+import RewardsSudoku from "../components/RewardsSudoku";
 
 function RewardsHub() {
   const [posts, setPosts] = useState([]);
@@ -504,22 +505,46 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-              <button
-                onClick={() => playGame(game)}
-                disabled={hasPlayedGame(game._id)}
-                style={{
-                  backgroundColor: hasPlayedGame(game._id) ? "#94a3b8" : GOLD,
-                  color: "black",
-                  border: "none",
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  fontWeight: "bold",
-                  cursor: hasPlayedGame(game._id) ? "not-allowed" : "pointer",
-                  width: "100%",
-                }}
-              >
-                {hasPlayedGame(game._id) ? "Already Played" : `Play ${game.gameType}`}
-              </button>
+                            {game.gameType === "Sudoku" ? (
+                <RewardsSudoku
+                  key={game._id}
+                  game={game}
+                  alreadyPlayed={hasPlayedGame(game._id)}
+                  onRecorded={(play) => {
+                    setGamePlays((previous) =>
+                      previous.some(
+                        (existing) =>
+                          String(existing._id) === String(play._id)
+                      )
+                        ? previous
+                        : [...previous, play]
+                    );
+                  }}
+                />
+              ) : (
+                <button
+                  onClick={() => playGame(game)}
+                  disabled={hasPlayedGame(game._id)}
+                  style={{
+                    backgroundColor: hasPlayedGame(game._id)
+                      ? "#94a3b8"
+                      : GOLD,
+                    color: "black",
+                    border: "none",
+                    padding: "10px 14px",
+                    borderRadius: "10px",
+                    fontWeight: "bold",
+                    cursor: hasPlayedGame(game._id)
+                      ? "not-allowed"
+                      : "pointer",
+                    width: "100%",
+                  }}
+                >
+                  {hasPlayedGame(game._id)
+                    ? "Already Played"
+                    : `Play ${game.gameType}`}
+                </button>
+              )}
 
               {game.endDate ? (
                 <div style={{ marginTop: "12px", color: "#dc2626", fontWeight: "bold" }}>
