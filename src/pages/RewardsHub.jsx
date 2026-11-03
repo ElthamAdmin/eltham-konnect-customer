@@ -4,6 +4,7 @@ import RewardsSudoku from "../components/RewardsSudoku";
 import RewardsWordSearch from "../components/RewardsWordSearch";
 import RewardsSnake from "../components/RewardsSnake";
 import RewardsChess from "../components/RewardsChess";
+import RewardsCrossword from "../components/RewardsCrossword";
 
 function RewardsHub() {
   const [posts, setPosts] = useState([]);
@@ -510,7 +511,23 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-                                {game.gameType === "Chess" ? (
+                               {game.gameType === "Crossword" ? (
+                <RewardsCrossword
+                  key={game._id}
+                  game={game}
+                  alreadyPlayed={hasPlayedGame(game._id)}
+                  onRecorded={(play) => {
+                    setGamePlays((previous) =>
+                      previous.some(
+                        (existing) =>
+                          String(existing._id) === String(play._id)
+                      )
+                        ? previous
+                        : [...previous, play]
+                    );
+                  }}
+                />
+              ) : game.gameType === "Chess" ? (
                 <RewardsChess
                   key={game._id}
                   game={game}
