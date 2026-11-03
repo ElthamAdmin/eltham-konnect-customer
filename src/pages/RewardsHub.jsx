@@ -7,6 +7,7 @@ import RewardsChess from "../components/RewardsChess";
 import RewardsCrossword from "../components/RewardsCrossword";
 import RewardsTrivia from "../components/RewardsTrivia";
 import RewardsWheel from "../components/RewardsWheel";
+import RewardsScratch from "../components/RewardsScratch";
 
 function RewardsHub() {
   const [posts, setPosts] = useState([]);
@@ -464,7 +465,7 @@ game.options?.length > 0 ? (
                 </div>
               ) : null}
 
-              {game.gameType === "Scratch Card" ? (
+              {game.gameType === "Scratch Card" && game.engineVersion !== 2 ? (
                 <div
                   style={{
                     backgroundColor: "#e2e8f0",
@@ -482,7 +483,10 @@ game.options?.length > 0 ? (
               ) : null}
 
               {game.rewardText &&
- !(game.gameType === "Spin Wheel" && game.engineVersion === 2) ? (
+ !(
+  ["Spin Wheel", "Scratch Card"].includes(game.gameType) &&
+  game.engineVersion === 2
+) ? (
                 <div
                   style={{
                     backgroundColor: "#f0fdf4",
@@ -499,7 +503,10 @@ game.options?.length > 0 ? (
               ) : null}
 
               {Number(game.rewardPoints || 0) > 0 &&
- !(game.gameType === "Spin Wheel" && game.engineVersion === 2) ? (
+ !(
+  ["Spin Wheel", "Scratch Card"].includes(game.gameType) &&
+  game.engineVersion === 2
+) ? (
                 <div
                   style={{
                     backgroundColor: "#eef4ff",
@@ -515,7 +522,27 @@ game.options?.length > 0 ? (
                 </div>
               ) : null}
 
-                                {game.gameType === "Spin Wheel" &&
+                                              {game.gameType === "Scratch Card" &&
+              game.engineVersion === 2 ? (
+                <RewardsScratch
+                  key={game._id}
+                  game={game}
+                  recordedPlay={gamePlays.find(
+                    (play) =>
+                      String(play.gameId) === String(game._id)
+                  )}
+                  onRecorded={(play) => {
+                    setGamePlays((previous) =>
+                      previous.some(
+                        (existing) =>
+                          String(existing._id) === String(play._id)
+                      )
+                        ? previous
+                        : [...previous, play]
+                    );
+                  }}
+                />
+              ) : game.gameType === "Spin Wheel" &&
               game.engineVersion === 2 ? (
                 <RewardsWheel
                   key={game._id}
