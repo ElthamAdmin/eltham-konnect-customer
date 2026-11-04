@@ -18,32 +18,86 @@ export default function RewardsScratch({
     prizes.length >= 4 &&
     prizes.length <= 12;
 
+    const [storageKey] = useState(() => {
+    let ekonId = "customer";
+
+    try {
+      const customer = JSON.parse(
+        localStorage.getItem("ek_customer_data") || "null"
+      );
+      ekonId = customer?.ekonId || ekonId;
+    } catch {
+      // Customer authentication is enforced by the API.
+    }
+
+    return `ek-scratch-pending:${ekonId}:${game._id}`;
+  });
+
+  const [recoveredAttempt] = useState(() => {
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem(storageKey) || "null"
+      );
+
+      return (
+        saved?.gameId === String(game._id) &&
+        typeof saved.attemptId === "string" &&
+        /^[a-zA-Z0-9_-]{16,100}$/.test(saved.attemptId)
+      )
+        ? {
+            gameId: String(game._id),
+            attemptId: saved.attemptId,
+          }
+        : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
-  const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [retryPending, setRetryPending] = useState(
+    Boolean(recoveredAttempt)
+  );
 
   const canvasRef = useRef(null);
   const pointerRef = useRef(null);
   const previousPointRef = useRef(null);
   const lastCheckRef = useRef(0);
   const requestBusyRef = useRef(false);
+  const pendingAttemptRef = useRef(recoveredAttempt);
 
-  const play = result?.play || recordedPlay;
+  // Historical plays do not lock a new card.
+  const play = result?.play;
   const outcome = play?.outcome;
   const completed = Boolean(play);
-
-  // Returning to the page displays the already saved result.
-  const showResult =
-    revealed || (!result && Boolean(recordedPlay));
+  const showResult = completed && revealed;
+  const practice = play?.playMode === "Practice";
 
   const prizeType =
     outcome?.prizeType ||
     (outcome?.points > 0 ? "Points" : "No Prize");
 
-  const won = Boolean(outcome) && prizeType !== "No Prize";
+  const won =
+    Boolean(outcome) &&
+    !practice &&
+    prizeType !== "No Prize";
+
+  const score =
+    Number.isSafeInteger(play?.scoreEarned)
+      ? play.scoreEarned
+      : 0;
+
+  const clearSavedAttempt = () => {
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // A remaining saved ID can safely return its existing result.
+    }
+  };
 
   useEffect(() => {
     if (!completed || showResult) return;
@@ -189,12 +243,11 @@ export default function RewardsScratch({
     }
   };
 
-  const startCard = async () => {
+    const startCard = async () => {
     if (
       !valid ||
       completed ||
       busy ||
-      needsRefresh ||
       requestBusyRef.current
     ) {
       return;
@@ -204,48 +257,117 @@ export default function RewardsScratch({
     setBusy(true);
     setError("");
 
+    let confirmedPlay = null;
+
     try {
+      let attempt = pendingAttemptRef.current;
+
+      if (!attempt) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+
+        attempt = {
+          gameId: String(game._id),
+          attemptId: Array.from(
+            bytes,
+            (byte) => byte.toString(16).padStart(2, "0")
+          ).join(""),
+        };
+
+        try {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify(attempt)
+          );
+        } catch {
+          setError(
+            "This browser could not save your pending card. " +
+            "Allow site storage, then try again."
+          );
+          return;
+        }
+
+        pendingAttemptRef.current = attempt;
+      }
+
+      setRetryPending(true);
+
       const response = await api.post(
         "/api/rewards-hub-games/play",
-        { gameId: game._id }
+        attempt
       );
 
       const data = response.data?.data;
 
       if (!data?.play?._id) {
-        setNeedsRefresh(true);
         setError(
-          "Could not confirm your card. Refresh the page " +
-          "to check your saved result."
+          "Your card could not be confirmed. Use Check saved " +
+          "card to retry the same attempt."
         );
         return;
       }
 
+      confirmedPlay = data.play;
+
       setResult({
-        play: data.play,
+        ...data,
         message: response.data.message,
       });
 
+      clearSavedAttempt();
+      pendingAttemptRef.current = null;
+      setRetryPending(false);
+
       setProgress(0);
       setRevealed(false);
-      onRecorded?.(data.play);
+      pointerRef.current = null;
+      previousPointRef.current = null;
+      lastCheckRef.current = 0;
     } catch (startError) {
       const status = startError?.response?.status;
 
-      if (!status || status >= 500 || status === 409) {
-        setNeedsRefresh(true);
+      if (status === 400) {
+        clearSavedAttempt();
+        pendingAttemptRef.current = null;
+        setRetryPending(false);
       }
 
       setError(
         startError?.response?.data?.message ||
-          "Could not confirm your card. Refresh the page " +
-          "to check your saved result."
+          "Your card could not be confirmed. Use Check saved " +
+          "card to retry the same attempt."
       );
     } finally {
       requestBusyRef.current = false;
       setBusy(false);
     }
+
+    if (confirmedPlay) {
+      onRecorded?.(confirmedPlay);
+    }
   };
+
+  const startAnotherCard = () => {
+    if (
+      busy ||
+      retryPending ||
+      requestBusyRef.current ||
+      !showResult
+    ) {
+      return;
+    }
+
+    setResult(null);
+    setRevealed(false);
+    setProgress(0);
+    setError("");
+
+    pendingAttemptRef.current = null;
+    pointerRef.current = null;
+    previousPointRef.current = null;
+    lastCheckRef.current = 0;
+  };
+
 
   if (!valid) {
     return (
@@ -270,9 +392,10 @@ export default function RewardsScratch({
       </div>
 
       <p className="ek-scratch-note">
-        One card per customer. Starting the card selects and
-        saves your result. Every listed prize entry has an
-        equal chance.
+                Start another card whenever you like. Starting a card
+        saves its result and game score. Every listed entry
+        has an equal chance. Reward limits still apply;
+        practice cards award no prize or EK Points.
       </p>
 
       {!completed ? (
@@ -282,13 +405,26 @@ export default function RewardsScratch({
             <strong>Your surprise awaits</strong>
           </div>
 
+                    <p className="ek-scratch-note">
+            {retryPending
+              ? "A card is awaiting confirmation. Check that saved attempt before starting another."
+              : game.rewardsEnabled === false
+                ? "Rewards are disabled. This card is for game score only."
+                : "The server checks your reward allowance when you start. A practice card does not award its displayed prize."}
+          </p>
+
+
           <button
             type="button"
             className="ek-scratch-start"
-            disabled={busy || needsRefresh}
+                        disabled={busy}
             onClick={startCard}
           >
-            {busy ? "Preparing your card…" : "Start Scratch Card"}
+                        {busy
+              ? "Preparing your card…"
+              : retryPending
+                ? "Check saved card"
+                : "Start Scratch Card"}
           </button>
         </>
       ) : (
@@ -303,7 +439,13 @@ export default function RewardsScratch({
             >
               <span>{won ? "★" : "✦"}</span>
               <strong>{outcome?.label || "Result saved"}</strong>
-              <small>{outcome ? prizeType : "Check your game history"}</small>
+                            <small>
+                {practice
+                  ? `Practice: ${prizeType} — not awarded`
+                  : outcome
+                    ? prizeType
+                    : "Result saved"}
+              </small>
             </div>
 
             {!showResult ? (
@@ -361,18 +503,32 @@ export default function RewardsScratch({
           ) : (
             <div className="ek-scratch-result" role="status" aria-live="polite">
               <h3>
-                {outcome
-                  ? won
-                    ? "You won!"
-                    : "Your card is complete"
-                  : "Your card has been recorded"}
+                                {practice
+                  ? "Practice card — no prize awarded"
+                  : outcome
+                    ? won
+                      ? "You won!"
+                      : "Your card is complete"
+                    : "Your card has been recorded"}
               </h3>
 
               {outcome ? <strong>{outcome.label}</strong> : null}
               {result?.message ? <p>{result.message}</p> : null}
+                            <p>
+                <strong>
+                  Game score earned: +{score.toLocaleString()}
+                </strong>
+              </p>
 
-              {Number.isFinite(credited) &&
-              (!outcome || prizeType === "Points" || prizeType === "No Prize") ? (
+              {practice ? (
+                <p>
+                  The displayed result is simulated.
+                  No prize delivery or redeemable EK Points
+                  are awarded for this card.
+                </p>
+              ) : null}
+
+                            {Number.isFinite(credited) ? (
                 <p>
                   <strong>
                     {credited.toLocaleString()} EK Points credited
@@ -380,18 +536,28 @@ export default function RewardsScratch({
                 </p>
               ) : null}
 
-              {outcome?.fulfilmentStatus === "Pending" ? (
+                            {!practice && outcome?.fulfilmentStatus === "Pending" ? (
                 <p className="ek-scratch-pending">
                   Prize delivery pending. Eltham Konnect will
                   arrange fulfilment separately.
                 </p>
-              ) : outcome?.fulfilmentStatus === "Delivered" ? (
+                            ) : !practice && outcome?.fulfilmentStatus === "Delivered" ? (
                 <p>This prize has been marked delivered.</p>
               ) : null}
 
-              <small>
-                Your result is saved. Refreshing will not give another card.
+                            <small>
+                This card is saved. Starting another card
+                creates a separate play; reward limits still apply.
               </small>
+
+              <button
+                type="button"
+                className="ek-scratch-start"
+                style={{ marginTop: "16px" }}
+                onClick={startAnotherCard}
+              >
+                Start another card
+              </button>
             </div>
           )}
         </>
@@ -401,8 +567,11 @@ export default function RewardsScratch({
         <p className="ek-scratch-error" role="alert">{error}</p>
       ) : null}
 
-      {needsRefresh ? (
-        <p>Refresh this page to check your game history before retrying.</p>
+            {!completed && !retryPending && recordedPlay ? (
+        <p className="ek-scratch-note">
+          Your earlier cards remain saved. You can start a new
+          card; the server checks its reward eligibility.
+        </p>
       ) : null}
 
       <details className="ek-scratch-prizes">
@@ -421,8 +590,10 @@ export default function RewardsScratch({
       </details>
 
       <p className="ek-scratch-note">
-        EK Points are subject to the 1,500-point balance limit.
-        Gift cards, phone credit and other prizes are fulfilled separately.
+                Eligible EK Points rewards are subject to the
+        1,500-point balance limit. Eligible gift cards, phone
+        credit and other prizes are fulfilled separately.
+        Practice cards never create a prize delivery.
       </p>
 
       <style>{`
