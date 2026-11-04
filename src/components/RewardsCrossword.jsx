@@ -58,16 +58,91 @@ export default function RewardsCrossword({
         )
       : [];
 
-  const [board, setBoard] = useState(makeBoard);
+    const [storageKey] = useState(() => {
+    let ekonId = "customer";
+
+    try {
+      const customer = JSON.parse(
+        localStorage.getItem("ek_customer_data") || "null"
+      );
+      ekonId = customer?.ekonId || ekonId;
+    } catch {
+      // Customer authentication is enforced by the API.
+    }
+
+    return `ek-crossword-pending:${ekonId}:${game._id}`;
+  });
+
+  const [recoveredAttempt] = useState(() => {
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem(storageKey) || "null"
+      );
+
+      if (
+        !valid ||
+        saved?.gameId !== String(game._id) ||
+        typeof saved.attemptId !== "string" ||
+        !/^[a-zA-Z0-9_-]{16,100}$/.test(saved.attemptId) ||
+        typeof saved.submittedAnswer !== "string" ||
+        saved.submittedAnswer.length > 2000
+      ) {
+        return null;
+      }
+
+      const rows = JSON.parse(saved.submittedAnswer);
+
+      if (
+        !Array.isArray(rows) ||
+        rows.length !== config.rows ||
+        !rows.every(
+          (row, rowIndex) =>
+            typeof row === "string" &&
+            row.length === config.columns &&
+            [...row].every(
+              (cell, columnIndex) =>
+                config.cells[rowIndex][columnIndex]
+                  ? /^[A-Z]$/.test(cell)
+                  : cell === "#"
+            )
+        )
+      ) {
+        return null;
+      }
+
+      return {
+        gameId: String(game._id),
+        attemptId: saved.attemptId,
+        submittedAnswer: saved.submittedAnswer,
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  const [board, setBoard] = useState(() =>
+    recoveredAttempt
+      ? JSON.parse(recoveredAttempt.submittedAnswer).map(
+          (row) => [...row]
+        )
+      : makeBoard()
+  );
+
   const [activeEntry, setActiveEntry] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [recorded, setRecorded] = useState(false);
+  const [result, setResult] = useState(null);
   const [message, setMessage] = useState("");
+  const [retryPending, setRetryPending] = useState(
+    Boolean(recoveredAttempt)
+  );
 
   const inputsRef = useRef({});
   const requestBusyRef = useRef(false);
-  const completed = alreadyPlayed || recorded;
-  const locked = completed || busy;
+  const pendingAttemptRef = useRef(recoveredAttempt);
+
+  const play = result?.play;
+  const completed = Boolean(play);
+  const locked = completed || busy || retryPending;
 
   const focusCell = (row, column) => {
     inputsRef.current[`${row},${column}`]?.focus();
@@ -127,10 +202,26 @@ export default function RewardsCrossword({
     setMessage("");
   };
 
-  const submitPuzzle = async () => {
-    if (locked || requestBusyRef.current || !valid) return;
+    const clearSavedAttempt = () => {
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // A remaining saved ID safely returns its existing result.
+    }
+  };
 
-    if (board.some((row) => row.some((cell) => cell === ""))) {
+  const submitPuzzle = async () => {
+    if (
+      completed ||
+      busy ||
+      requestBusyRef.current ||
+      !valid
+    ) return;
+
+    if (
+      !pendingAttemptRef.current &&
+      board.some((row) => row.some((cell) => cell === ""))
+    ) {
       setMessage("Fill every white square before submitting.");
       return;
     }
@@ -139,39 +230,110 @@ export default function RewardsCrossword({
     setBusy(true);
     setMessage("");
 
+    let confirmedPlay = null;
+
     try {
-      const response = await api.post(
-        "/api/rewards-hub-games/play",
-        {
-          gameId: game._id,
+      let attempt = pendingAttemptRef.current;
+
+      if (!attempt) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+
+        attempt = {
+          gameId: String(game._id),
+          attemptId: Array.from(
+            bytes,
+            (byte) => byte.toString(16).padStart(2, "0")
+          ).join(""),
           submittedAnswer: JSON.stringify(
             board.map((row) => row.join(""))
           ),
+        };
+
+        try {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify(attempt)
+          );
+        } catch {
+          setMessage(
+            "This browser could not save your pending puzzle. " +
+            "Allow site storage, then try again."
+          );
+          return;
         }
-      );
 
-      const play = response.data?.data?.play;
-
-      if (!play?._id) {
-        throw new Error("Submission could not be confirmed.");
+        pendingAttemptRef.current = attempt;
       }
 
-      setRecorded(true);
-      setMessage(
-        response.data?.message || "Crossword completed."
+      setRetryPending(true);
+
+      const response = await api.post(
+        "/api/rewards-hub-games/play",
+        attempt
       );
-      onRecorded?.(play);
-    } catch (error) {
+
+      const data = response.data?.data;
+
+      if (!response.data?.success || !data?.play?._id) {
+        setMessage(
+          "Completion could not be confirmed. Use Check saved " +
+          "puzzle to retry the same attempt."
+        );
+        return;
+      }
+
+      confirmedPlay = data.play;
+      setResult(data);
+
+      clearSavedAttempt();
+      pendingAttemptRef.current = null;
+      setRetryPending(false);
+
       setMessage(
-        error?.response?.data?.message ||
-          "Could not confirm your submission. " +
-          "Refresh your game history before retrying."
+        response.data.message || "Crossword completed."
+      );
+    } catch (error) {
+      if (error.response?.status === 400) {
+        // Incorrect boards are not recorded. Allow corrections.
+        clearSavedAttempt();
+        pendingAttemptRef.current = null;
+        setRetryPending(false);
+      }
+
+      setMessage(
+        error.response?.data?.message ||
+          "Completion could not be confirmed. Use Check saved " +
+          "puzzle to retry the same attempt."
       );
     } finally {
       requestBusyRef.current = false;
       setBusy(false);
     }
+
+    if (confirmedPlay) {
+      onRecorded?.(confirmedPlay);
+    }
   };
+
+  const playAgain = () => {
+    if (busy || retryPending || requestBusyRef.current) return;
+
+    setBoard(makeBoard());
+    setActiveEntry(0);
+    setResult(null);
+    setMessage("");
+    pendingAttemptRef.current = null;
+
+    window.requestAnimationFrame(() => {
+      const first = config.entries[0];
+
+      if (first) {
+        focusCell(first.row, first.column);
+      }
+    });
+  };
+
 
   if (!valid) {
     return (
@@ -198,9 +360,10 @@ export default function RewardsCrossword({
   return (
     <section className="ek-crossword" aria-label="Crossword puzzle">
       <p>
-        Select an Across or Down clue, then enter its answer.
+                Select an Across or Down clue, then enter its answer.
         Crossing words share letters. Tap any white square
-        to change a letter.
+        to change a letter. Complete the puzzle repeatedly
+        to earn game score; reward limits still apply.
       </p>
 
       {completed ? (
@@ -348,26 +511,98 @@ export default function RewardsCrossword({
         ))}
       </div>
 
-      {!completed ? (
-        <div className="ek-crossword-actions">
-          <button
-            type="button"
-            onClick={resetBoard}
-            disabled={busy}
-          >
-            Reset board
-          </button>
+            {!completed ? (
+        <>
+          {retryPending ? (
+            <p role="status">
+              A puzzle is awaiting confirmation. Your letters
+              are locked until you check that saved attempt.
+            </p>
+          ) : alreadyPlayed ? (
+            <p>
+              Your earlier plays remain saved. This is a new
+              attempt; reward eligibility is checked on submission.
+            </p>
+          ) : null}
 
-          <button
-            type="button"
-            className="ek-crossword-submit"
-            onClick={submitPuzzle}
-            disabled={busy || filledCells !== totalCells}
-          >
-            {busy ? "Submitting…" : "Submit completed puzzle"}
-          </button>
+          <div className="ek-crossword-actions">
+            <button
+              type="button"
+              onClick={resetBoard}
+              disabled={busy || retryPending}
+            >
+              Reset board
+            </button>
+
+            <button
+              type="button"
+              className="ek-crossword-submit"
+              onClick={submitPuzzle}
+              disabled={
+                busy ||
+                (!retryPending && filledCells !== totalCells)
+              }
+            >
+              {busy
+                ? "Submitting…"
+                : retryPending
+                  ? "Check saved puzzle"
+                  : "Submit completed puzzle"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <div
+          role="status"
+          style={{
+            marginTop: "16px",
+            padding: "18px",
+            border: "1px solid #86efac",
+            borderRadius: "12px",
+            background: "#ecfdf5",
+            color: "#166534",
+            textAlign: "center",
+            lineHeight: 1.7,
+          }}
+        >
+          <strong>Crossword completed!</strong>
+
+          <p>
+            Game score earned: +
+            {(
+              Number.isSafeInteger(play.scoreEarned)
+                ? play.scoreEarned
+                : 0
+            ).toLocaleString()}
+          </p>
+
+          <p>
+            {(
+              Number.isSafeInteger(play.pointsAwarded)
+                ? play.pointsAwarded
+                : 0
+            ).toLocaleString()} EK Points credited
+          </p>
+
+          {play.playMode === "Practice" ? (
+            <p>
+              Practice completion — no reward awarded.
+              Your game score still counts.
+            </p>
+          ) : null}
+
+          <div className="ek-crossword-actions">
+            <button
+              type="button"
+              className="ek-crossword-submit"
+              onClick={playAgain}
+            >
+              Play again
+            </button>
+          </div>
         </div>
-      ) : null}
+      )}
+
 
       {message ? (
         <p role="status" aria-live="polite">{message}</p>
