@@ -15,6 +15,7 @@ function RewardsHub() {
   const [entries, setEntries] = useState([]);
   const [games, setGames] = useState([]);
   const [gamePlays, setGamePlays] = useState([]);
+    const [gameHistoryReady, setGameHistoryReady] = useState(false);
   const [answers, setAnswers] = useState({});
   const [leaderboard, setLeaderboard] = useState({
   gameLeaderboard: [],
@@ -55,7 +56,16 @@ function RewardsHub() {
     setPosts(results[0].status === "fulfilled" ? results[0].value.data.data || [] : []);
     setEntries(results[1].status === "fulfilled" ? results[1].value.data.data || [] : []);
     setGames(results[2].status === "fulfilled" ? results[2].value.data.data || [] : []);
-    setGamePlays(results[3].status === "fulfilled" ? results[3].value.data.data || [] : []);
+        const historyLoaded =
+      Boolean(savedCustomer?.ekonId) &&
+      results[3].status === "fulfilled" &&
+      Array.isArray(results[3].value.data.data);
+
+    setGameHistoryReady(historyLoaded);
+
+    if (historyLoaded) {
+      setGamePlays(results[3].value.data.data);
+    }
     setLeaderboard(
   results[4].status === "fulfilled"
     ? results[4].value.data.data || { gameLeaderboard: [], entryLeaderboard: [] }
@@ -147,6 +157,58 @@ const playGame = async (game) => {
     alert(error?.response?.data?.message || "Could not submit game.");
   }
 };
+
+  const gameStats = useMemo(() => {
+    const byGame = {};
+    const seen = new Set();
+
+    let totalScore = 0;
+    let scoredPlays = 0;
+
+    for (const play of gamePlays) {
+      if (!play?._id || !play.gameId) continue;
+
+      const playId = String(play._id);
+
+      if (seen.has(playId)) continue;
+      seen.add(playId);
+
+      const gameId = String(
+        play.gameId?._id || play.gameId
+      );
+
+      const score =
+        Number.isSafeInteger(play.scoreEarned) &&
+        play.scoreEarned >= 0
+          ? play.scoreEarned
+          : 0;
+
+      if (!byGame[gameId]) {
+        byGame[gameId] = {
+          score: 0,
+          recordedPlays: 0,
+          scoredPlays: 0,
+        };
+      }
+
+      byGame[gameId].score += score;
+      byGame[gameId].recordedPlays += 1;
+      totalScore += score;
+
+      if (score > 0) {
+        byGame[gameId].scoredPlays += 1;
+        scoredPlays += 1;
+      }
+    }
+
+    return {
+      byGame,
+      totalScore,
+      recordedPlays: seen.size,
+      scoredPlays,
+    };
+  }, [gamePlays]);
+
 
   const filteredPosts = useMemo(() => {
     if (activeType === "All") return posts;
@@ -275,6 +337,51 @@ const playGame = async (game) => {
 ) : (
   <>
 
+    <section
+    style={{
+      ...cardStyle,
+      marginBottom: "22px",
+      background:
+        "linear-gradient(120deg, #0B3D91, #6d28d9)",
+      color: WHITE,
+      border: "none",
+    }}
+  >
+    <h2 style={{ marginTop: 0 }}>Your Game Score</h2>
+
+    {gameHistoryReady ? (
+      <>
+        <div
+          style={{
+            fontSize: "42px",
+            fontWeight: "bold",
+            lineHeight: 1.2,
+          }}
+        >
+          {gameStats.totalScore.toLocaleString()}
+        </div>
+
+        <p style={{ lineHeight: 1.7 }}>
+          {gameStats.recordedPlays.toLocaleString()} recorded
+          plays · {gameStats.scoredPlays.toLocaleString()} plays
+          earned game score
+        </p>
+      </>
+    ) : (
+      <p role="status" style={{ lineHeight: 1.7 }}>
+        Your saved game score could not be loaded.
+        Refresh this page to try again.
+      </p>
+    )}
+
+    <p style={{ marginBottom: 0, lineHeight: 1.7 }}>
+      Game score is separate from redeemable EK Points.
+      Reward limits do not limit how much game score you
+      can earn through repeat play.
+    </p>
+  </section>
+
+
   <div style={{ ...cardStyle, marginBottom: "22px" }}>
   <h2 style={{ marginTop: 0, color: ROYAL_BLUE }}>🏆 EK Rewards Leaderboard</h2>
   <p style={{ color: MUTED, marginTop: 0 }}>
@@ -361,7 +468,7 @@ const playGame = async (game) => {
 </div>
 
     <div style={{ marginBottom: "22px" }}>
-      <h2 style={{ color: ROYAL_BLUE }}>Play & Win Games</h2>
+            <h2 style={{ color: ROYAL_BLUE }}>Play Games & Build Your Score</h2>
 
       <div className="hub-grid">
         {games.length > 0 ? (
@@ -381,6 +488,69 @@ const playGame = async (game) => {
               </div>
 
               <p style={{ color: TEXT, lineHeight: 1.7 }}>{game.instructions}</p>
+
+                            <div
+                style={{
+                  padding: "14px",
+                  marginBottom: "14px",
+                  border: "1px solid #ddd6fe",
+                  borderRadius: "12px",
+                  background: "#f5f3ff",
+                  color: ROYAL_BLUE,
+                  lineHeight: 1.7,
+                }}
+              >
+                <strong>
+                  Your score:{" "}
+                  {gameHistoryReady
+                    ? (
+                        gameStats.byGame[String(game._id)]
+                          ?.score || 0
+                      ).toLocaleString()
+                    : "Unavailable"}
+                </strong>
+
+                <div style={{ fontSize: "13px" }}>
+                  Recorded plays:{" "}
+                  {gameHistoryReady
+                    ? (
+                        gameStats.byGame[String(game._id)]
+                          ?.recordedPlays || 0
+                      ).toLocaleString()
+                    : "Unavailable"}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "8px",
+                    fontSize: "13px",
+                    color: "#475569",
+                  }}
+                >
+                  Game score per{" "}
+                  {["Spin Wheel", "Scratch Card"].includes(
+                    game.gameType
+                  )
+                    ? "completed play"
+                    : "successful play"}
+                  :{" "}
+                  {(game.scorePerSuccess ?? 100).toLocaleString()}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "5px",
+                    fontSize: "13px",
+                    color: "#475569",
+                  }}
+                >
+                  {game.rewardsEnabled === false
+                    ? "Rewards are disabled. Play for game score."
+                    : game.rewardFrequency === "Daily"
+                      ? "One reward opportunity per Jamaica calendar day. Additional plays are practice."
+                      : "One reward opportunity per customer for this game. Additional plays are practice."}
+                </div>
+              </div>
 
               {game.gameType !== "Trivia" && game.question ? (
                 <div
@@ -484,7 +654,8 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-              {game.rewardText &&
+                            {game.rewardsEnabled !== false &&
+ game.rewardText &&
  !(
   ["Spin Wheel", "Scratch Card"].includes(game.gameType) &&
   game.engineVersion === 2
@@ -504,7 +675,8 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-              {Number(game.rewardPoints || 0) > 0 &&
+                            {game.rewardsEnabled !== false &&
+ Number(game.rewardPoints || 0) > 0 &&
  !(
   ["Spin Wheel", "Scratch Card"].includes(game.gameType) &&
   game.engineVersion === 2
