@@ -400,6 +400,7 @@ const playGame = async (game) => {
           <tr>
             <th>Rank</th>
             <th>EKON ID</th>
+            <th>Game Score</th>
             <th>Games</th>
             <th>Correct</th>
             <th>Rewards</th>
@@ -411,6 +412,9 @@ const playGame = async (game) => {
               <tr key={item._id}>
                 <td>{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
                 <td style={{ fontWeight: "bold", color: ROYAL_BLUE }}>{item._id}</td>
+                  <td style={{ fontWeight: "bold", color: ROYAL_BLUE }}>
+                  {(item.totalScore ?? 0).toLocaleString()}
+                </td>
                 <td>{item.totalGames}</td>
                 <td>{item.correctAnswers}</td>
                 <td>{item.rewardsEarned}</td>
@@ -418,7 +422,7 @@ const playGame = async (game) => {
             ))
           ) : (
             <tr>
-              <td colSpan="5" style={{ textAlign: "center", color: MUTED }}>
+                            <td colSpan="6" style={{ textAlign: "center", color: MUTED }}>
                 No game leaderboard yet.
               </td>
             </tr>
