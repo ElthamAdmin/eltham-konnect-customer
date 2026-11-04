@@ -46,17 +46,83 @@ export default function RewardsHunt({
         entry.clue.trim()
     );
 
-  const [answers, setAnswers] = useState({});
+    const [storageKey] = useState(() => {
+    let ekonId = "customer";
+
+    try {
+      const customer = JSON.parse(
+        localStorage.getItem("ek_customer_data") || "null"
+      );
+      ekonId = customer?.ekonId || ekonId;
+    } catch {
+      // Customer authentication is enforced by the API.
+    }
+
+    return `ek-hunt-pending:${ekonId}:${game._id}`;
+  });
+
+  const [recoveredAttempt] = useState(() => {
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem(storageKey) || "null"
+      );
+
+      if (
+        saved?.gameId !== String(game._id) ||
+        typeof saved.attemptId !== "string" ||
+        !/^[a-zA-Z0-9_-]{16,100}$/.test(saved.attemptId) ||
+        typeof saved.submittedAnswer !== "string" ||
+        saved.submittedAnswer.length > 2000
+      ) {
+        return null;
+      }
+
+      const entries = JSON.parse(saved.submittedAnswer);
+
+      if (
+        !Array.isArray(entries) ||
+        entries.length !== clues.length ||
+        !entries.every(
+          (entry, index) =>
+            entry?.id === clues[index]?.id &&
+            typeof entry.answer === "string" &&
+            entry.answer.trim().length > 0 &&
+            entry.answer.length <= 100
+        )
+      ) {
+        return null;
+      }
+
+      return {
+        gameId: String(game._id),
+        attemptId: saved.attemptId,
+        submittedAnswer: saved.submittedAnswer,
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  const [answers, setAnswers] = useState(() =>
+    recoveredAttempt ? readSavedAnswers(recoveredAttempt) : {}
+  );
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [retryPending, setRetryPending] = useState(
+    Boolean(recoveredAttempt)
+  );
 
   const requestBusyRef = useRef(false);
+  const pendingAttemptRef = useRef(recoveredAttempt);
+  const firstAnswerRef = useRef(null);
 
-  const play = result?.play || recordedPlay;
+  // Earlier completed hunts do not lock a new attempt.
+  const play = result?.play;
   const completed = Boolean(play);
-  const locked = completed || busy || needsRefresh;
+  const locked = completed || busy || retryPending;
+  const practice = play?.playMode === "Practice";
+
   const displayedAnswers = completed
     ? readSavedAnswers(play)
     : answers;
@@ -65,12 +131,35 @@ export default function RewardsHunt({
     (entry) => displayedAnswers[entry.id]?.trim()
   ).length;
 
+  const score =
+    Number.isSafeInteger(play?.scoreEarned)
+      ? play.scoreEarned
+      : 0;
+
+  const clearSavedAttempt = () => {
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // A remaining saved ID can safely return its existing result.
+    }
+  };
+
   const submitHunt = async (event) => {
     event.preventDefault();
 
-    if (!valid || locked || requestBusyRef.current) return;
+    if (
+      !valid ||
+      completed ||
+      busy ||
+      requestBusyRef.current
+    ) {
+      return;
+    }
 
-    if (entered !== clues.length) {
+    if (
+      !pendingAttemptRef.current &&
+      entered !== clues.length
+    ) {
       setError("Enter an answer for every clue before submitting.");
       return;
     }
@@ -79,54 +168,117 @@ export default function RewardsHunt({
     setBusy(true);
     setError("");
 
+    let confirmedPlay = null;
+
     try {
-      const response = await api.post(
-        "/api/rewards-hub-games/play",
-        {
-          gameId: game._id,
+      let attempt = pendingAttemptRef.current;
+
+      if (!attempt) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+
+        attempt = {
+          gameId: String(game._id),
+          attemptId: Array.from(
+            bytes,
+            (byte) => byte.toString(16).padStart(2, "0")
+          ).join(""),
           submittedAnswer: JSON.stringify(
             clues.map((entry) => ({
               id: entry.id,
               answer: (answers[entry.id] || "").trim(),
             }))
           ),
+        };
+
+        try {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify(attempt)
+          );
+        } catch {
+          setError(
+            "This browser could not save your pending hunt. " +
+            "Allow site storage, then try again."
+          );
+          return;
         }
+
+        pendingAttemptRef.current = attempt;
+      }
+
+      setRetryPending(true);
+
+      const response = await api.post(
+        "/api/rewards-hub-games/play",
+        attempt
       );
 
       const data = response.data?.data;
 
       if (!data?.play?._id) {
-        setNeedsRefresh(true);
         setError(
-          "Could not confirm completion. Refresh the page " +
-          "to check your game history."
+          "Your completion could not be confirmed. " +
+          "Use Check saved hunt to retry the same attempt."
         );
         return;
       }
 
+      confirmedPlay = data.play;
+
       setResult({
-        play: data.play,
+        ...data,
         message: response.data.message,
       });
 
-      onRecorded?.(data.play);
+      clearSavedAttempt();
+      pendingAttemptRef.current = null;
+      setRetryPending(false);
     } catch (submissionError) {
       const status = submissionError?.response?.status;
 
-      if (!status || status >= 500 || status === 409) {
-        setNeedsRefresh(true);
+      if (status === 400) {
+        // Incorrect or incomplete answers have not recorded a play.
+        // Unlock the fields so the customer can correct them.
+        clearSavedAttempt();
+        pendingAttemptRef.current = null;
+        setRetryPending(false);
       }
 
       setError(
         submissionError?.response?.data?.message ||
-          "Could not confirm completion. Refresh the page " +
-          "to check your game history."
+          "Your completion could not be confirmed. " +
+          "Use Check saved hunt to retry the same attempt."
       );
     } finally {
       requestBusyRef.current = false;
       setBusy(false);
     }
+
+    if (confirmedPlay) {
+      onRecorded?.(confirmedPlay);
+    }
   };
+
+  const playAgain = () => {
+    if (
+      busy ||
+      retryPending ||
+      requestBusyRef.current
+    ) {
+      return;
+    }
+
+    setAnswers({});
+    setResult(null);
+    setError("");
+    pendingAttemptRef.current = null;
+
+    window.requestAnimationFrame(() => {
+      firstAnswerRef.current?.focus();
+    });
+  };
+
 
   if (!valid) {
     return (
@@ -222,7 +374,8 @@ export default function RewardsHunt({
                 <label className="ek-hunt-answer">
                   Your answer
                   <input
-                    type="text"
+                                        type="text"
+                    ref={index === 0 ? firstAnswerRef : undefined}
                     maxLength={100}
                     autoComplete="off"
                     value={displayedAnswers[entry.id] || ""}
@@ -262,9 +415,16 @@ export default function RewardsHunt({
             <button
               type="submit"
               className="ek-hunt-submit"
-              disabled={locked || entered !== clues.length}
+                           disabled={
+                busy ||
+                (!retryPending && entered !== clues.length)
+              }
             >
-              {busy ? "Checking your discoveries…" : "Submit completed hunt"}
+                            {busy
+                ? "Checking your discoveries…"
+                : retryPending
+                  ? "Check saved hunt"
+                  : "Submit completed hunt"}
             </button>
           </div>
         ) : null}
@@ -274,9 +434,20 @@ export default function RewardsHunt({
         <p className="ek-hunt-error" role="alert">{error}</p>
       ) : null}
 
-      {needsRefresh ? (
+            {retryPending ? (
+        <p className="ek-hunt-note" role="status">
+          A hunt is awaiting confirmation. Use Check saved hunt
+          to recover that same attempt before starting another.
+        </p>
+      ) : null}
+
+      {!completed && !retryPending ? (
         <p className="ek-hunt-note">
-          Refresh the page to check your history before retrying.
+          {recordedPlay
+            ? "Your earlier completed hunts remain saved. "
+            : ""}
+          Solve every clue to earn game score. You can complete
+          this hunt repeatedly; reward limits still apply.
         </p>
       ) : null}
 
@@ -295,13 +466,38 @@ export default function RewardsHunt({
                 : "Check your game history for this attempt.")}
           </p>
 
+                    <p>
+            <strong>
+              Game score earned: +{score.toLocaleString()}
+            </strong>
+          </p>
+
+          {practice ? (
+            <p>
+              Practice completion — no reward awarded.
+              Your game score still counts.
+            </p>
+          ) : null}
+
+
           {Number.isFinite(credited) ? (
             <strong>{credited.toLocaleString()} EK Points credited</strong>
           ) : null}
 
-          <p className="ek-hunt-note">
-            This completed play is saved. You cannot claim its reward again.
+                    <p className="ek-hunt-note">
+            This completed hunt is saved. Play again starts a
+            separate attempt; reward limits still apply.
           </p>
+
+          <div className="ek-hunt-actions">
+            <button
+              type="button"
+              className="ek-hunt-submit"
+              onClick={playAgain}
+            >
+              Play again
+            </button>
+          </div>
         </div>
       ) : null}
 
