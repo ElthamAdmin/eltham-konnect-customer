@@ -8,6 +8,7 @@ import RewardsCrossword from "../components/RewardsCrossword";
 import RewardsTrivia from "../components/RewardsTrivia";
 import RewardsWheel from "../components/RewardsWheel";
 import RewardsScratch from "../components/RewardsScratch";
+import RewardsHunt from "../components/RewardsHunt";
 
 function RewardsHub() {
   const [posts, setPosts] = useState([]);
@@ -397,9 +398,9 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-                            {["Scavenger Hunt", "Match Image"]
-  .includes(game.gameType) &&
-game.options?.length > 0 ? (
+                            {["Scavenger Hunt", "Match Image"].includes(game.gameType) &&
+ !(game.gameType === "Scavenger Hunt" && game.engineVersion === 2) &&
+ game.options?.length > 0 ? (
                 <select
                   value={answers[game._id] || ""}
                   onChange={(e) =>
@@ -423,7 +424,8 @@ game.options?.length > 0 ? (
                     </option>
                   ))}
                 </select>
-              ) : ["Scavenger Hunt", "Match Image"].includes(game.gameType) ? (
+              ) : ["Scavenger Hunt", "Match Image"].includes(game.gameType) &&
+    !(game.gameType === "Scavenger Hunt" && game.engineVersion === 2) ? (
                 <input
                   type="text"
                   placeholder="Enter your answer"
@@ -522,7 +524,27 @@ game.options?.length > 0 ? (
                 </div>
               ) : null}
 
-                                              {game.gameType === "Scratch Card" &&
+                                                            {game.gameType === "Scavenger Hunt" &&
+              game.engineVersion === 2 ? (
+                <RewardsHunt
+                  key={game._id}
+                  game={game}
+                  recordedPlay={gamePlays.find(
+                    (play) =>
+                      String(play.gameId) === String(game._id)
+                  )}
+                  onRecorded={(play) => {
+                    setGamePlays((previous) =>
+                      previous.some(
+                        (existing) =>
+                          String(existing._id) === String(play._id)
+                      )
+                        ? previous
+                        : [...previous, play]
+                    );
+                  }}
+                />
+              ) : game.gameType === "Scratch Card" &&
               game.engineVersion === 2 ? (
                 <RewardsScratch
                   key={game._id}
