@@ -9,6 +9,7 @@ import RewardsTrivia from "../components/RewardsTrivia";
 import RewardsWheel from "../components/RewardsWheel";
 import RewardsScratch from "../components/RewardsScratch";
 import RewardsHunt from "../components/RewardsHunt";
+import RewardsMatchImage from "../components/RewardsMatchImage";
 
 function RewardsHub() {
   const [posts, setPosts] = useState([]);
@@ -573,7 +574,10 @@ const playGame = async (game) => {
               ) : null}
 
                             {["Scavenger Hunt", "Match Image"].includes(game.gameType) &&
- !(game.gameType === "Scavenger Hunt" && game.engineVersion === 2) &&
+ !(
+  ["Scavenger Hunt", "Match Image"].includes(game.gameType) &&
+  game.engineVersion === 2
+) &&
  game.options?.length > 0 ? (
                 <select
                   value={answers[game._id] || ""}
@@ -599,7 +603,10 @@ const playGame = async (game) => {
                   ))}
                 </select>
               ) : ["Scavenger Hunt", "Match Image"].includes(game.gameType) &&
-    !(game.gameType === "Scavenger Hunt" && game.engineVersion === 2) ? (
+    !(
+  ["Scavenger Hunt", "Match Image"].includes(game.gameType) &&
+  game.engineVersion === 2
+) ? (
                 <input
                   type="text"
                   placeholder="Enter your answer"
@@ -700,7 +707,23 @@ const playGame = async (game) => {
                 </div>
               ) : null}
 
-                                                            {game.gameType === "Scavenger Hunt" &&
+              {game.gameType === "Match Image" &&
+              game.engineVersion === 2 ? (
+                <RewardsMatchImage
+                  key={game._id}
+                  game={game}
+                  onRecorded={(play) => {
+                    setGamePlays((previous) =>
+                      previous.some(
+                        (existing) =>
+                          String(existing._id) === String(play._id)
+                      )
+                        ? previous
+                        : [...previous, play]
+                    );
+                  }}
+                />
+              ) : game.gameType === "Scavenger Hunt" &&
               game.engineVersion === 2 ? (
                 <RewardsHunt
                   key={game._id}
