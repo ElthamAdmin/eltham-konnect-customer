@@ -15,17 +15,58 @@ export default function RewardsTrivia({
   recordedPlay,
   onRecorded,
 }) {
-  const [selected, setSelected] = useState("");
+  const [storageKey] = useState(() => {
+    let ekonId = "customer";
+
+    try {
+      const customer = JSON.parse(
+        localStorage.getItem("ek_customer_data") || "null"
+      );
+      ekonId = customer?.ekonId || ekonId;
+    } catch {
+      // Authentication is still enforced by the API.
+    }
+
+    return `ek-trivia-pending:${ekonId}:${game._id}`;
+  });
+
+  const [recoveredAttempt] = useState(() => {
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem(storageKey) || "null"
+      );
+
+      return (
+        saved?.gameId === String(game._id) &&
+        typeof saved.attemptId === "string" &&
+        /^[a-zA-Z0-9_-]{16,100}$/.test(saved.attemptId) &&
+        typeof saved.submittedAnswer === "string" &&
+        saved.submittedAnswer.length <= 500
+      )
+        ? saved
+        : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [selected, setSelected] = useState(
+    recoveredAttempt?.submittedAnswer || ""
+  );
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [retryPending, setRetryPending] = useState(
+    Boolean(recoveredAttempt)
+  );
 
   const requestBusyRef = useRef(false);
+  const pendingAttemptRef = useRef(recoveredAttempt);
 
-  const play = result?.play || recordedPlay;
+  // Historical plays no longer lock a new Trivia attempt.
+  const play = result?.play;
   const completed = Boolean(play);
-  const locked = completed || busy || needsRefresh;
+  const locked = completed || busy || retryPending;
 
   const options = Array.isArray(game.options)
     ? game.options.filter(
@@ -33,11 +74,19 @@ export default function RewardsTrivia({
       )
     : [];
 
-  const displayedAnswer =
-    play?.submittedAnswer || selected;
+  const displayedAnswer = play?.submittedAnswer || selected;
+
+  const clearSavedAttempt = () => {
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // A remaining saved ID is safe to retry:
+      // the backend returns its existing result.
+    }
+  };
 
   const submitAnswer = async () => {
-    if (locked || requestBusyRef.current) return;
+    if (completed || busy || requestBusyRef.current) return;
 
     if (!selected.trim()) {
       setError("Choose an answer before submitting.");
@@ -48,56 +97,116 @@ export default function RewardsTrivia({
     setBusy(true);
     setError("");
 
+    let confirmedPlay = null;
+
     try {
+      let attempt = pendingAttemptRef.current;
+
+      if (!attempt) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+
+        attempt = {
+          gameId: String(game._id),
+          attemptId: Array.from(
+            bytes,
+            (byte) => byte.toString(16).padStart(2, "0")
+          ).join(""),
+          submittedAnswer: selected.trim(),
+        };
+
+        // Save before sending. Do not submit if the pending
+        // attempt cannot be saved for recovery.
+        try {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify(attempt)
+          );
+        } catch {
+          setError(
+            "This browser could not save your pending attempt. " +
+            "Allow site storage, then try again."
+          );
+          return;
+        }
+
+        pendingAttemptRef.current = attempt;
+      }
+
+      setRetryPending(true);
+
       const response = await api.post(
         "/api/rewards-hub-games/play",
-        {
-          gameId: game._id,
-          submittedAnswer: selected.trim(),
-        }
+        attempt
       );
 
       const data = response.data?.data;
 
       if (!data?.play?._id) {
-        setNeedsRefresh(true);
         setError(
-          "Your submission could not be confirmed. " +
-          "Refresh the page to check your game history."
+          "The result could not be confirmed. " +
+          "Use Check saved attempt to retry the same submission."
         );
         return;
       }
+
+      confirmedPlay = data.play;
 
       setResult({
         ...data,
         message: response.data.message,
       });
 
-      onRecorded?.(data.play);
+      clearSavedAttempt();
+      pendingAttemptRef.current = null;
+      setRetryPending(false);
     } catch (submissionError) {
       const status = submissionError?.response?.status;
 
-      if (!status || status >= 500 || status === 409) {
-        setNeedsRefresh(true);
+      if (status === 400) {
+        // Validation failed without recording a play.
+        clearSavedAttempt();
+        pendingAttemptRef.current = null;
+        setRetryPending(false);
       }
 
       setError(
         submissionError?.response?.data?.message ||
-          "Could not confirm your submission. " +
-          "Refresh the page to check your game history."
+          "The result could not be confirmed. " +
+          "Use Check saved attempt to retry the same submission."
       );
     } finally {
       requestBusyRef.current = false;
       setBusy(false);
     }
+
+    if (confirmedPlay) {
+      onRecorded?.(confirmedPlay);
+    }
+  };
+
+  const playAgain = () => {
+    if (busy || requestBusyRef.current || retryPending) return;
+
+    setSelected("");
+    setResult(null);
+    setError("");
+    pendingAttemptRef.current = null;
   };
 
   const correct = play?.isCorrect === true;
+  const practice = play?.playMode === "Practice";
 
   const points =
     play?.pointsAwarded == null
       ? null
       : Number(play.pointsAwarded);
+
+  const score =
+    Number.isSafeInteger(play?.scoreEarned)
+      ? play.scoreEarned
+      : 0;
+
 
   return (
     <section className="ek-trivia" aria-label="Trivia game">
@@ -109,7 +218,8 @@ export default function RewardsTrivia({
         <h3>{game.question || "What is your answer?"}</h3>
 
         <p>
-          Choose carefully. You have one recorded attempt.
+                    Play again whenever you like. Correct answers earn game
+          score; rewards follow this game's reward limits.
         </p>
       </div>
 
@@ -187,13 +297,24 @@ export default function RewardsTrivia({
               : "Select an answer to get started."}
           </p>
 
+                    {retryPending ? (
+            <p className="ek-trivia-note" role="status">
+              An attempt is awaiting confirmation. Your answer
+              is locked until its saved result is checked.
+            </p>
+          ) : null}
+
           <button
             type="button"
             className="ek-trivia-submit"
-            disabled={locked || !selected.trim()}
+            disabled={busy || !selected.trim()}
             onClick={submitAnswer}
           >
-            {busy ? "Checking your answer…" : "Submit answer"}
+            {busy
+              ? "Checking your answer…"
+              : retryPending
+                ? "Check saved attempt"
+                : "Submit answer"}
           </button>
         </>
       ) : (
@@ -217,9 +338,21 @@ export default function RewardsTrivia({
             {result?.message ||
               (correct
                 ? "Your successful play has been recorded."
-                : "Your attempt has been recorded. " +
-                  "Look out for the next Trivia challenge.")}
+                                : "Your attempt has been recorded. " +
+                  "You can play again.")}
           </p>
+
+                    <p style={{ fontWeight: "bold" }}>
+            Game score earned: +{score.toLocaleString()}
+          </p>
+
+          {practice ? (
+            <p>
+              Practice play — no reward awarded.
+              Your game score still counts.
+            </p>
+          ) : null}
+
 
           {Number.isFinite(points) ? (
             <span className="ek-trivia-points">
@@ -227,9 +360,18 @@ export default function RewardsTrivia({
             </span>
           ) : null}
 
-          {correct && result?.rewardText ? (
+                    {correct && !practice && result?.rewardText ? (
             <p>{result.rewardText}</p>
           ) : null}
+
+          <button
+            type="button"
+            className="ek-trivia-submit"
+            style={{ marginTop: "16px" }}
+            onClick={playAgain}
+          >
+            Play again
+          </button>
         </div>
       )}
 
@@ -239,9 +381,10 @@ export default function RewardsTrivia({
         </p>
       ) : null}
 
-      {needsRefresh ? (
+            {!completed && !retryPending && recordedPlay ? (
         <p className="ek-trivia-note">
-          Refresh this page before attempting another submission.
+          Previous plays are saved. This is a new attempt;
+          reward eligibility is checked when you submit.
         </p>
       ) : null}
 
