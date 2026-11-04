@@ -64,6 +64,51 @@ export default function RewardsSnake({
     config.seed > 0 &&
     config.seed < 2147483647;
 
+      const [storageKey] = useState(() => {
+    let ekonId = "customer";
+
+    try {
+      const customer = JSON.parse(
+        localStorage.getItem("ek_customer_data") || "null"
+      );
+      ekonId = customer?.ekonId || ekonId;
+    } catch {
+      // Customer authentication is enforced by the API.
+    }
+
+    return `ek-snake-pending:${ekonId}:${game._id}`;
+  });
+
+  const [recoveredAttempt] = useState(() => {
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem(storageKey) || "null"
+      );
+
+      return (
+        saved?.gameId === String(game._id) &&
+        typeof saved.attemptId === "string" &&
+        /^[a-zA-Z0-9_-]{16,100}$/.test(saved.attemptId) &&
+        typeof saved.submittedAnswer === "string" &&
+        /^[UDLR]{1,1500}$/.test(saved.submittedAnswer)
+      )
+        ? {
+            gameId: String(game._id),
+            attemptId: saved.attemptId,
+            submittedAnswer: saved.submittedAnswer,
+          }
+        : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const pendingAttemptRef = useRef(recoveredAttempt);
+  const [retryPending, setRetryPending] = useState(
+    Boolean(recoveredAttempt)
+  );
+
+
   const stateRef = useRef(null);
 
   if (stateRef.current === null) {
@@ -74,7 +119,9 @@ export default function RewardsSnake({
   const requestBusy = useRef(false);
   const [snapshot, setSnapshot] = useState(stateRef.current);
   const [busy, setBusy] = useState(false);
-  const [recorded, setRecorded] = useState(false);
+    const [result, setResult] = useState(null);
+  const play = result?.play;
+  const recorded = Boolean(play);
   const [message, setMessage] = useState("");
 
   const publish = () => setSnapshot({ ...stateRef.current });
@@ -103,9 +150,10 @@ export default function RewardsSnake({
 
   useEffect(() => {
     if (
-      !valid ||
-      alreadyPlayed ||
+            !valid ||
       recorded ||
+      busy ||
+      retryPending ||
       snapshot.status !== "Playing"
     ) return;
 
@@ -176,15 +224,17 @@ export default function RewardsSnake({
     }, 180);
 
     return () => window.clearInterval(timer);
-  }, [valid, alreadyPlayed, recorded, snapshot.status]);
+    }, [valid, recorded, busy, retryPending, snapshot.status]);
 
   const turn = (direction) => {
     const state = stateRef.current;
 
     if (
       state.status !== "Playing" ||
-      alreadyPlayed ||
-      recorded ||
+            recorded ||
+      busy ||
+      retryPending ||
+      requestBusy.current ||
       pendingDirection.current
     ) return;
 
@@ -194,7 +244,12 @@ export default function RewardsSnake({
   };
 
   const startOrResume = () => {
-    if (alreadyPlayed || recorded || busy) return;
+        if (
+      recorded ||
+      busy ||
+      retryPending ||
+      requestBusy.current
+    ) return;
 
     if (["Ready", "Paused"].includes(stateRef.current.status)) {
       stateRef.current = {
@@ -206,58 +261,121 @@ export default function RewardsSnake({
     }
   };
 
-  const restart = () => {
-    if (alreadyPlayed || recorded || busy) return;
+    const restart = () => {
+    if (busy || retryPending || requestBusy.current) return;
 
     stateRef.current = initialState(config.seed);
     pendingDirection.current = null;
+    pendingAttemptRef.current = null;
+    setResult(null);
     setMessage("");
     publish();
+  };
+
+  const clearSavedAttempt = () => {
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // A remaining saved ID safely returns its existing result.
+    }
   };
 
   const submit = async () => {
     if (
       requestBusy.current ||
-      alreadyPlayed ||
+      busy ||
       recorded ||
-      stateRef.current.status !== "Won"
+      (
+        !pendingAttemptRef.current &&
+        stateRef.current.status !== "Won"
+      )
     ) return;
 
     requestBusy.current = true;
     setBusy(true);
     setMessage("");
 
+    let confirmedPlay = null;
+
     try {
-      const response = await api.post(
-        "/api/rewards-hub-games/play",
-        {
-          gameId: game._id,
+      let attempt = pendingAttemptRef.current;
+
+      if (!attempt) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+
+        attempt = {
+          gameId: String(game._id),
+          attemptId: Array.from(
+            bytes,
+            (byte) => byte.toString(16).padStart(2, "0")
+          ).join(""),
           submittedAnswer: stateRef.current.moves,
+        };
+
+        try {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify(attempt)
+          );
+        } catch {
+          setMessage(
+            "This browser could not save your pending run. " +
+            "Allow site storage, then try again."
+          );
+          return;
         }
-      );
 
-      const play = response.data?.data?.play;
-
-      if (!response.data?.success || !play) {
-        throw new Error(
-          "Could not confirm completion. Refresh game history before retrying."
-        );
+        pendingAttemptRef.current = attempt;
       }
 
-      setRecorded(true);
+      setRetryPending(true);
+
+      const response = await api.post(
+        "/api/rewards-hub-games/play",
+        attempt
+      );
+
+      const data = response.data?.data;
+
+      if (!response.data?.success || !data?.play?._id) {
+        setMessage(
+          "Completion could not be confirmed. Use Check saved " +
+          "run to retry the same attempt."
+        );
+        return;
+      }
+
+      confirmedPlay = data.play;
+      setResult(data);
+
+      clearSavedAttempt();
+      pendingAttemptRef.current = null;
+      setRetryPending(false);
+
       setMessage(response.data.message || "Snake completed.");
-      onRecorded?.(play);
     } catch (error) {
+      if (error.response?.status === 400) {
+        clearSavedAttempt();
+        pendingAttemptRef.current = null;
+        setRetryPending(false);
+      }
+
       setMessage(
         error.response?.data?.message ||
-          error.message ||
-          "Could not submit this run."
+          "Completion could not be confirmed. Use Check saved " +
+          "run to retry the same attempt."
       );
     } finally {
       requestBusy.current = false;
       setBusy(false);
     }
+
+    if (confirmedPlay) {
+      onRecorded?.(confirmedPlay);
+    }
   };
+
 
   if (!valid) {
     return <p role="alert">This Snake board is unavailable.</p>;
@@ -267,7 +385,17 @@ export default function RewardsSnake({
     snapshot.body.map(([row, column]) => `${row},${column}`)
   );
 
-  const locked = alreadyPlayed || recorded || busy;
+    const locked = recorded || busy || retryPending;
+
+  const score =
+    Number.isSafeInteger(play?.scoreEarned)
+      ? play.scoreEarned
+      : 0;
+
+  const credited =
+    Number.isSafeInteger(play?.pointsAwarded)
+      ? play.pointsAwarded
+      : 0;
 
   return (
     <section
@@ -337,9 +465,11 @@ export default function RewardsSnake({
       `}</style>
 
       <p style={{ fontSize: "14px", lineHeight: 1.6 }}>
-        {config.rules}
-        {" "}Select Start, then use the arrow keys or buttons below.
-        Leaving the game or switching tabs pauses it.
+                Collect 5 pieces of food without hitting a wall or
+        your snake. Select Start, then use the arrow keys or
+        buttons below. Leaving the game or switching tabs
+        pauses it. Submit a completed run to earn game score.
+        You can play repeatedly; reward limits still apply.
       </p>
 
       <strong>
@@ -378,14 +508,14 @@ export default function RewardsSnake({
         })}
       </div>
 
-      {!alreadyPlayed && !recorded && (
+            {!recorded && (
         <>
           <div className="ek-snake-actions">
             {["Ready", "Paused"].includes(snapshot.status) && (
               <button
                 type="button"
                 className="ek-snake-primary"
-                disabled={busy}
+                                disabled={locked}
                 onClick={startOrResume}
               >
                 {snapshot.status === "Paused" ? "Resume" : "Start"}
@@ -396,7 +526,11 @@ export default function RewardsSnake({
               <button type="button" onClick={pause}>Pause</button>
             )}
 
-            <button type="button" disabled={busy} onClick={restart}>
+                        <button
+              type="button"
+              disabled={locked}
+              onClick={restart}
+            >
               Restart
             </button>
           </div>
@@ -425,7 +559,7 @@ export default function RewardsSnake({
             </p>
           )}
 
-          {snapshot.status === "Won" && (
+                    {(snapshot.status === "Won" || retryPending) && (
             <div className="ek-snake-actions">
               <button
                 type="button"
@@ -433,16 +567,73 @@ export default function RewardsSnake({
                 disabled={busy}
                 onClick={submit}
               >
-                {busy ? "Checking…" : "Submit completed run"}
+                                {busy
+                  ? "Checking…"
+                  : retryPending
+                    ? "Check saved run"
+                    : "Submit completed run"}
               </button>
             </div>
           )}
         </>
       )}
 
-      {(alreadyPlayed || recorded) && (
-        <p>Your play has been recorded.</p>
-      )}
+            {retryPending && !recorded ? (
+        <p role="status" style={{ lineHeight: 1.6 }}>
+          A completed run is awaiting confirmation. Use Check
+          saved run before restarting. After a page refresh,
+          the board preview resets, but your submitted moves
+          remain saved for checking.
+        </p>
+      ) : null}
+
+      {!recorded && !retryPending && alreadyPlayed ? (
+        <p style={{ lineHeight: 1.6 }}>
+          Your earlier runs remain saved. You can play again;
+          reward eligibility is checked when you submit.
+        </p>
+      ) : null}
+
+      {recorded ? (
+        <div
+          role="status"
+          style={{
+            padding: "18px",
+            border: "1px solid #86efac",
+            borderRadius: "12px",
+            background: "#ecfdf5",
+            textAlign: "center",
+            lineHeight: 1.7,
+          }}
+        >
+          <strong>Completed run saved!</strong>
+
+          <p>
+            Game score earned: +{score.toLocaleString()}
+          </p>
+
+          <p>
+            {credited.toLocaleString()} EK Points credited
+          </p>
+
+          {play.playMode === "Practice" ? (
+            <p>
+              Practice completion — no reward awarded.
+              Your game score still counts.
+            </p>
+          ) : null}
+
+          <div className="ek-snake-actions">
+            <button
+              type="button"
+              className="ek-snake-primary"
+              onClick={restart}
+            >
+              Play again
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {message && (
         <p role="status" style={{
