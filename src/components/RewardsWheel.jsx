@@ -35,17 +35,58 @@ export default function RewardsWheel({
         segment.points <= 1500
     );
 
+    const [storageKey] = useState(() => {
+    let ekonId = "customer";
+
+    try {
+      const customer = JSON.parse(
+        localStorage.getItem("ek_customer_data") || "null"
+      );
+      ekonId = customer?.ekonId || ekonId;
+    } catch {
+      // The API still enforces customer authentication.
+    }
+
+    return `ek-wheel-pending:${ekonId}:${game._id}`;
+  });
+
+  const [recoveredAttempt] = useState(() => {
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem(storageKey) || "null"
+      );
+
+      return (
+        saved?.gameId === String(game._id) &&
+        typeof saved.attemptId === "string" &&
+        /^[a-zA-Z0-9_-]{16,100}$/.test(saved.attemptId)
+      )
+        ? {
+            gameId: String(game._id),
+            attemptId: saved.attemptId,
+          }
+        : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [result, setResult] = useState(null);
   const [phase, setPhase] = useState("idle");
   const [rotation, setRotation] = useState(0);
   const [duration, setDuration] = useState(4000);
   const [error, setError] = useState("");
-  const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [retryPending, setRetryPending] = useState(
+    Boolean(recoveredAttempt)
+  );
 
   const requestBusyRef = useRef(false);
+  const pendingAttemptRef = useRef(recoveredAttempt);
 
-  const play = result?.play || recordedPlay;
+  // A previous spin does not lock a new attempt.
+  const play = result?.play;
   const outcome = play?.outcome;
+  const practice = play?.playMode === "Practice";
 
   const busy =
     phase === "requesting" || phase === "spinning";
@@ -60,32 +101,14 @@ export default function RewardsWheel({
     outcome.segmentIndex < segments.length &&
     segments[outcome.segmentIndex]?.id === outcome.segmentId;
 
-  // Restore the saved landing position when history loads.
-  useEffect(() => {
-    if (
-      !valid ||
-      phase !== "idle" ||
-      !recordedPlay?.outcome
-    ) {
-      return;
+  const clearSavedAttempt = () => {
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // Retrying a remaining saved ID returns its existing result.
     }
+  };
 
-    const saved = recordedPlay.outcome;
-
-    if (
-      Number.isInteger(saved.segmentIndex) &&
-      saved.segmentIndex >= 0 &&
-      saved.segmentIndex < segments.length &&
-      segments[saved.segmentIndex]?.id === saved.segmentId
-    ) {
-      setRotation(
-        landingAngle(saved.segmentIndex, segments.length)
-      );
-    }
-  }, [valid, phase, recordedPlay, segments]);
-
-  // A timer also completes the reveal if a browser skips
-  // transitionend after switching tabs.
   useEffect(() => {
     if (phase !== "spinning") return undefined;
 
@@ -102,7 +125,6 @@ export default function RewardsWheel({
       !valid ||
       completed ||
       busy ||
-      needsRefresh ||
       requestBusyRef.current
     ) {
       return;
@@ -112,78 +134,141 @@ export default function RewardsWheel({
     setPhase("requesting");
     setError("");
 
+    let confirmedPlay = null;
+
     try {
+      let attempt = pendingAttemptRef.current;
+
+      if (!attempt) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+
+        attempt = {
+          gameId: String(game._id),
+          attemptId: Array.from(
+            bytes,
+            (byte) => byte.toString(16).padStart(2, "0")
+          ).join(""),
+        };
+
+        try {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify(attempt)
+          );
+        } catch {
+          setError(
+            "This browser could not save your pending spin. " +
+            "Allow site storage, then try again."
+          );
+          setPhase("idle");
+          return;
+        }
+
+        pendingAttemptRef.current = attempt;
+      }
+
+      setRetryPending(true);
+
       const response = await api.post(
         "/api/rewards-hub-games/play",
-        { gameId: game._id }
+        attempt
       );
 
       const data = response.data?.data;
       const saved = data?.play?.outcome;
 
       if (!data?.play?._id) {
-        setNeedsRefresh(true);
         setError(
-          "Could not confirm your spin. Refresh the page " +
-          "to check your saved result."
+          "Your spin could not be confirmed. Use Check saved " +
+          "spin to retry the same attempt."
         );
         setPhase("idle");
         return;
       }
 
+      confirmedPlay = data.play;
+
       setResult({
-        play: data.play,
+        ...data,
         message: response.data.message,
       });
 
-      // Save the play in the page immediately. Animation
-      // completion does not control whether a prize is awarded.
-      onRecorded?.(data.play);
+      clearSavedAttempt();
+      pendingAttemptRef.current = null;
+      setRetryPending(false);
 
-      if (
-        !saved ||
-        !Number.isInteger(saved.segmentIndex) ||
-        saved.segmentIndex < 0 ||
-        saved.segmentIndex >= segments.length ||
-        segments[saved.segmentIndex]?.id !== saved.segmentId
-      ) {
+      const validPosition =
+        saved &&
+        Number.isInteger(saved.segmentIndex) &&
+        saved.segmentIndex >= 0 &&
+        saved.segmentIndex < segments.length &&
+        segments[saved.segmentIndex]?.id === saved.segmentId;
+
+      if (!validPosition) {
         setPhase("done");
         setError(
-          "Your spin was recorded, but its wheel position " +
-          "could not be displayed. Refresh to check your history."
+          "Your spin was saved, but its wheel position " +
+          "could not be displayed."
         );
-        return;
+      } else {
+        const reducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+        setDuration(reducedMotion ? 0 : 4000);
+
+        // Always move forward, including when two consecutive
+        // spins land on the same segment.
+        setRotation(
+          (previous) =>
+            Math.floor(previous / 360) * 360 +
+            6 * 360 +
+            landingAngle(saved.segmentIndex, segments.length)
+        );
+
+        setPhase(reducedMotion ? "done" : "spinning");
       }
-
-      const reducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-      ).matches;
-
-      setDuration(reducedMotion ? 0 : 4000);
-      setPhase("spinning");
-
-      setRotation(
-        5 * 360 +
-        landingAngle(saved.segmentIndex, segments.length)
-      );
     } catch (spinError) {
       const status = spinError?.response?.status;
 
-      if (!status || status >= 500 || status === 409) {
-        setNeedsRefresh(true);
+      if (status === 400) {
+        clearSavedAttempt();
+        pendingAttemptRef.current = null;
+        setRetryPending(false);
       }
 
       setError(
         spinError?.response?.data?.message ||
-          "Could not confirm your spin. Refresh the page " +
-          "to check your saved result."
+          "Your spin could not be confirmed. Use Check saved " +
+          "spin to retry the same attempt."
       );
 
       setPhase("idle");
     } finally {
       requestBusyRef.current = false;
     }
+
+    if (confirmedPlay) {
+      onRecorded?.(confirmedPlay);
+    }
   };
+
+  const spinAgain = () => {
+    if (
+      busy ||
+      retryPending ||
+      requestBusyRef.current
+    ) {
+      return;
+    }
+
+    setResult(null);
+    setError("");
+    setPhase("idle");
+    pendingAttemptRef.current = null;
+  };
+
 
   if (!valid) {
     return (
@@ -213,7 +298,13 @@ export default function RewardsWheel({
     outcome?.prizeType ||
     (outcome?.points > 0 ? "Points" : "No Prize");
 
-  const won = completed && prizeType !== "No Prize";
+    const won =
+    completed && !practice && prizeType !== "No Prize";
+
+  const score =
+    Number.isSafeInteger(play?.scoreEarned)
+      ? play.scoreEarned
+      : 0;
 
   const credited =
     play?.pointsAwarded == null
@@ -225,12 +316,14 @@ export default function RewardsWheel({
       <div className="ek-customer-wheel-banner">
         <span aria-hidden="true">✦</span>
         <strong>SPIN THE EK REWARDS WHEEL</strong>
-        <p>One spin. A colourful surprise.</p>
+                <p>Keep spinning. Keep building your game score.</p>
       </div>
 
       <p className="ek-customer-wheel-rules">
-        Every segment has an equal chance. Your result is
-        selected and saved when you press Spin.
+                Every segment has an equal chance. Each new spin is
+        selected and saved by the server. Rewards follow this
+        game's limits; additional spins are practice and award
+        no prize or EK Points.
       </p>
 
       <div className="ek-customer-wheel-stage" aria-hidden="true">
@@ -291,15 +384,29 @@ export default function RewardsWheel({
         ) : null}
       </div>
 
-      {!completed ? (
-        <button
-          type="button"
-          className="ek-customer-wheel-spin"
-          disabled={busy || needsRefresh}
-          onClick={spin}
-        >
-          {busy ? "Spin in progress…" : "Spin the wheel"}
-        </button>
+            {!completed ? (
+        <>
+          <p className="ek-customer-wheel-rules">
+            {retryPending
+              ? "A spin is awaiting confirmation. Check that same saved attempt before starting another."
+              : game.rewardsEnabled === false
+                ? "Rewards are disabled. This spin is for game score only."
+                : "The server checks your reward allowance when you spin. A practice result does not award the displayed prize."}
+          </p>
+
+          <button
+            type="button"
+            className="ek-customer-wheel-spin"
+            disabled={busy}
+            onClick={spin}
+          >
+            {busy
+              ? "Spin in progress…"
+              : retryPending
+                ? "Check saved spin"
+                : "Spin the wheel"}
+          </button>
+        </>
       ) : null}
 
       {reveal ? (
@@ -321,21 +428,36 @@ export default function RewardsWheel({
           </span>
 
           <h3>
-            {outcome
-              ? won
-                ? "You won!"
-                : "Your spin is complete"
-              : "Your spin has been recorded"}
+                        {practice
+              ? "Practice result — no prize awarded"
+              : outcome
+                ? won
+                  ? "You won!"
+                  : "Your spin is complete"
+                : "Your spin has been recorded"}
           </h3>
 
           {outcome ? (
             <>
               <strong>{outcome.label}</strong>
-              <p>{prizeType === "Points" ? "EK Points prize" : prizeType}</p>
+                            <p>
+                {practice
+                  ? `Simulated segment: ${prizeType}. Not awarded.`
+                  : prizeType === "Points"
+                    ? "EK Points prize"
+                    : prizeType}
+              </p>
             </>
           ) : null}
 
           {result?.message ? <p>{result.message}</p> : null}
+
+                    <p>
+            <strong>
+              Game score earned: +{score.toLocaleString()}
+            </strong>
+          </p>
+
 
           {Number.isFinite(credited) ? (
             <p>
@@ -345,18 +467,30 @@ export default function RewardsWheel({
             </p>
           ) : null}
 
-          {outcome?.fulfilmentStatus === "Pending" ? (
+                    {!practice && outcome?.fulfilmentStatus === "Pending" ? (
             <p className="ek-customer-wheel-fulfilment">
               Prize delivery pending. Eltham Konnect will
               arrange fulfilment separately.
             </p>
-          ) : outcome?.fulfilmentStatus === "Delivered" ? (
+                    ) : !practice && outcome?.fulfilmentStatus === "Delivered" ? (
             <p className="ek-customer-wheel-fulfilment">
               This prize has been marked delivered.
             </p>
           ) : null}
 
-          <small>Your spin is saved. Refreshing will not give another spin.</small>
+                    <small>
+            This spin is saved. Spin again starts a separate
+            play; reward limits still apply.
+          </small>
+
+          <button
+            type="button"
+            className="ek-customer-wheel-spin"
+            style={{ marginTop: "16px" }}
+            onClick={spinAgain}
+          >
+            Spin again
+          </button>
         </div>
       ) : null}
 
@@ -366,8 +500,11 @@ export default function RewardsWheel({
         </p>
       ) : null}
 
-      {needsRefresh ? (
-        <p>Refresh this page to check your game history before retrying.</p>
+            {!completed && !retryPending && recordedPlay ? (
+        <p className="ek-customer-wheel-rules">
+          Your earlier spins remain saved. You can start a new
+          spin; the server checks its reward eligibility.
+        </p>
       ) : null}
 
       <h4 className="ek-customer-wheel-list-heading">
@@ -416,9 +553,10 @@ export default function RewardsWheel({
       </div>
 
       <p className="ek-customer-wheel-rules">
-        EK Points prizes are subject to the 1,500-point balance
-        limit. Gift cards, phone credit and other prizes are
-        fulfilled separately.
+                Eligible EK Points prizes are subject to the 1,500-point
+        balance limit. Eligible gift cards, phone credit and
+        other prizes are fulfilled separately. Practice results
+        never create a prize delivery.
       </p>
 
       <style>{`
