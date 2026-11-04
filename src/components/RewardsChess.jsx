@@ -44,6 +44,66 @@ export default function RewardsChess({
   const config = game.publicConfig;
   const valid = isValidChessConfig(config);
 
+    const [storageKey] = useState(() => {
+    let ekonId = "customer";
+
+    try {
+      const customer = JSON.parse(
+        localStorage.getItem("ek_customer_data") || "null"
+      );
+      ekonId = customer?.ekonId || ekonId;
+    } catch {
+      // Customer authentication is enforced by the API.
+    }
+
+    return `ek-chess-pending:${ekonId}:${game._id}`;
+  });
+
+  const [recoveredAttempt] = useState(() => {
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem(storageKey) || "null"
+      );
+
+      if (
+        !valid ||
+        saved?.gameId !== String(game._id) ||
+        typeof saved.attemptId !== "string" ||
+        !/^[a-zA-Z0-9_-]{16,100}$/.test(saved.attemptId) ||
+        typeof saved.submittedAnswer !== "string" ||
+        !saved.submittedAnswer.trim() ||
+        saved.submittedAnswer.length > 2000
+      ) {
+        return null;
+      }
+
+      const moves = saved.submittedAnswer.trim().split(/\s+/);
+
+      if (
+        moves.length > config.maxPlies ||
+        !moves.every(
+          (code) => /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(code)
+        )
+      ) {
+        return null;
+      }
+
+      return {
+        gameId: String(game._id),
+        attemptId: saved.attemptId,
+        submittedAnswer: saved.submittedAnswer,
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  const pendingAttemptRef = useRef(recoveredAttempt);
+  const [retryPending, setRetryPending] = useState(
+    Boolean(recoveredAttempt)
+  );
+
+
   const chessRef = useRef(null);
   const movesRef = useRef([]);
   const requestBusyRef = useRef(false);
@@ -56,12 +116,14 @@ export default function RewardsChess({
   const [selected, setSelected] = useState(null);
   const [promotion, setPromotion] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [recorded, setRecorded] = useState(false);
+    const [result, setResult] = useState(null);
+  const play = result?.play;
+  const recorded = Boolean(play);
   const [message, setMessage] = useState("");
   const [engineError, setEngineError] = useState("");
 
   const chess = chessRef.current;
-  const completed = alreadyPlayed || recorded;
+    const completed = recorded;
   const plies = movesRef.current.length;
   const gameOver = chess.isGameOver();
   const limitReached = valid && plies >= config.maxPlies;
@@ -72,8 +134,9 @@ export default function RewardsChess({
 
   const locked =
     !valid ||
-    completed ||
+        completed ||
     busy ||
+    retryPending ||
     gameOver ||
     limitReached ||
     Boolean(engineError);
@@ -108,9 +171,9 @@ export default function RewardsChess({
 
     if (
       !isValidChessConfig(config) ||
-      alreadyPlayed ||
-      recorded ||
+            recorded ||
       busy ||
+      retryPending ||
       engineError ||
       current.turn() !== "b" ||
       current.isGameOver() ||
@@ -148,7 +211,7 @@ export default function RewardsChess({
   }, [
     revision,
     config,
-    alreadyPlayed,
+        retryPending,
     recorded,
     busy,
     engineError,
@@ -156,8 +219,8 @@ export default function RewardsChess({
 
   const applyPlayerMove = (move) => {
     if (
-      requestBusyRef.current ||
-      completed ||
+            requestBusyRef.current ||
+      locked ||
       chessRef.current.turn() !== "w"
     ) {
       return;
@@ -230,16 +293,21 @@ export default function RewardsChess({
     applyPlayerMove(candidates[0]);
   };
 
-  const restart = () => {
+    const restart = () => {
     if (
       requestBusyRef.current ||
-      completed
+      busy ||
+      retryPending ||
+      thinking
     ) {
       return;
     }
 
     chessRef.current = new Chess();
     movesRef.current = [];
+    pendingAttemptRef.current = null;
+
+    setResult(null);
     setSelected(null);
     setPromotion(null);
     setMessage("");
@@ -247,13 +315,30 @@ export default function RewardsChess({
     refresh();
   };
 
+  const clearSavedAttempt = () => {
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // A remaining saved ID safely returns its existing result.
+    }
+  };
+
   const submitWin = async () => {
     if (
       requestBusyRef.current ||
       completed ||
-      !valid ||
-      !chessRef.current.isCheckmate() ||
-      chessRef.current.turn() !== "b"
+      busy ||
+      !valid
+    ) {
+      return;
+    }
+
+    if (
+      !pendingAttemptRef.current &&
+      (
+        !chessRef.current.isCheckmate() ||
+        chessRef.current.turn() !== "b"
+      )
     ) {
       return;
     }
@@ -262,37 +347,89 @@ export default function RewardsChess({
     setBusy(true);
     setMessage("");
 
+    let confirmedPlay = null;
+
     try {
-      const response = await api.post(
-        "/api/rewards-hub-games/play",
-        {
-          gameId: game._id,
+      let attempt = pendingAttemptRef.current;
+
+      if (!attempt) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+
+        attempt = {
+          gameId: String(game._id),
+          attemptId: Array.from(
+            bytes,
+            (byte) => byte.toString(16).padStart(2, "0")
+          ).join(""),
           submittedAnswer: movesRef.current.join(" "),
+        };
+
+        try {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify(attempt)
+          );
+        } catch {
+          setMessage(
+            "This browser could not save your pending win. " +
+            "Allow site storage, then try again."
+          );
+          return;
         }
-      );
 
-      const play = response.data?.data?.play;
-
-      if (!play?._id) {
-        throw new Error("Submission could not be confirmed.");
+        pendingAttemptRef.current = attempt;
       }
 
-      setRecorded(true);
-      setMessage(
-        response.data?.message || "Chess win recorded."
+      setRetryPending(true);
+
+      const response = await api.post(
+        "/api/rewards-hub-games/play",
+        attempt
       );
-      onRecorded?.(play);
-    } catch (error) {
+
+      const data = response.data?.data;
+
+      if (!response.data?.success || !data?.play?._id) {
+        setMessage(
+          "Your win could not be confirmed. Use Check saved " +
+          "win to retry the same attempt."
+        );
+        return;
+      }
+
+      confirmedPlay = data.play;
+      setResult(data);
+
+      clearSavedAttempt();
+      pendingAttemptRef.current = null;
+      setRetryPending(false);
+
       setMessage(
-        error?.response?.data?.message ||
-          "Could not confirm your submission. " +
-          "Refresh your game history before retrying."
+        response.data.message || "Chess win recorded."
+      );
+    } catch (error) {
+      if (error.response?.status === 400) {
+        clearSavedAttempt();
+        pendingAttemptRef.current = null;
+        setRetryPending(false);
+      }
+
+      setMessage(
+        error.response?.data?.message ||
+          "Your win could not be confirmed. Use Check saved " +
+          "win to retry the same attempt."
       );
     } finally {
       requestBusyRef.current = false;
       setBusy(false);
     }
+
+    if (confirmedPlay) {
+      onRecorded?.(confirmedPlay);
+    }
   };
+
 
   if (!valid) {
     return (
@@ -307,6 +444,9 @@ export default function RewardsChess({
 
   if (completed) {
     status = "Your completed play has been recorded.";
+      } else if (retryPending) {
+    status =
+      "A win is awaiting confirmation. Select Check saved win.";
   } else if (engineError) {
     status = engineError;
   } else if (won) {
@@ -328,9 +468,11 @@ export default function RewardsChess({
   return (
     <section className="ek-chess" aria-label="Chess game">
       <p>
-        You are White. Select a piece, then a highlighted
-        destination. Checkmate the computer to qualify for
-        the reward. Draws and losses do not earn points.
+                You are White. Select a piece, then a highlighted
+        destination. Checkmate the computer and submit your
+        win to earn game score. You can play repeatedly;
+        reward limits still apply. Draws and losses do not
+        earn game score or EK Points.
       </p>
 
       <p role="status" aria-live="polite">
@@ -459,28 +601,86 @@ export default function RewardsChess({
         {" · "}White starts at the bottom.
       </p>
 
-      <div className="ek-chess-actions">
-        {!completed ? (
-          <button
-            type="button"
-            onClick={restart}
-            disabled={busy || thinking}
-          >
-            Restart board
-          </button>
-        ) : null}
+            <div className="ek-chess-actions">
+        <button
+          type="button"
+          onClick={restart}
+          disabled={busy || thinking || retryPending}
+        >
+          {completed ? "Play again" : "Restart board"}
+        </button>
 
-        {won && !completed ? (
+        {(won || retryPending) && !completed ? (
           <button
             type="button"
             className="ek-chess-submit"
             onClick={submitWin}
             disabled={busy}
           >
-            {busy ? "Submitting…" : "Submit Chess win"}
+            {busy
+              ? "Submitting…"
+              : retryPending
+                ? "Check saved win"
+                : "Submit Chess win"}
           </button>
         ) : null}
       </div>
+
+      {retryPending ? (
+        <p role="status">
+          Your submitted moves are saved for checking.
+          After refreshing, the board preview resets, but
+          Check saved win retries the original submission.
+          Confirm it before starting another game.
+        </p>
+      ) : !completed && alreadyPlayed ? (
+        <p>
+          Your earlier wins remain saved. This is a new game;
+          reward eligibility is checked when you submit a win.
+        </p>
+      ) : null}
+
+      {completed ? (
+        <div
+          role="status"
+          style={{
+            marginTop: "16px",
+            padding: "18px",
+            border: "1px solid #86efac",
+            borderRadius: "12px",
+            background: "#ecfdf5",
+            color: "#166534",
+            textAlign: "center",
+            lineHeight: 1.7,
+          }}
+        >
+          <strong>Chess win saved!</strong>
+
+          <p>
+            Game score earned: +
+            {(
+              Number.isSafeInteger(play.scoreEarned)
+                ? play.scoreEarned
+                : 0
+            ).toLocaleString()}
+          </p>
+
+          <p>
+            {(
+              Number.isSafeInteger(play.pointsAwarded)
+                ? play.pointsAwarded
+                : 0
+            ).toLocaleString()} EK Points credited
+          </p>
+
+          {play.playMode === "Practice" ? (
+            <p>
+              Practice win — no reward awarded.
+              Your game score still counts.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {message ? (
         <p role="status" aria-live="polite">
