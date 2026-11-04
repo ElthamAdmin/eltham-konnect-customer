@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import api from "../api";
 
 export default function RewardsSudoku({
@@ -23,14 +23,93 @@ export default function RewardsSudoku({
         )
     );
 
-  const [board, setBoard] = useState(() =>
-    validBoard ? original.map((row) => [...row]) : []
-  );
-  const [busy, setBusy] = useState(false);
-  const [recorded, setRecorded] = useState(false);
-  const [message, setMessage] = useState("");
+    const [storageKey] = useState(() => {
+    let ekonId = "customer";
 
-  const locked = alreadyPlayed || recorded || busy;
+    try {
+      const customer = JSON.parse(
+        localStorage.getItem("ek_customer_data") || "null"
+      );
+      ekonId = customer?.ekonId || ekonId;
+    } catch {
+      // Authentication is enforced by the API.
+    }
+
+    return `ek-sudoku-pending:${ekonId}:${game._id}`;
+  });
+
+  const [recoveredAttempt] = useState(() => {
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem(storageKey) || "null"
+      );
+
+      if (
+        !validBoard ||
+        saved?.gameId !== String(game._id) ||
+        typeof saved.attemptId !== "string" ||
+        !/^[a-zA-Z0-9_-]{16,100}$/.test(saved.attemptId) ||
+        typeof saved.submittedAnswer !== "string" ||
+        saved.submittedAnswer.length > 2000
+      ) {
+        return null;
+      }
+
+      const savedBoard = JSON.parse(saved.submittedAnswer);
+
+      if (
+        !Array.isArray(savedBoard) ||
+        savedBoard.length !== 9 ||
+        !savedBoard.every(
+          (row, rowIndex) =>
+            Array.isArray(row) &&
+            row.length === 9 &&
+            row.every(
+              (value, columnIndex) =>
+                Number.isInteger(value) &&
+                value >= 1 &&
+                value <= 9 &&
+                (
+                  original[rowIndex][columnIndex] === 0 ||
+                  original[rowIndex][columnIndex] === value
+                )
+            )
+        )
+      ) {
+        return null;
+      }
+
+      return {
+        gameId: String(game._id),
+        attemptId: saved.attemptId,
+        submittedAnswer: saved.submittedAnswer,
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  const [board, setBoard] = useState(() =>
+    recoveredAttempt
+      ? JSON.parse(recoveredAttempt.submittedAnswer)
+      : validBoard
+        ? original.map((row) => [...row])
+        : []
+  );
+
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null);
+  const [message, setMessage] = useState("");
+  const [retryPending, setRetryPending] = useState(
+    Boolean(recoveredAttempt)
+  );
+
+  const requestBusyRef = useRef(false);
+  const pendingAttemptRef = useRef(recoveredAttempt);
+
+  const play = result?.play;
+  const recorded = Boolean(play);
+  const locked = recorded || busy || retryPending;
 
   if (!validBoard) {
     return (
@@ -58,55 +137,139 @@ export default function RewardsSudoku({
     setMessage("");
   };
 
-  const submit = async () => {
-    if (locked) return;
+    const clearSavedAttempt = () => {
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // Retrying a remaining saved ID returns its existing result.
+    }
+  };
 
-    if (board.some((row) => row.some((value) => value === 0))) {
+  const submit = async () => {
+    if (recorded || busy || requestBusyRef.current) return;
+
+    if (
+      !pendingAttemptRef.current &&
+      board.some((row) => row.some((value) => value === 0))
+    ) {
       setMessage("Fill every empty square before submitting.");
       return;
     }
 
+    requestBusyRef.current = true;
     setBusy(true);
     setMessage("");
 
+    let confirmedPlay = null;
+
     try {
-      const response = await api.post(
-        "/api/rewards-hub-games/play",
-        {
-          gameId: game._id,
+      let attempt = pendingAttemptRef.current;
+
+      if (!attempt) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+
+        attempt = {
+          gameId: String(game._id),
+          attemptId: Array.from(
+            bytes,
+            (byte) => byte.toString(16).padStart(2, "0")
+          ).join(""),
           submittedAnswer: JSON.stringify(board),
+        };
+
+        try {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify(attempt)
+          );
+        } catch {
+          setMessage(
+            "This browser could not save your pending puzzle. " +
+            "Allow site storage, then try again."
+          );
+          return;
         }
-      );
 
-      const play = response.data?.data?.play;
-
-      if (!response.data?.success || !play) {
-        throw new Error(
-          "Could not confirm completion. Refresh your game history before retrying."
-        );
+        pendingAttemptRef.current = attempt;
       }
 
-      setRecorded(true);
+      setRetryPending(true);
+
+      const response = await api.post(
+        "/api/rewards-hub-games/play",
+        attempt
+      );
+
+      const data = response.data?.data;
+
+      if (!response.data?.success || !data?.play?._id) {
+        setMessage(
+          "Completion could not be confirmed. Use Check saved " +
+          "puzzle to retry the same attempt."
+        );
+        return;
+      }
+
+      confirmedPlay = data.play;
+      setResult(data);
+
+      clearSavedAttempt();
+      pendingAttemptRef.current = null;
+      setRetryPending(false);
+
       setMessage(
         response.data.message || "Sudoku completed successfully."
       );
-      onRecorded?.(play);
     } catch (error) {
+      if (error.response?.status === 400) {
+        // Invalid boards are not recorded. Allow corrections.
+        clearSavedAttempt();
+        pendingAttemptRef.current = null;
+        setRetryPending(false);
+      }
+
       setMessage(
         error.response?.data?.message ||
-          error.message ||
-          "Could not submit the board."
+          "Completion could not be confirmed. Use Check saved " +
+          "puzzle to retry the same attempt."
       );
     } finally {
+      requestBusyRef.current = false;
       setBusy(false);
+    }
+
+    if (confirmedPlay) {
+      onRecorded?.(confirmedPlay);
     }
   };
 
   const reset = () => {
-    if (locked) return;
+    if (locked || requestBusyRef.current) return;
+
     setBoard(original.map((row) => [...row]));
     setMessage("");
   };
+
+  const playAgain = () => {
+    if (busy || retryPending || requestBusyRef.current) return;
+
+    setBoard(original.map((row) => [...row]));
+    setResult(null);
+    setMessage("");
+    pendingAttemptRef.current = null;
+  };
+
+  const score =
+    Number.isSafeInteger(play?.scoreEarned)
+      ? play.scoreEarned
+      : 0;
+
+  const credited =
+    Number.isSafeInteger(play?.pointsAwarded)
+      ? play.pointsAwarded
+      : 0;
+
 
   return (
     <section className="ek-sudoku">
@@ -176,9 +339,11 @@ export default function RewardsSudoku({
       `}</style>
 
       <p style={{ fontSize: "14px", lineHeight: 1.6 }}>
-        {game.publicConfig.rules}
-        {" "}Select an empty square and enter a number.
-        Clear a square with Backspace or Delete.
+                Fill each row, column and 3×3 box with the numbers
+        1–9 without repeating a number. Select an empty square
+        to enter a number; use Backspace or Delete to clear it.
+        Complete the puzzle again to earn more game score.
+        Reward limits still apply.
       </p>
 
       <div
@@ -230,29 +395,84 @@ export default function RewardsSudoku({
         )}
       </div>
 
-      {alreadyPlayed || recorded ? (
-        <p style={{ fontWeight: "bold", textAlign: "center" }}>
-          Your play has been recorded.
-        </p>
-      ) : (
-        <div className="ek-sudoku-actions">
-          <button
-            type="button"
-            disabled={busy}
-            onClick={reset}
-          >
-            Reset board
-          </button>
-          <button
-            type="button"
-            className="ek-sudoku-submit"
-            disabled={busy}
-            onClick={submit}
-          >
-            {busy ? "Checking…" : "Submit completed puzzle"}
-          </button>
+            {recorded ? (
+        <div
+          role="status"
+          style={{
+            padding: "18px",
+            border: "1px solid #86efac",
+            borderRadius: "12px",
+            backgroundColor: "#ecfdf5",
+            textAlign: "center",
+            lineHeight: 1.7,
+          }}
+        >
+          <strong>Puzzle completed!</strong>
+
+          <p>
+            Game score earned: +{score.toLocaleString()}
+          </p>
+
+          <p>
+            {credited.toLocaleString()} EK Points credited
+          </p>
+
+          {play.playMode === "Practice" ? (
+            <p>
+              Practice completion — no reward awarded.
+              Your game score still counts.
+            </p>
+          ) : null}
+
+          <div className="ek-sudoku-actions">
+            <button
+              type="button"
+              className="ek-sudoku-submit"
+              onClick={playAgain}
+            >
+              Play again
+            </button>
+          </div>
         </div>
+      ) : (
+        <>
+          {retryPending ? (
+            <p role="status" style={{ lineHeight: 1.6 }}>
+              A puzzle is awaiting confirmation. Your board
+              is locked until you check that saved attempt.
+            </p>
+          ) : alreadyPlayed ? (
+            <p style={{ lineHeight: 1.6 }}>
+              Your earlier plays remain saved. This is a new
+              attempt; reward eligibility is checked on submission.
+            </p>
+          ) : null}
+
+          <div className="ek-sudoku-actions">
+            <button
+              type="button"
+              disabled={busy || retryPending}
+              onClick={reset}
+            >
+              Reset board
+            </button>
+
+            <button
+              type="button"
+              className="ek-sudoku-submit"
+              disabled={busy}
+              onClick={submit}
+            >
+              {busy
+                ? "Checking…"
+                : retryPending
+                  ? "Check saved puzzle"
+                  : "Submit completed puzzle"}
+            </button>
+          </div>
+        </>
       )}
+
 
       {message && (
         <p
