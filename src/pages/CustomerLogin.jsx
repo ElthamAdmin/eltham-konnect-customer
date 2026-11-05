@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
+import CustomerLoginAppearance from "../components/CustomerLoginAppearance";
 
 function CustomerLogin() {
   const navigate = useNavigate();
@@ -134,8 +135,8 @@ function CustomerLogin() {
     }
   };
 
-  return (
-    <div className="ek-login-page">
+    return (
+    <CustomerLoginAppearance>
       <div className="ek-login-mobile-header">
   <button type="button" className="ek-login-mobile-menu">☰</button>
 
@@ -301,7 +302,6 @@ function CustomerLogin() {
                 value={loginForm.ekonId}
                 onChange={handleLoginChange}
                 className="ek-login-input"
-                autoFocus
                 autoComplete="username"
               />
             </div>
@@ -488,10 +488,10 @@ function CustomerLogin() {
             <p className="ek-login-footer-text">
               Don’t have an account? <Link to="/signup">Create one</Link>
             </p>
-          </div>
+                    </div>
         </div>
       </div>
-    </div>
+    </CustomerLoginAppearance>
   );
 }
 
