@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import api from "../api";
+import PreAlertInvoiceButton from "../components/PreAlertInvoiceButton";
 
 function PreAlerts({ customer }) {
   const [preAlerts, setPreAlerts] = useState([]);
@@ -8,6 +9,9 @@ function PreAlerts({ customer }) {
     const [selectedInvoiceFile, setSelectedInvoiceFile] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+    const submissionInFlight = useRef(false);
+  const invoiceInputRef = useRef(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     trackingNumber: "",
@@ -42,19 +46,38 @@ function PreAlerts({ customer }) {
     });
   };
 
-  const handleSubmit = async () => {
-    try {
-      if (!formData.trackingNumber) {
-        alert("Please enter the tracking number.");
-        return;
-      }
+    const handleSubmit = async () => {
+    if (submissionInFlight.current) return;
 
+    const trackingNumber = formData.trackingNumber.trim();
+    const estimatedWeight = Number(formData.estimatedWeight || 0);
+
+    if (!trackingNumber) {
+      alert("Please enter the tracking number.");
+      return;
+    }
+
+    if (!Number.isFinite(estimatedWeight) || estimatedWeight < 0) {
+      alert("Estimated weight must be zero or greater.");
+      return;
+    }
+
+    if (selectedInvoiceFile?.size > 10 * 1024 * 1024) {
+      alert("The invoice must be 10 MB or smaller.");
+      return;
+    }
+
+    submissionInFlight.current = true;
+    setSubmitting(true);
+
+    try {
       const payload = new FormData();
-      payload.append("trackingNumber", formData.trackingNumber);
+
+      payload.append("trackingNumber", trackingNumber);
       payload.append("courier", formData.courier);
       payload.append("storeName", formData.storeName);
       payload.append("itemDescription", formData.itemDescription);
-      payload.append("estimatedWeight", Number(formData.estimatedWeight || 0));
+      payload.append("estimatedWeight", String(estimatedWeight));
       payload.append("notes", formData.notes);
 
       if (selectedInvoiceFile) {
@@ -63,7 +86,11 @@ function PreAlerts({ customer }) {
 
       const res = await api.post("/api/pre-alerts", payload);
 
-      alert(res.data.message);
+      if (!res.data?.success || !res.data?.data?.preAlertNumber) {
+        throw new Error(
+          "Could not confirm submission. Refresh My Pre-Alerts before retrying."
+        );
+      }
 
       setFormData({
         trackingNumber: "",
@@ -75,12 +102,26 @@ function PreAlerts({ customer }) {
       });
 
       setSelectedInvoiceFile(null);
+
+      if (invoiceInputRef.current) {
+        invoiceInputRef.current.value = "";
+      }
+
+      alert(res.data.message || "Pre-alert submitted successfully.");
       await fetchPreAlerts();
     } catch (error) {
       console.error("Error submitting pre-alert:", error);
-      alert(error?.response?.data?.message || "Could not submit pre-alert.");
+
+      alert(
+        error?.response?.data?.message ||
+          "Could not confirm submission. Refresh My Pre-Alerts before retrying."
+      );
+    } finally {
+      submissionInFlight.current = false;
+      setSubmitting(false);
     }
   };
+
 
     const filteredPreAlerts = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -339,9 +380,11 @@ function PreAlerts({ customer }) {
               Upload Invoice (Optional)
             </label>
 
-            <input
+                        <input
+              ref={invoiceInputRef}
               type="file"
               accept=".pdf,.jpg,.jpeg,.png,.webp"
+              disabled={submitting}
               onChange={(e) => setSelectedInvoiceFile(e.target.files?.[0] || null)}
               style={{ padding: "10px", width: "100%" }}
             />
@@ -363,6 +406,7 @@ function PreAlerts({ customer }) {
 
         <button
           onClick={handleSubmit}
+                    disabled={submitting}
           style={{
             marginTop: "18px",
             backgroundColor: "#0B3D91",
@@ -376,7 +420,7 @@ function PreAlerts({ customer }) {
             maxWidth: "220px",
           }}
         >
-          Submit Pre-Alert
+                    {submitting ? "Submitting…" : "Submit Pre-Alert"}
         </button>
       </div>
 
@@ -492,19 +536,10 @@ function PreAlerts({ customer }) {
                         <td>{alert.itemDescription}</td>
                         <td>{alert.estimatedWeight}</td>
                         <td>
-                          {alert.invoiceFilePath ? (
-                            <a
-                              href={`https://eltham-konnect-backend-c2sf.onrender.com${alert.invoiceFilePath}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={{
-                                color: "#0B3D91",
-                                fontWeight: "bold",
-                                textDecoration: "none",
-                              }}
-                            >
-                              View Invoice
-                            </a>
+                                                    {alert.invoiceFilePath ? (
+                            <PreAlertInvoiceButton
+                              preAlertNumber={alert.preAlertNumber}
+                            />
                           ) : (
                             "-"
                           )}
@@ -525,7 +560,7 @@ function PreAlerts({ customer }) {
 
             <div className="prealerts-mobile-list">
               {filteredPreAlerts.length > 0 ? (
-                filteredPreAlerts.map((alert) => (
+                                paginatedPreAlerts.map((alert) => (
                   <div
                     key={alert._id}
                     style={{
@@ -574,19 +609,10 @@ function PreAlerts({ customer }) {
                       <div>
                         <div style={{ fontSize: "12px", color: "#64748b" }}>Invoice</div>
                         <div>
-                          {alert.invoiceFilePath ? (
-                            <a
-                              href={`https://eltham-konnect-backend-c2sf.onrender.com${alert.invoiceFilePath}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={{
-                                color: "#0B3D91",
-                                fontWeight: "bold",
-                                textDecoration: "none",
-                              }}
-                            >
-                              View Invoice
-                            </a>
+                                                    {alert.invoiceFilePath ? (
+                            <PreAlertInvoiceButton
+                              preAlertNumber={alert.preAlertNumber}
+                            />
                           ) : (
                             "-"
                           )}
