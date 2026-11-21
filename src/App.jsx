@@ -22,6 +22,7 @@ Sparkles,
 X,
 } from "lucide-react";
 import api from "./api";
+import { disablePackagePush } from "./utils/packagePush";
 import CustomerNotificationBell from "./components/CustomerNotificationBell";
 
 import CustomerLogin from "./pages/CustomerLogin";
@@ -113,15 +114,31 @@ function CustomerPortalLayout() {
 }, [customer?.name]);
 
 if (!customer) {
-  return <Navigate to="/login" replace />;
+  return (
+    <Navigate
+      to="/login"
+      replace
+      state={location.pathname === "/my-packages" ? { returnTo: "/my-packages" } : null}
+    />
+  );
 }
 
 const hasAcceptedPolicies =
   customer.termsAccepted && customer.privacyAccepted;
 
   if (!hasAcceptedPolicies && location.pathname !== "/policy-acceptance") {
-    return <Navigate to="/policy-acceptance" replace />;
-  }
+  return (
+    <Navigate
+      to="/policy-acceptance"
+      replace
+      state={
+        location.pathname === "/my-packages"
+          ? { returnTo: "/my-packages" }
+          : null
+      }
+    />
+  );
+}
 
   const navItems = [
   {
@@ -224,11 +241,17 @@ const bottomItems = [
   },
 ];
 
-  const logout = () => {
+  const logout = async () => {
+  try {
+    await disablePackagePush();
+  } catch (error) {
+    console.warn("Could not confirm push cleanup during logout.", error.name);
+  } finally {
     localStorage.removeItem("ek_customer_token");
     localStorage.removeItem("ek_customer_data");
     setCustomer(null);
-  };
+  }
+};
 
   const navItemStyle = (active) => ({
   color: WHITE,
@@ -265,14 +288,21 @@ const bottomItems = [
       <Route path="/upload-invoice" element={<UploadInvoice />} />
       <Route path="/profile-settings" element={<ProfileSettings />} />
       <Route
-        path="/policy-acceptance"
-        element={
-          <PolicyAcceptance
-            customer={customer}
-            onAccept={(updatedCustomer) => setCustomer(updatedCustomer)}
-          />
-        }
+  path="/policy-acceptance"
+  element={
+    hasAcceptedPolicies ? (
+      <Navigate
+        to={location.state?.returnTo === "/my-packages" ? "/my-packages" : "/"}
+        replace
       />
+    ) : (
+      <PolicyAcceptance
+        customer={customer}
+        onAccept={(updatedCustomer) => setCustomer(updatedCustomer)}
+      />
+    )
+  }
+/>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

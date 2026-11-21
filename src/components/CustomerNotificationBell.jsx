@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Bell, X } from "lucide-react";
 import api from "../api";
 
+import {
+  supportsPackagePush,
+  enablePackagePush,
+  disablePackagePush,
+} from "../utils/packagePush";
+
 export default function CustomerNotificationBell({ customer, light = false }) {
   const rootRef = useRef(null);
   const buttonRef = useRef(null);
@@ -13,6 +19,33 @@ export default function CustomerNotificationBell({ customer, light = false }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+const [pushMessage, setPushMessage] = useState("");
+
+const changePackagePush = async (enable) => {
+  if (pushBusy) return;
+
+  setPushBusy(true);
+  setPushMessage("");
+
+  try {
+    if (enable) {
+      await enablePackagePush();
+      setPushMessage("Package notifications are on for this device.");
+    } else {
+      await disablePackagePush();
+      setPushMessage("Package notifications are off for this device.");
+    }
+  } catch (error) {
+    setPushMessage(
+      error.response?.data?.message ||
+      error.message ||
+      "Could not update package notifications. Please try again."
+    );
+  } finally {
+    setPushBusy(false);
+  }
+};
   const [hidden, setHidden] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
@@ -268,6 +301,39 @@ export default function CustomerNotificationBell({ customer, light = false }) {
                 <X size={18} aria-hidden="true" />
               </button>
             </div>
+
+            <div style={{ marginTop: "12px" }}>
+  {supportsPackagePush() ? (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+      <button
+        type="button"
+        style={actionStyle}
+        disabled={pushBusy}
+        onClick={() => changePackagePush(true)}
+      >
+        Enable package notifications
+      </button>
+
+      <button
+        type="button"
+        style={actionStyle}
+        disabled={pushBusy}
+        onClick={() => changePackagePush(false)}
+      >
+        Turn off on this device
+      </button>
+    </div>
+  ) : (
+    <p style={{ margin: 0, fontSize: "13px" }}>
+      Phone alerts are unavailable here. On iPhone, open Eltham Konnect
+      from the Home Screen on iOS 16.4 or later.
+    </p>
+  )}
+
+  <div role="status" style={{ marginTop: "4px", fontSize: "13px" }}>
+    {pushBusy ? "Updating package notifications…" : pushMessage}
+  </div>
+</div>
 
             <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
               <button

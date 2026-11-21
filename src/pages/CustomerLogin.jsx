@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../api";
 import CustomerLoginAppearance from "../components/CustomerLoginAppearance";
 
 function CustomerLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [loginForm, setLoginForm] = useState({
     ekonId: "",
@@ -56,7 +57,11 @@ function CustomerLogin() {
       localStorage.setItem("ek_customer_token", res.data.token);
       localStorage.setItem("ek_customer_data", JSON.stringify(res.data.data));
 
-      navigate("/");
+      if (location.state?.returnTo === "/my-packages") {
+  navigate("/my-packages", { replace: true });
+} else {
+  navigate("/");
+}
     } catch (error) {
       console.error("Customer login error:", error);
       alert(error?.response?.data?.message || "Customer login failed.");
