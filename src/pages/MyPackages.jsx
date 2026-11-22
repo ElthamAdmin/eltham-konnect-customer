@@ -374,6 +374,7 @@ useEffect(() => {
                 <thead style={{ backgroundColor: "#eef4ff" }}>
                   <tr>
                     <th>Tracking Number</th>
+                    <th>Description</th>
                     <th>Courier</th>
                     <th>Weight</th>
                     <th>Estimated Charge</th>
@@ -391,6 +392,9 @@ useEffect(() => {
                       <tr key={pkg._id || index} style={{ backgroundColor: WHITE }}>
                         <td style={{ fontWeight: "700", color: TEXT, wordBreak: "break-word" }}>
                           {pkg.trackingNumber}
+                        </td>
+                                                <td style={{ overflowWrap: "anywhere", maxWidth: "280px" }}>
+                          {pkg.itemDescription?.trim() || "Not available"}
                         </td>
                         <td>{pkg.courier || "-"}</td>
                         <td>{pkg.weight}</td>
@@ -421,7 +425,7 @@ useEffect(() => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="9" style={{ textAlign: "center", color: MUTED, padding: "20px" }}>
+                      <td colSpan="10" style={{ textAlign: "center", color: MUTED, padding: "20px" }}>
                         No packages found.
                       </td>
                     </tr>
@@ -460,6 +464,15 @@ useEffect(() => {
                         marginBottom: "14px",
                       }}
                     >
+                                            <div>
+                        <div style={{ fontSize: "12px", color: MUTED }}>
+                          Description
+                        </div>
+                        <div style={{ overflowWrap: "anywhere" }}>
+                          {pkg.itemDescription?.trim() || "Not available"}
+                        </div>
+                      </div>
+
                       <div>
                         <div style={{ fontSize: "12px", color: MUTED }}>Courier</div>
                         <div>{pkg.courier || "-"}</div>
