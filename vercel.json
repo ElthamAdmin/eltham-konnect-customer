@@ -1,8 +1,19 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/((?!sitemap.xml|robots.txt).*)",
-      "destination": "/index.html"
+      "src": "^/manifest\\.webmanifest$",
+      "dest": "/api/seasonal-branding"
+    },
+    {
+      "src": "^/seasonal-apple-icon\\.png$",
+      "dest": "/api/seasonal-branding?view=apple"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "^/(?!api/|icons/|assets/|sitemap\\.xml$|robots\\.txt$|sw\\.js$).*$",
+      "dest": "/index.html"
     }
   ]
 }

@@ -46,6 +46,67 @@ import MyMarketplaceOrders from "./pages/MyMarketplaceOrders";
 
 function CustomerPortalLayout() {
   const location = useLocation();
+  const [seasonalLogo, setSeasonalLogo] = useState("");
+
+useEffect(() => {
+  let active = true;
+  let timer;
+  let request;
+
+  const refreshBranding = async () => {
+    clearTimeout(timer);
+    request?.abort();
+
+    const controller = new AbortController();
+    request = controller;
+    let nextCheckMs = 5 * 60 * 1000;
+
+    try {
+      const response = await api.get("/api/settings/seasonal-branding/public", {
+        signal: controller.signal,
+        timeout: 8000,
+      });
+
+      if (!active || controller.signal.aborted) return;
+
+      const data = response.data?.data;
+      const icon = data?.campaign?.icons?.["192"];
+      setSeasonalLogo(
+        typeof icon === "string" && icon.startsWith("https://res.cloudinary.com/")
+          ? icon
+          : ""
+      );
+
+      // Refresh at the campaign boundary using EKOS server time.
+      if (data?.nextChangeAt && data?.serverTime) {
+        const untilChange = Date.parse(data.nextChangeAt) - Date.parse(data.serverTime);
+        if (Number.isFinite(untilChange)) {
+          nextCheckMs = Math.min(nextCheckMs, Math.max(1000, untilChange + 250));
+        }
+      }
+    } catch {
+      if (active && !controller.signal.aborted) setSeasonalLogo("");
+    } finally {
+      if (active && !controller.signal.aborted) {
+        timer = window.setTimeout(refreshBranding, nextCheckMs);
+      }
+    }
+  };
+
+  const onVisible = () => {
+    if (document.visibilityState === "visible") refreshBranding();
+  };
+
+  refreshBranding();
+  document.addEventListener("visibilitychange", onVisible);
+
+  return () => {
+    active = false;
+    clearTimeout(timer);
+    request?.abort();
+    document.removeEventListener("visibilitychange", onVisible);
+  };
+}, []);
   const [customer, setCustomer] = useState(() => {
     const saved = localStorage.getItem("ek_customer_data");
     return saved ? JSON.parse(saved) : null;
@@ -335,7 +396,8 @@ const bottomItems = [
 
           <div style={{ flex: 1, minWidth: 0 }}>
   <img
-    src="/ek-logo.png"
+    src={seasonalLogo || "/ek-logo.png"}
+onError={seasonalLogo ? () => setSeasonalLogo("") : undefined}
     alt="Eltham Konnect"
     style={{
       display: "block",
@@ -424,7 +486,8 @@ const bottomItems = [
   }}
 >
   <img
-    src="/ek-logo.png"
+    src={seasonalLogo || "/ek-logo.png"}
+onError={seasonalLogo ? () => setSeasonalLogo("") : undefined}
     alt="Eltham Konnect"
     style={{
       width: "190px",
@@ -529,7 +592,8 @@ return (
   }}
 >
   <img
-    src="/ek-logo.png"
+    src={seasonalLogo || "/ek-logo.png"}
+onError={seasonalLogo ? () => setSeasonalLogo("") : undefined}
     alt="Eltham Konnect"
     style={{
       display: "block",
