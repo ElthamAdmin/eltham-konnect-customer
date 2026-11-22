@@ -396,8 +396,7 @@ const bottomItems = [
 
           <div style={{ flex: 1, minWidth: 0 }}>
   <img
-    src={seasonalLogo || "/ek-logo.png"}
-onError={seasonalLogo ? () => setSeasonalLogo("") : undefined}
+    src="/ek-logo.png"
     alt="Eltham Konnect"
     style={{
       display: "block",
@@ -486,8 +485,7 @@ onError={seasonalLogo ? () => setSeasonalLogo("") : undefined}
   }}
 >
   <img
-    src={seasonalLogo || "/ek-logo.png"}
-onError={seasonalLogo ? () => setSeasonalLogo("") : undefined}
+    src="/ek-logo.png"
     alt="Eltham Konnect"
     style={{
       width: "190px",
@@ -592,8 +590,7 @@ return (
   }}
 >
   <img
-    src={seasonalLogo || "/ek-logo.png"}
-onError={seasonalLogo ? () => setSeasonalLogo("") : undefined}
+    src="/ek-logo.png"
     alt="Eltham Konnect"
     style={{
       display: "block",
